@@ -1,11 +1,14 @@
 import json
+import os
 import re
+import threading
 import time
-from pathlib import Path
 from enrichers.text_hygiene import improve_summary_text
+from config.paths import STORAGE_DIR
 
-STATE_PATH = Path("storage/event_cluster_state.json")
+STATE_PATH = STORAGE_DIR / "event_cluster_state.json"
 COOLDOWN_SECONDS = 1800
+_STATE_LOCK = threading.RLock()
 
 
 KEYWORDS = {
@@ -53,14 +56,22 @@ def _load_state():
     if not STATE_PATH.exists():
         return {}
     try:
-        return json.loads(STATE_PATH.read_text(encoding="utf-8"))
+        with _STATE_LOCK:
+            return json.loads(STATE_PATH.read_text(encoding="utf-8"))
     except Exception:
         return {}
 
 
 def _save_state(data):
-    STATE_PATH.parent.mkdir(exist_ok=True)
-    STATE_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    payload = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+    tmp_path = STATE_PATH.with_name(f".{STATE_PATH.name}.tmp")
+    with _STATE_LOCK:
+        STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path.write_text(payload, encoding="utf-8")
+        with tmp_path.open("r+", encoding="utf-8") as fh:
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp_path, STATE_PATH)
 
 
 def _score_of(item):
@@ -136,6 +147,7 @@ Teyit: {len(sources)} kaynak
 Kaynak:
 {url}
 """.strip()
+
 
 def group_items(items):
     groups = {}

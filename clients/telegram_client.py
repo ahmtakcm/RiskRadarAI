@@ -1,4 +1,5 @@
 import logging
+import requests
 
 from clients.http_client import http_client
 from config.settings import settings
@@ -82,9 +83,35 @@ class TelegramClient:
             "text": safe_text,
             "disable_web_page_preview": True,
         }
-        response = http_client.post_form(url, payload)
-        print('TELEGRAM_SEND_STATUS:', getattr(response, 'status_code', None))
-        print('TELEGRAM_SEND_BODY:', getattr(response, 'text', '')[:500])
+        try:
+            response = http_client.post_form(url, payload)
+        except requests.HTTPError as exc:
+            response = exc.response
+            retry_after = None
+            body = ""
+            if response is not None:
+                try:
+                    body_json = response.json()
+                    retry_after = (body_json.get("parameters") or {}).get("retry_after")
+                    body = str(body_json)[:500]
+                except Exception:
+                    body = getattr(response, "text", "")[:500]
+            if retry_after:
+                logger.warning("Telegram rate limit verdi | retry_after=%s sn | body=%s", retry_after, body)
+            else:
+                logger.warning(
+                    "Telegram mesajı gönderilemedi | status=%s | body=%s",
+                    getattr(response, "status_code", None),
+                    body,
+                )
+            raise
+
+        logger.info(
+            "Telegram mesajı gönderildi | status=%s | chars=%s | chat_id=%s",
+            getattr(response, "status_code", None),
+            len(safe_text),
+            settings.chat_id,
+        )
 
     def get_updates(self, offset: int | None = None):
         url = f"https://api.telegram.org/bot{settings.bot_token}/getUpdates"
