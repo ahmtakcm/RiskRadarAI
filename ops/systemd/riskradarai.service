@@ -1,0 +1,21 @@
+[Unit]
+Description=RiskRadarAI news and risk alert bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ahmtakcm
+Group=ahmtakcm
+WorkingDirectory=/home/ahmtakcm/RiskRadarAI
+EnvironmentFile=/home/ahmtakcm/RiskRadarAI/.env
+ExecStart=/home/ahmtakcm/RiskRadarAI/venv/bin/python -u /home/ahmtakcm/RiskRadarAI/main.py
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+TimeoutStopSec=30
+StandardOutput=append:/home/ahmtakcm/RiskRadarAI/logs/systemd.log
+StandardError=append:/home/ahmtakcm/RiskRadarAI/logs/systemd.err.log
+
+[Install]
+WantedBy=multi-user.target
