@@ -94,3 +94,7 @@ Bu proje Groq OpenAI-uyumlu API ile çalışabilir. `.env` içine `GROQ_API_KEY`
 
 ## Resmî kaynak kırmızı alarm
 - CENTCOM, Truth Social, Iran MFA, IRNA, liderlik ve cumhurbaşkanlığı gibi resmî kaynaklarda keyword eşleşirse alarm seviyesi sertleşir.
+
+
+
+test
