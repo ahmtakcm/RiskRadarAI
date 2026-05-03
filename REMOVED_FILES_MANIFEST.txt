@@ -1,0 +1,17 @@
+Temiz paketten çıkarılan dosyalar:
+PATCH_NOTES_GITHUB_MODELS.txt
+PATCH_NOTES_SIGNAL_QUALITY.txt
+PATCH_NOTES_SOURCE_REFRESH.txt
+PATCH_NOTES_STALE_TUNING.txt
+PATCH_NOTES_SUMMARY_DIGEST_STRICT.txt
+apply_patch_update.sh
+apply_summary_digest_patch.ps1
+clients/http_client.py.pre_centcom403
+core/news_log.py.bak_20260415_094237
+core/news_log.py.bak_20260415_094405
+fetchers/feed_fetcher.py.pre_centcom403
+fetchers/html_fetcher.py.before_backup_restore
+fetchers/html_fetcher.py.before_centcom_only_patch
+fetchers/html_fetcher.py.pre_centcom403
+storage/runtime_state.json
+storage/source_health.json

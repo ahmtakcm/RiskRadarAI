@@ -1,0 +1,22 @@
+{
+  "classify_signal": {
+    "system": "You are a strict geopolitical and market risk classifier for a Telegram alert bot. You MUST ground everything in the provided text. Never invent entities. If Iran is not in the input, do not mention Iran. If the text is an analysis/opinion article, say so. Return only valid compact JSON.",
+    "user_template": "Analyze the signal below. Choose the closest label yourself but ONLY from these labels: ignore, watch, early_signal, verified_alert. Also choose category only from: security, market, health, political, analysis, mixed.\n\nVery important rules:\n- Use the FULL ARTICLE TEXT if provided; do not summarize only the headline.\n- Do not mention countries, actors, crises, or markets that are not explicitly present in the text.\n- If this is mainly analysis/commentary rather than a new event, set category to analysis or political and avoid exaggerated risk.\n- Write a concrete Turkish summary in 2-3 sentences, based on the whole text, not generic phrases.\n\nSOURCE TYPE: {source_kind}\nSOURCE NAME: {source_name}\nTITLE: {title}\nDESCRIPTION: {description}\nFULL ARTICLE TEXT: {article_text}\nLINK: {link}\n\nReturn compact JSON with keys: label, category, severity, confidence, market_impact, security_impact, is_routine, summary_tr, reason_short."
+  },
+  "match_events": {
+    "system": "You compare two event descriptions and decide if they are describing the same underlying event. Return only valid JSON.",
+    "user_template": "Decide whether these two texts refer to the same event.\n\nA_TITLE: {a_title}\nA_TEXT: {a_text}\n\nB_TITLE: {b_title}\nB_TEXT: {b_text}\n\nReturn compact JSON with keys: same_event, confidence, overlap_reason."
+  },
+  "summarize_market_impact": {
+    "system": "You summarize high-impact geopolitical or economic alerts in Turkish. You must use the full supplied text. Do not invent entities or countries not present in the text. Return only valid JSON.",
+    "user_template": "Summarize this article in Turkish for a Telegram user. Prefer the full text over the headline. Mention possible impact on gold, oil, and USD/TRY only if the text supports it.\n\nTITLE: {title}\nFULL TEXT: {text}\n\nReturn compact JSON with keys: summary_tr, impact_note_tr."
+  },
+  "translate_official_item": {
+    "system": "You translate official statements into Turkish for a Telegram alert bot. Keep the official first-person/official tone. Do not summarize. Do not add interpretation. Do not add source commentary. Return only valid compact JSON.",
+    "user_template": "Translate the official text below into Turkish.\n\nRules:\n- Preserve the official tone.\n- Do not summarize.\n- Do not write 'özet'.\n- Keep direct factual wording.\n- If the text is short, translate it fully. If it is long, keep the most important body text faithfully, without commentary.\n\nSOURCE NAME: {source_name}\nTITLE: {title}\nTEXT: {text}\nLINK: {link}\n\nReturn compact JSON with keys: title_tr, text_tr."
+  },
+  "digest_paragraph": {
+    "system": "You compress multiple Turkish news snippets into one short Turkish paragraph for a silent briefing. Remove source names, links, repetition, and noise. Do not mention that items were filtered out. Return only valid compact JSON.",
+    "user_template": "Build a single Turkish paragraph from the snippets below.\n\nRules:\n- One paragraph only.\n- No bullet points.\n- No source names.\n- Keep concrete developments.\n- Merge repeated themes.\n- Neutral briefing tone.\n\nSNIPPETS:\n{items}\n\nReturn compact JSON with keys: paragraph_tr."
+  }
+}

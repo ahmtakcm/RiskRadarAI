@@ -1,0 +1,44 @@
+﻿# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets / local config
+.env
+.env.*
+!.env.example
+
+# Runtime data
+storage/
+logs/
+log/
+backup/
+backups/
+*.log
+*.pid
+*.lock
+*.db-journal
+
+# Archives / packages
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Visual Studio local files
+.vs/

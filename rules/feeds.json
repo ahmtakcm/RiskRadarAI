@@ -1,0 +1,503 @@
+[
+  {
+    "name": "NYT World",
+    "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+    "kind": "news",
+    "enabled": true,
+    "priority": 7
+  },
+  {
+    "name": "BBC World",
+    "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "kind": "news",
+    "enabled": true,
+    "priority": 7
+  },
+  {
+    "name": "Al Jazeera",
+    "url": "https://www.aljazeera.com/xml/rss/all.xml",
+    "kind": "news",
+    "enabled": true,
+    "priority": 7,
+    "source_class": "strong_media",
+    "source_country": "QA",
+    "source_family": "regional_tv",
+    "stale_minutes": 360,
+    "region_tags": [
+      "middle_east",
+      "global"
+    ],
+    "verification_group": "gulf_media_cluster",
+    "access_risk": "low",
+    "notes": "Bölgesel ve küresel güçlü medya; liveblog ve sıcak gelişme yoğun."
+  },
+  {
+    "name": "Anadolu Ajansı",
+    "url": "https://www.aa.com.tr/tr/rss/default?cat=guncel",
+    "kind": "news",
+    "enabled": true,
+    "priority": 8,
+    "source_class": "strong_media",
+    "source_country": "TR",
+    "source_family": "agency",
+    "stale_minutes": 360,
+    "region_tags": [
+      "turkiye",
+      "global"
+    ],
+    "verification_group": "tr_mainstream_cluster",
+    "access_risk": "low",
+    "notes": "Ana Türkçe ajans akışı; hızlı ve geniş kapsama."
+  },
+  {
+    "name": "Türkiye MFA RSS",
+    "url": "https://www.mfa.gov.tr/rss.en.mfa",
+    "kind": "rss",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_diplomacy",
+    "official_country": "TR"
+  },
+  {
+    "name": "White House News",
+    "url": "https://www.whitehouse.gov/news/",
+    "kind": "official_html",
+    "enabled": true,
+    "priority": 10,
+    "official_class": "official_executive",
+    "official_country": "US"
+  },
+  {
+    "name": "White House Briefings",
+    "url": "https://www.whitehouse.gov/briefing-room/",
+    "kind": "official_html",
+    "enabled": true,
+    "priority": 10,
+    "official_class": "official_executive",
+    "official_country": "US"
+  },
+  {
+    "name": "NATO Media Advisories",
+    "url": "https://www.nato.int/en/news-and-events/events/media-advisories",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 10,
+    "official_class": "official_security_org",
+    "official_country": "NATO",
+    "stale_minutes": 2880
+  },
+  {
+    "name": "WHO Newsroom",
+    "url": "https://www.who.int/news-room",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_health_org",
+    "official_country": "WHO",
+    "stale_minutes": 2880
+  },
+  {
+    "name": "WHO Events",
+    "url": "https://www.who.int/news-room/events",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_health_org",
+    "official_country": "WHO"
+  },
+  {
+    "name": "EEAS Newsroom",
+    "url": "https://www.eeas.europa.eu/_en",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_diplomacy",
+    "official_country": "EU",
+    "stale_minutes": 2880
+  },
+  {
+    "name": "MSB Haftalık Basın",
+    "url": "https://www.msb.gov.tr/Basin-ve-Yayin/TumHaftalikBasinAciklamasi",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 9,
+    "official_class": "official_military",
+    "official_country": "TR",
+    "stale_minutes": 2880
+  },
+  {
+    "name": "Federal Reserve Calendar",
+    "url": "https://www.federalreserve.gov/newsevents/calendar.htm",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 10,
+    "official_class": "official_central_bank",
+    "official_country": "US",
+    "stale_minutes": 10080
+  },
+  {
+    "name": "Federal Reserve FOMC",
+    "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 10,
+    "official_class": "official_central_bank",
+    "official_country": "US",
+    "stale_minutes": 10080
+  },
+  {
+    "name": "ECB RSS Feeds",
+    "url": "https://www.ecb.europa.eu/home/html/rss.en.html",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_central_bank",
+    "official_country": "EU",
+    "stale_minutes": 4320
+  },
+  {
+    "name": "TCMB Basın Bilgilendirme",
+    "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB%2BTR/Main%2BMenu/Duyurular/Basinla%2BIliskiler/Basin%2BBilgilendirme",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 9,
+    "official_class": "official_central_bank",
+    "official_country": "TR",
+    "stale_minutes": 4320
+  },
+  {
+    "name": "TCMB Enflasyon Raporu 2026",
+    "url": "https://tcmb.gov.tr/wps/wcm/connect/tr/tcmb+tr/main+menu/yayinlar/raporlar/enflasyon+raporu/2026/enflasyon+raporu+2026+-+i",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 9,
+    "official_class": "official_central_bank",
+    "official_country": "TR",
+    "stale_minutes": 10080
+  },
+  {
+    "name": "Security Council Report",
+    "url": "https://www.securitycouncilreport.org/whatsinblue/",
+    "kind": "listing_html",
+    "enabled": true,
+    "priority": 8
+  },
+  {
+    "name": "Crisis Group RSS",
+    "url": "https://www.crisisgroup.org/rss.xml",
+    "kind": "rss",
+    "enabled": true,
+    "tags": [
+      "risk",
+      "analysis"
+    ],
+    "priority": 8,
+    "source_class": "osint_analysis",
+    "source_family": "osint",
+    "notes": "Crisis Group genel RSS; Watch List/Horizon sayfaları 403 verdiği için kullanılıyor."
+  },
+  {
+    "name": "Trump Truth Social",
+    "url": "https://truthsocial.com/@realDonaldTrump",
+    "kind": "listing_html",
+    "enabled": false,
+    "priority": 10,
+    "official_class": "official_head_of_state",
+    "official_country": "US",
+    "official_red_alert": true
+  },
+  {
+    "name": "Iran Leader",
+    "url": "https://www.leader.ir/en",
+    "kind": "listing_html",
+    "enabled": false,
+    "priority": 10,
+    "official_class": "official_head_of_state",
+    "official_country": "IR",
+    "official_red_alert": true,
+    "source_class": "official_government",
+    "source_country": "IR",
+    "source_family": "government",
+    "stale_minutes": 1440,
+    "region_tags": [
+      "iran",
+      "middle_east",
+      "leadership"
+    ],
+    "verification_group": "ir_state_cluster",
+    "access_risk": "medium",
+    "notes": "İran liderlik makamı listing kaynağı; şu aşamada disabled kalır."
+  },
+  {
+    "name": "Iran President",
+    "url": "https://president.ir/en",
+    "kind": "listing_html",
+    "enabled": false,
+    "priority": 10,
+    "official_class": "official_head_of_state",
+    "official_country": "IR",
+    "official_red_alert": true,
+    "source_class": "official_government",
+    "source_country": "IR",
+    "source_family": "government",
+    "stale_minutes": 1440,
+    "region_tags": [
+      "iran",
+      "middle_east",
+      "leadership"
+    ],
+    "verification_group": "ir_state_cluster",
+    "access_risk": "medium",
+    "notes": "İran cumhurbaşkanlığı listing kaynağı; şu aşamada disabled kalır."
+  },
+  {
+    "name": "IRNA English",
+    "url": "https://en.irna.ir/rss",
+    "kind": "rss",
+    "enabled": false,
+    "priority": 9,
+    "official_class": "state_media",
+    "official_country": "IR",
+    "official_red_alert": true,
+    "source_class": "official_agency",
+    "source_country": "IR",
+    "source_family": "agency",
+    "stale_minutes": 360,
+    "region_tags": [
+      "iran",
+      "middle_east"
+    ],
+    "verification_group": "ir_state_cluster",
+    "access_risk": "low",
+    "notes": "İran resmî ajansı İngilizce RSS akışı. Legacy official_class alanı şimdilik korunur."
+  },
+  {
+    "name": "Iran MFA News",
+    "url": "https://en.mfa.gov.ir/portal/newsarchive/782375",
+    "kind": "listing_html",
+    "enabled": false,
+    "priority": 10,
+    "official_class": "official_diplomacy",
+    "official_country": "IR",
+    "official_red_alert": true,
+    "source_class": "official_government",
+    "source_country": "IR",
+    "source_family": "government",
+    "stale_minutes": 720,
+    "region_tags": [
+      "iran",
+      "middle_east",
+      "diplomacy"
+    ],
+    "verification_group": "ir_state_cluster",
+    "access_risk": "medium",
+    "notes": "İran MFA arşiv/listeleme hattı; gerekirse sonra etkinleştirilir."
+  },
+  {
+    "name": "TASS",
+    "url": "https://tass.com/rss/v2.xml",
+    "kind": "rss",
+    "enabled": true,
+    "priority": 8,
+    "source_class": "official_agency",
+    "source_country": "RU",
+    "source_family": "agency",
+    "stale_minutes": 360,
+    "region_tags": [
+      "russia",
+      "global"
+    ],
+    "verification_group": "ru_state_cluster",
+    "access_risk": "low",
+    "notes": "Rusya resmi devlet haber ajansı (İngilizce). Kremlin ve resmi Rus görüşüne yakın."
+  },
+  {
+    "name": "Europarl AFET",
+    "url": "https://www.europarl.europa.eu/rss/committee/afet/en.xml",
+    "kind": "rss",
+    "enabled": true,
+    "source_class": "official_government",
+    "source_country": "EU",
+    "source_family": "parliament",
+    "stale_minutes": 2880,
+    "region_tags": [
+      "europe",
+      "external_relations",
+      "global"
+    ],
+    "verification_group": "eu_institutions",
+    "access_risk": "low",
+    "notes": "AFET committee feed. Kurumsal/diplomatik sinyal kaynağı; kontrollü gözlemle açılacak."
+  },
+  {
+    "name": "JPost Iran",
+    "url": "https://www.jpost.com/rss/rssfeedsiran",
+    "kind": "rss",
+    "enabled": true,
+    "source_class": "strong_media",
+    "source_country": "IL",
+    "source_family": "newspaper",
+    "stale_minutes": 480,
+    "region_tags": [
+      "iran",
+      "israel",
+      "middle_east"
+    ],
+    "verification_group": "il_media_cluster",
+    "access_risk": "low",
+    "notes": "Jerusalem Post Iran odaklı feed. Test başarılı ve güncel."
+  },
+  {
+    "name": "JPost Middle East",
+    "url": "https://www.jpost.com/rss/rssfeedsmiddleeastnews.aspx",
+    "kind": "rss",
+    "enabled": true,
+    "source_class": "strong_media",
+    "source_country": "IL",
+    "source_family": "newspaper",
+    "stale_minutes": 480,
+    "region_tags": [
+      "israel",
+      "middle_east"
+    ],
+    "verification_group": "il_media_cluster",
+    "access_risk": "low",
+    "notes": "Jerusalem Post Middle East feed. Test başarılı ve güncel."
+  },
+  {
+    "name": "Europarl ECON Committee",
+    "url": "https://www.europarl.europa.eu/rss/committee/econ/en.xml",
+    "kind": "rss",
+    "enabled": true,
+    "source_class": "official_government",
+    "source_country": "EU",
+    "source_family": "parliament",
+    "stale_minutes": 2880,
+    "region_tags": [
+      "europe",
+      "economy",
+      "global"
+    ],
+    "verification_group": "eu_institutions",
+    "access_risk": "low",
+    "notes": "ECON committee feed. Kurumsal ekonomi sinyali için kontrollü açıldı."
+  },
+  {
+    "name": "JPost International",
+    "url": "https://www.jpost.com/rss/rssfeedsinternational",
+    "kind": "rss",
+    "enabled": true,
+    "source_class": "strong_media",
+    "source_country": "IL",
+    "source_family": "newspaper",
+    "stale_minutes": 480,
+    "region_tags": [
+      "global"
+    ],
+    "verification_group": "il_media_cluster",
+    "access_risk": "low",
+    "notes": "Jerusalem Post International feed. Kullanıcı kararıyla dedupe öncesi aktif edildi."
+  },
+  {
+    "name": "Federal Reserve Press Releases",
+    "url": "https://www.federalreserve.gov/newsevents/pressreleases.htm",
+    "enabled": true,
+    "kind": "listing_html",
+    "priority": 10,
+    "official_class": "official_central_bank",
+    "official_country": "US",
+    "stale_minutes": 10080
+  },
+  {
+    "name": "TR MFA Açıklamalar",
+    "url": "https://www.mfa.gov.tr/aciklamalar-genel.tr.mfa",
+    "kind": "listing_html",
+    "parser": "tr_mfa_parser",
+    "enabled": true,
+    "priority": 10,
+    "official_class": "official_foreign_ministry",
+    "official_country": "TR",
+    "stale_minutes": 1440
+  },
+  {
+    "name": "TR MFA Ana Sayfa Açıklamalar",
+    "url": "https://www.mfa.gov.tr/default.tr.mfa",
+    "kind": "listing_html",
+    "parser": "tr_mfa_parser",
+    "enabled": false,
+    "priority": 9,
+    "official_class": "official_foreign_ministry",
+    "official_country": "TR",
+    "stale_minutes": 1440,
+    "disabled_reason": "Ana sayfa navigasyon/menü metni ürettiği için kapatıldı."
+  },
+  {
+    "name": "Iran MFA Official EN",
+    "url": "https://en.mfa.ir/",
+    "kind": "listing_html",
+    "parser": "iran_mfa_new_parser",
+    "enabled": true,
+    "priority": 10,
+    "official_class": "official_foreign_ministry",
+    "official_country": "IR",
+    "stale_minutes": 1440
+  },
+  {
+    "name": "TASS RSS",
+    "url": "https://tass.com/rss/v2.xml",
+    "kind": "rss",
+    "enabled": true,
+    "priority": 7,
+    "official_class": "state_media",
+    "official_country": "RU",
+    "stale_minutes": 360
+  },
+  {
+    "name": "Defense.gov RSS Content 1",
+    "url": "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1",
+    "kind": "rss",
+    "enabled": true,
+    "priority": 9,
+    "official_class": "official_military",
+    "official_country": "US",
+    "source_class": "official_government",
+    "source_family": "defense",
+    "notes": "Defense.gov RSS endpoint; war.gov kaynakları yerine."
+  },
+  {
+    "name": "Defense.gov RSS Content 2",
+    "url": "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=2",
+    "kind": "rss",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_military",
+    "official_country": "US",
+    "source_class": "official_government",
+    "source_family": "defense",
+    "notes": "Defense.gov RSS endpoint; war.gov kaynakları yerine."
+  },
+  {
+    "name": "CENTCOM RSS Content 1",
+    "url": "https://www.centcom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1",
+    "kind": "rss",
+    "enabled": true,
+    "priority": 9,
+    "official_class": "official_military",
+    "official_country": "US",
+    "source_class": "official_government",
+    "source_family": "defense",
+    "notes": "CENTCOM RSS endpoint."
+  },
+  {
+    "name": "CENTCOM RSS Content 2",
+    "url": "https://www.centcom.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=2",
+    "kind": "rss",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_military",
+    "official_country": "US",
+    "source_class": "official_government",
+    "source_family": "defense",
+    "notes": "CENTCOM RSS endpoint."
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "enabled_profile": "geopolitik",
+  "pause_alerts": false,
+  "force_ai_summary": false,
+  "send_unverified_osint_alerts": false
+}

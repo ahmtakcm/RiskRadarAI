@@ -1,0 +1,23 @@
+[
+  {
+    "name": "SentDefender",
+    "url": "https://twitt.re/sentdefender/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 7
+  },
+  {
+    "name": "WarMonitors",
+    "url": "https://twitt.re/WarMonitors/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 7
+  },
+  {
+    "name": "Intel Sky",
+    "url": "https://twitt.re/intel_sky/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 6
+  }
+]

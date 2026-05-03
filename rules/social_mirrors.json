@@ -1,0 +1,28 @@
+{
+  "mirrors": [
+    {
+      "name": "twitt.re",
+      "base_url": "https://twitt.re",
+      "enabled": true,
+      "priority": 1
+    },
+    {
+      "name": "xcancel",
+      "base_url": "https://xcancel.com",
+      "enabled": true,
+      "priority": 2
+    },
+    {
+      "name": "nitter.poast.org",
+      "base_url": "https://nitter.poast.org",
+      "enabled": true,
+      "priority": 3
+    },
+    {
+      "name": "nitter.net",
+      "base_url": "https://nitter.net",
+      "enabled": true,
+      "priority": 4
+    }
+  ]
+}

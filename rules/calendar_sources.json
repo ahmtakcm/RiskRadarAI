@@ -1,0 +1,229 @@
+{
+  "sources": [
+    {
+      "id": "fed_calendar",
+      "source_name": "Federal Reserve",
+      "category": "central_bank",
+      "url": "https://www.federalreserve.gov/newsevents/calendar.htm",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "fed_fomc",
+      "source_name": "FOMC",
+      "category": "rate_decision",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "fed_speeches",
+      "source_name": "Fed Speeches",
+      "category": "central_bank_speech",
+      "url": "https://www.federalreserve.gov/newsevents/speeches.htm",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "ecb_weekly_calendar",
+      "source_name": "ECB Calendar",
+      "category": "central_bank",
+      "url": "https://www.ecb.europa.eu/press/calendars/weekly/html/index.en.html",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "medium"
+    },
+    {
+      "id": "ecb_policy_calendar",
+      "source_name": "ECB Monetary Policy",
+      "category": "rate_decision",
+      "url": "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "ecb_speeches",
+      "source_name": "ECB Speeches",
+      "category": "central_bank_speech",
+      "url": "https://www.ecb.europa.eu/press/key/html/index.en.html",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "boe_news",
+      "source_name": "Bank of England",
+      "category": "central_bank",
+      "url": "https://www.bankofengland.co.uk/news",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "boe_speeches",
+      "source_name": "BOE Speeches",
+      "category": "central_bank_speech",
+      "url": "https://www.bankofengland.co.uk/speeches",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "boj_announcements",
+      "source_name": "Bank of Japan",
+      "category": "central_bank",
+      "url": "https://www.boj.or.jp/en/about/calendar/index.htm",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "boj_speeches",
+      "source_name": "BOJ Speeches",
+      "category": "central_bank_speech",
+      "url": "https://www.boj.or.jp/en/about/press/koen_2026/index.htm",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "pboc_news",
+      "source_name": "PBOC",
+      "category": "central_bank",
+      "url": "https://www.pbc.gov.cn/en/3688006/index.html",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "tcmb_calendar",
+      "source_name": "TCMB Calendar",
+      "category": "central_bank_tr",
+      "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Duyurular/Takvim",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "medium"
+    },
+    {
+      "id": "tcmb_ppk",
+      "source_name": "TCMB PPK",
+      "category": "rate_decision_tr",
+      "url": "https://www.tcmb.gov.tr/wps/wcm/connect/tr/tcmb%2Btr/main%2Bmenu/temel%2Bfaaliyetler/para%2Bpolitikasi/ppk",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "medium"
+    },
+    {
+      "id": "tcmb_enflasyon",
+      "source_name": "TCMB Enflasyon Raporu",
+      "category": "inflation_report_tr",
+      "url": "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB+TR/Main+Menu/Yayinlar/Raporlar/Enflasyon+Raporu",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "medium"
+    },
+    {
+      "id": "bls_calendar",
+      "source_name": "BLS",
+      "category": "macro_data",
+      "url": "https://www.bls.gov/schedule/news_release/",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "bea_calendar",
+      "source_name": "BEA",
+      "category": "macro_data",
+      "url": "https://www.bea.gov/news/schedule",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "eurostat_calendar",
+      "source_name": "Eurostat",
+      "category": "macro_data",
+      "url": "https://ec.europa.eu/eurostat/news/release-calendar",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "medium"
+    },
+    {
+      "id": "ons_calendar",
+      "source_name": "ONS UK",
+      "category": "macro_data",
+      "url": "https://www.ons.gov.uk/releasecalendar",
+      "type": "html_calendar",
+      "enabled": true,
+      "priority": "low"
+    },
+    {
+      "id": "destatis_press",
+      "source_name": "Destatis",
+      "category": "macro_data",
+      "url": "https://www.destatis.de/EN/Press/_node.html",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "low"
+    },
+    {
+      "id": "opec_press",
+      "source_name": "OPEC",
+      "category": "energy",
+      "url": "https://www.opec.org/opec_web/en/press_room/",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "iea_news",
+      "source_name": "IEA",
+      "category": "energy",
+      "url": "https://www.iea.org/news",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "medium"
+    },
+    {
+      "id": "eia_news",
+      "source_name": "EIA",
+      "category": "energy",
+      "url": "https://www.eia.gov/pressroom/releases.php",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
+      "id": "imf_news",
+      "source_name": "IMF",
+      "category": "global_macro",
+      "url": "https://www.imf.org/en/News",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "medium"
+    },
+    {
+      "id": "worldbank_news",
+      "source_name": "World Bank",
+      "category": "global_macro",
+      "url": "https://www.worldbank.org/en/news",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "low"
+    },
+    {
+      "id": "oecd_news",
+      "source_name": "OECD",
+      "category": "global_macro",
+      "url": "https://www.oecd.org/newsroom/",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "medium"
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+[
+  {
+    "name": "WhiteHouse X",
+    "url": "https://nitter.net/WhiteHouse/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_executive",
+    "official_country": "US",
+    "official_red_alert": true,
+    "stale_minutes": 180
+  },
+  {
+    "name": "POTUS X",
+    "url": "https://nitter.net/POTUS/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_executive",
+    "official_country": "US",
+    "official_red_alert": true,
+    "stale_minutes": 180
+  },
+  {
+    "name": "Iran MFA EN X",
+    "url": "https://nitter.net/IRIMFA_EN/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_diplomacy",
+    "official_country": "IR",
+    "official_red_alert": true,
+    "stale_minutes": 180
+  },
+  {
+    "name": "Russia MFA X",
+    "url": "https://nitter.net/mfa_russia/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 8,
+    "official_class": "official_diplomacy",
+    "official_country": "RU",
+    "official_red_alert": true,
+    "stale_minutes": 180
+  },
+  {
+    "name": "TR Presidency X",
+    "url": "https://nitter.net/trpresidency/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 7,
+    "official_class": "official_executive",
+    "official_country": "TR",
+    "official_red_alert": true,
+    "stale_minutes": 300
+  },
+  {
+    "name": "NATO X",
+    "url": "https://nitter.net/NATO/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 8
+  },
+  {
+    "name": "Federal Reserve X",
+    "url": "https://nitter.net/federalreserve/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 8
+  },
+  {
+    "name": "OPEC X",
+    "url": "https://nitter.net/OPECSecretariat/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 8
+  },
+  {
+    "name": "ECB X",
+    "url": "https://nitter.net/ecb/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 7
+  },
+  {
+    "name": "WHO X",
+    "url": "https://nitter.net/WHO/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 7
+  },
+  {
+    "name": "EEAS X",
+    "url": "https://nitter.net/eu_eeas/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 7
+  },
+  {
+    "name": "IDF X",
+    "url": "https://nitter.net/IDF/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 9
+  },
+  {
+    "name": "Saudi MOD X",
+    "url": "https://nitter.net/modgovksa/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 7
+  },
+  {
+    "name": "TCMB X",
+    "url": "https://nitter.net/Merkez_Bankasi/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "priority": 8
+  },
+  {
+    "name": "Pentagon X",
+    "url": "https://twitt.re/DeptofDefense/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "tags": [
+      "askeri"
+    ],
+    "priority": 8,
+    "official_class": "official_military",
+    "official_country": "US",
+    "official_red_alert": true
+  },
+  {
+    "name": "SentDefender",
+    "url": "https://twitt.re/sentdefender/rss",
+    "kind": "rss_social",
+    "enabled": false,
+    "tags": [
+      "osint"
+    ],
+    "priority": 7
+  },
+  {
+    "name": "IMF X",
+    "url": "https://twitt.re/IMFNews/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "tags": [
+      "ekonomi"
+    ],
+    "priority": 7
+  },
+  {
+    "name": "TC Bestepe",
+    "url": "https://twitt.re/tcbestepe/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "tags": [
+      "turkiye"
+    ],
+    "priority": 8,
+    "official_class": "official_executive",
+    "official_country": "TR",
+    "official_red_alert": true,
+    "stale_minutes": 180
+  },
+  {
+    "name": "TC Savunma",
+    "url": "https://twitt.re/tcsavunma/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "tags": [
+      "turkiye",
+      "askeri"
+    ],
+    "priority": 8,
+    "official_class": "official_military",
+    "official_country": "TR",
+    "official_red_alert": true,
+    "stale_minutes": 180
+  },
+  {
+    "name": "USTreasury X",
+    "url": "https://twitt.re/USTreasury/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "tags": [
+      "ekonomi",
+      "sanction"
+    ],
+    "priority": 7,
+    "official_class": "official_finance",
+    "official_country": "US",
+    "official_red_alert": true,
+    "stale_minutes": 240
+  },
+  {
+    "name": "CENTCOM X",
+    "url": "https://nitter.net/CENTCOM/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 10,
+    "official_class": "official_military",
+    "official_country": "US",
+    "official_red_alert": true,
+    "stale_minutes": 360
+  },
+  {
+    "name": "Trump Truth Social Relay",
+    "url": "https://truthsocial.com/@realDonaldTrump",
+    "kind": "listing_html",
+    "enabled": false,
+    "priority": 10,
+    "official_class": "official_head_of_state",
+    "official_country": "US",
+    "official_red_alert": true
+  },
+  {
+    "name": "LiveUAMap X",
+    "url": "https://nitter.net/Liveuamap/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 6,
+    "source_class": "osint_social",
+    "source_family": "osint",
+    "notes": "LiveUAMap resmi X hesabı yedeği; web/RSS erişimi Termux ortamında reset verdiği için sosyal yedek."
+  },
+  {
+    "name": "LummiEast X",
+    "url": "https://nitter.net/lummideast/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 7,
+    "source_class": "osint_social",
+    "source_family": "osint",
+    "notes": "Middle East OSINT X kaynağı."
+  }
+]

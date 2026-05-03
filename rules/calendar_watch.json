@@ -1,0 +1,103 @@
+{
+  "events": [
+    {
+      "id": "fomc_apr_2026",
+      "title": "FOMC Meeting April 2026",
+      "category": "economy",
+      "source_name": "Federal Reserve",
+      "event_type": "scheduled_decision",
+      "datetime": "2026-04-29T18:00:00+00:00",
+      "timezone": "UTC",
+      "pre_alerts_minutes": [
+        1440,
+        180,
+        30
+      ],
+      "post_window_minutes": 240,
+      "watch_urls": [
+        "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+      ],
+      "publish_signals": [
+        "statement",
+        "press conference",
+        "economic projections",
+        "minutes"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "opec_may_2026",
+      "title": "OPEC+ Meeting May 2026",
+      "category": "energy",
+      "source_name": "OPEC",
+      "event_type": "scheduled_meeting",
+      "datetime": "2026-05-03T10:00:00+00:00",
+      "timezone": "UTC",
+      "pre_alerts_minutes": [
+        1440,
+        180,
+        60
+      ],
+      "post_window_minutes": 360,
+      "watch_urls": [
+        "https://www.opec.org/opec_web/en/press_room/"
+      ],
+      "publish_signals": [
+        "press release",
+        "meeting",
+        "production",
+        "opec"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "tcmb_inf_report_ii_2026",
+      "title": "TCMB Enflasyon Raporu 2026-II",
+      "category": "economy_tr",
+      "source_name": "TCMB",
+      "event_type": "scheduled_report",
+      "datetime": "2026-05-14T07:00:00+03:00",
+      "timezone": "Europe/Istanbul",
+      "pre_alerts_minutes": [
+        1440,
+        180,
+        60
+      ],
+      "post_window_minutes": 360,
+      "watch_urls": [
+        "https://www.tcmb.gov.tr/wps/wcm/connect/TR/TCMB%2BTR/Main%2BMenu/Duyurular/Basinla%2BIliskiler/Basin%2BBilgilendirme",
+        "https://tcmb1.tcmb.gov.tr/wps/wcm/connect/TR/TCMB%2BTR/Main%2BMenu/Yayinlar/Raporlar/Enflasyon%2BRaporu/2026"
+      ],
+      "publish_signals": [
+        "14 mayıs 2026",
+        "enflasyon raporu",
+        "2026 - ii",
+        "basın bilgilendirme"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "who_one_health_2026",
+      "title": "WHO One Health Summit 2026",
+      "category": "health",
+      "source_name": "WHO",
+      "event_type": "scheduled_event",
+      "datetime": "2026-04-05T09:00:00+00:00",
+      "timezone": "UTC",
+      "pre_alerts_minutes": [
+        1440,
+        180
+      ],
+      "post_window_minutes": 10080,
+      "watch_urls": [
+        "https://www.who.int/news-room/events"
+      ],
+      "publish_signals": [
+        "one health",
+        "summit",
+        "world health day"
+      ],
+      "enabled": false
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "trusted_official_kinds": ["official_html", "listing_html", "rss"],
+  "official_source_keywords": [
+    "federal reserve",
+    "opec",
+    "tcmb",
+    "ecb",
+    "imf",
+    "nato",
+    "pentagon",
+    "defense",
+    "kremlin",
+    "white house",
+    "msb",
+    "who",
+    "eeas"
+  ],
+  "social_source_keywords": [
+    "x",
+    "sentdefender",
+    "liveuamap",
+    "telegram",
+    "osint"
+  ],
+  "high_priority_terms": [
+    "mobilization",
+    "mobilisation",
+    "asat",
+    "sİha konuşlandırma",
+    "siha",
+    "meb",
+    "münhasır ekonomik bölge",
+    "intikal",
+    "sanction",
+    "sanctions",
+    "tariff",
+    "swift",
+    "embargo",
+    "blockade",
+    "boğazların kapatılması",
+    "strait closure",
+    "nuclear",
+    "missile"
+  ],
+  "min_overlap_terms": 2,
+  "min_overlap_for_high_priority": 1
+}

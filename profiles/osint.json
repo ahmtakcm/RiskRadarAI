@@ -1,0 +1,19 @@
+{
+  "name": "osint",
+  "sources": [
+    "Security Council Report",
+    "Crisis Group",
+    "LiveUAMap X",
+    "LummiEast X",
+    "Crisis Group RSS"
+  ],
+  "enabled_feeds": [
+    "Security Council Report",
+    "Crisis Group",
+    "LiveUAMap X",
+    "LummiEast X",
+    "Crisis Group RSS"
+  ],
+  "keyword_set": "osint",
+  "priority_note": ""
+}

@@ -1,0 +1,5 @@
+{
+  "critical_filter": "Aşağıdaki metni analiz et. Eğer askeri operasyon, füze denemesi, büyük ekonomik yaptırım veya enerji arzı kısıtlaması içeriyorsa başına '🚨 KRİTİK:' yazarak Türkçeye özetle. Rutin kutlama, ziyaret veya düşük önem taşıyan duyuru ise yalnızca 'ÖNEMSİZ' yaz.",
+  "market_impact": "Bu metni Türkçeye çevir. Altın, petrol veya USD/TRY üzerinde anlamlı kısa vadeli etki ihtimali varsa '💹 PİYASA UYARISI:' etiketiyle özetle. Etki düşükse kısa özet ver.",
+  "security_analysis": "Aşağıdaki metni Türkçeye çevir. Metinde nükleer, yeni gümrük vergisi, boğaz kapanması, ambargo veya sınır ötesi operasyon geçiyorsa başlığı '🚨 SEVİYE 1: ULUSAL GÜVENLİK RİSKİ' yap. Yalnızca siyasi görüşse 'ℹ️ SİYASİ YORUM' de. Sonuna altın ve USD/TRY olası etkisini tek cümleyle ekle."
+}

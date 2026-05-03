@@ -1,0 +1,30 @@
+{
+  "classify_signal": {
+    "label": "ignore|watch|early_signal|verified_alert",
+    "alarm": "boolean",
+    "confidence": "0-1 float",
+    "category": "security|market|health|political|analysis|mixed",
+    "severity": "0-10 integer",
+    "market_impact": "low|medium|high|unclear",
+    "security_impact": "low|medium|high|unclear",
+    "is_routine": "boolean",
+    "summary_tr": "string",
+    "reason_short": "string"
+  },
+  "match_events": {
+    "same_event": "boolean",
+    "confidence": "0-1 float",
+    "overlap_reason": "string"
+  },
+  "summarize_market_impact": {
+    "summary_tr": "string",
+    "impact_note_tr": "string"
+  },
+  "translate_official_item": {
+    "title_tr": "string",
+    "text_tr": "string"
+  },
+  "digest_paragraph": {
+    "paragraph_tr": "string"
+  }
+}

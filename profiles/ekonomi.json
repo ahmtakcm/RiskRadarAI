@@ -1,0 +1,25 @@
+{
+  "name": "ekonomi",
+  "sources": [
+    "Federal Reserve Press Releases",
+    "Federal Reserve FOMC",
+    "Federal Reserve Calendar",
+    "ECB RSS Feeds",
+    "TCMB Basın Bilgilendirme",
+    "TCMB Enflasyon Raporu 2026",
+    "Europarl ECON Committee",
+    "Anadolu Ajansı"
+  ],
+  "enabled_feeds": [
+    "Federal Reserve Press Releases",
+    "Federal Reserve FOMC",
+    "Federal Reserve Calendar",
+    "ECB RSS Feeds",
+    "TCMB Basın Bilgilendirme",
+    "TCMB Enflasyon Raporu 2026",
+    "Europarl ECON Committee",
+    "Anadolu Ajansı"
+  ],
+  "keyword_set": "ekonomi",
+  "priority_note": ""
+}

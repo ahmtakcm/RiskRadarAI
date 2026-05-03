@@ -1,0 +1,21 @@
+{
+  "active_profiles": [
+    "tum_profiller"
+  ],
+  "disabled_profiles": [
+    "ekonomi",
+    "haber",
+    "osint",
+    "resmi_kritik",
+    "saglik"
+  ],
+  "available_profiles": [
+    "ekonomi",
+    "haber",
+    "osint",
+    "resmi_kritik",
+    "saglik",
+    "tum_profiller"
+  ],
+  "manual_override": true
+}

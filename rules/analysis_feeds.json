@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Crisis Group",
+    "url": "https://www.crisisgroup.org/rss.xml",
+    "kind": "rss",
+    "enabled": true,
+    "priority": 7
+  },
+  {
+    "name": "Security Council Report",
+    "url": "https://www.securitycouncilreport.org/whatsinblue/",
+    "kind": "listing_html",
+    "enabled": false,
+    "priority": 7
+  },
+  {
+    "name": "IMF Press Releases",
+    "url": "https://www.imf.org/en/News/Articles",
+    "kind": "listing_html",
+    "enabled": false,
+    "priority": 7
+  },
+  {
+    "name": "WHO Newsroom",
+    "url": "https://www.who.int/news-room",
+    "kind": "listing_html",
+    "enabled": false,
+    "priority": 6
+  }
+]

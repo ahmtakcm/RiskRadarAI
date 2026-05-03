@@ -1,0 +1,473 @@
+{
+  "keyword_sets": {
+    "geopolitik": {
+      "primary_terms": [
+        "iran",
+        "hormuz",
+        "strait of hormuz",
+        "nuclear",
+        "uranium",
+        "ceasefire",
+        "pentagon",
+        "white house"
+      ],
+      "secondary_terms": [
+        "us",
+        "u.s.",
+        "united states",
+        "trump",
+        "israel",
+        "israeli",
+        "attack",
+        "strike",
+        "airstrike",
+        "missile",
+        "retaliation",
+        "war",
+        "military",
+        "operation",
+        "middle east",
+        "oil",
+        "sanctions",
+        "defense",
+        "iranian",
+        "mobilization",
+        "mobilisation",
+        "asat",
+        "intikal",
+        "meb",
+        "swift",
+        "embargo",
+        "tariff",
+        "geoeconomic",
+        "talks",
+        "negotiations",
+        "delegation",
+        "envoy",
+        "ambassador",
+        "lebanon",
+        "maritime",
+        "shipping",
+        "vessels",
+        "strait",
+        "ceasefire talks"
+      ],
+      "high_risk_patterns": [
+        [
+          "iran",
+          "attack"
+        ],
+        [
+          "iran",
+          "strike"
+        ],
+        [
+          "iran",
+          "missile"
+        ],
+        [
+          "iran",
+          "war"
+        ],
+        [
+          "iran",
+          "hormuz"
+        ],
+        [
+          "iran",
+          "nuclear"
+        ],
+        [
+          "u.s.",
+          "iran"
+        ],
+        [
+          "us",
+          "iran"
+        ],
+        [
+          "united states",
+          "iran"
+        ],
+        [
+          "white house",
+          "iran"
+        ],
+        [
+          "pentagon",
+          "iran"
+        ],
+        [
+          "ceasefire",
+          "iran"
+        ],
+        [
+          "hormuz",
+          "oil"
+        ],
+        [
+          "strait of hormuz",
+          "oil"
+        ],
+        [
+          "israel",
+          "iran"
+        ],
+        [
+          "swift",
+          "sanctions"
+        ],
+        [
+          "strait of hormuz",
+          "closure"
+        ],
+        [
+          "iran",
+          "embargo"
+        ],
+        [
+          "tariff",
+          "retaliation"
+        ],
+        [
+          "iran",
+          "talks"
+        ],
+        [
+          "iran",
+          "negotiations"
+        ],
+        [
+          "iran",
+          "delegation"
+        ],
+        [
+          "iran",
+          "envoy"
+        ],
+        [
+          "israel",
+          "lebanon"
+        ],
+        [
+          "strait of hormuz",
+          "shipping"
+        ],
+        [
+          "strait of hormuz",
+          "vessels"
+        ],
+        [
+          "hormuz",
+          "shipping"
+        ],
+        [
+          "hormuz",
+          "vessels"
+        ],
+        [
+          "sanctions",
+          "iran"
+        ],
+        [
+          "united states",
+          "iran",
+          "talks"
+        ],
+        [
+          "us",
+          "iran",
+          "talks"
+        ],
+        [
+          "u.s.",
+          "iran",
+          "talks"
+        ]
+      ]
+    },
+    "ekonomi": {
+      "primary_terms": [
+        "inflation",
+        "fed",
+        "interest rate",
+        "cpi"
+      ],
+      "secondary_terms": [
+        "gold",
+        "oil",
+        "dollar",
+        "bond",
+        "growth",
+        "recession"
+      ],
+      "high_risk_patterns": [
+        [
+          "fed",
+          "rate cut"
+        ],
+        [
+          "inflation",
+          "surprise"
+        ]
+      ]
+    },
+    "emtia": {
+      "primary_terms": [
+        "gold",
+        "silver",
+        "oil",
+        "brent"
+      ],
+      "secondary_terms": [
+        "commodity",
+        "hormuz",
+        "sanctions",
+        "opec"
+      ],
+      "high_risk_patterns": [
+        [
+          "oil",
+          "supply"
+        ],
+        [
+          "gold",
+          "surge"
+        ]
+      ]
+    },
+    "kripto": {
+      "primary_terms": [
+        "bitcoin",
+        "ethereum",
+        "crypto",
+        "etf"
+      ],
+      "secondary_terms": [
+        "regulation",
+        "exchange",
+        "sec",
+        "market"
+      ],
+      "high_risk_patterns": [
+        [
+          "bitcoin",
+          "etf"
+        ],
+        [
+          "exchange",
+          "hack"
+        ]
+      ]
+    },
+    "ekonomi_resmi": {
+      "primary_terms": [
+        "fomc",
+        "federal reserve",
+        "imf",
+        "opec",
+        "ecb",
+        "tcmb",
+        "inflation report",
+        "article iv"
+      ],
+      "secondary_terms": [
+        "rate decision",
+        "economic projections",
+        "minutes",
+        "policy",
+        "growth",
+        "tariff",
+        "reserve currency",
+        "swift",
+        "sanction",
+        "oil",
+        "bond",
+        "liquidity"
+      ],
+      "high_risk_patterns": [
+        [
+          "fomc",
+          "statement"
+        ],
+        [
+          "federal reserve",
+          "economic projections"
+        ],
+        [
+          "imf",
+          "article iv"
+        ],
+        [
+          "opec",
+          "production"
+        ],
+        [
+          "tcmb",
+          "enflasyon raporu"
+        ],
+        [
+          "ecb",
+          "rate"
+        ]
+      ]
+    },
+    "guvenlik_resmi": {
+      "primary_terms": [
+        "nato",
+        "kremlin",
+        "pentagon",
+        "defense",
+        "ministry of defense",
+        "idf",
+        "iran",
+        "white house",
+        "eeas",
+        "msb"
+      ],
+      "secondary_terms": [
+        "mobilization",
+        "mobilisation",
+        "asat",
+        "drone deployment",
+        "siha",
+        "konuşlandırma",
+        "intikal",
+        "eez",
+        "meb",
+        "sanction",
+        "tariff",
+        "swift",
+        "retaliation",
+        "ceasefire",
+        "missile",
+        "operation"
+      ],
+      "high_risk_patterns": [
+        [
+          "nato",
+          "ukraine"
+        ],
+        [
+          "kremlin",
+          "decree"
+        ],
+        [
+          "pentagon",
+          "operation"
+        ],
+        [
+          "idf",
+          "strike"
+        ],
+        [
+          "iran",
+          "hormuz"
+        ],
+        [
+          "msb",
+          "operation"
+        ],
+        [
+          "eeas",
+          "sanction"
+        ]
+      ]
+    },
+    "saglik_resmi": {
+      "primary_terms": [
+        "who",
+        "outbreak",
+        "one health",
+        "pandemic",
+        "public health"
+      ],
+      "secondary_terms": [
+        "restriction",
+        "surveillance",
+        "summit",
+        "cooperation",
+        "virus",
+        "zoonotic"
+      ],
+      "high_risk_patterns": [
+        [
+          "who",
+          "outbreak"
+        ],
+        [
+          "one health",
+          "summit"
+        ],
+        [
+          "public health",
+          "emergency"
+        ]
+      ]
+    },
+    "stratejik_karma": {
+      "primary_terms": [
+        "nato",
+        "pentagon",
+        "kremlin",
+        "iran",
+        "idf",
+        "opec",
+        "fed",
+        "imf",
+        "tcmb",
+        "who",
+        "crisis group",
+        "security council"
+      ],
+      "secondary_terms": [
+        "mobilization",
+        "asat",
+        "siha",
+        "meb",
+        "intikal",
+        "sanction",
+        "tariff",
+        "swift",
+        "geoeconomic",
+        "ceasefire",
+        "missile",
+        "oil",
+        "watch list",
+        "policy paper",
+        "new report",
+        "pdf"
+      ],
+      "high_risk_patterns": [
+        [
+          "crisis group",
+          "watch list"
+        ],
+        [
+          "security council",
+          "middle east"
+        ],
+        [
+          "iran",
+          "swift"
+        ],
+        [
+          "opec",
+          "production"
+        ],
+        [
+          "fomc",
+          "statement"
+        ],
+        [
+          "nato",
+          "operation"
+        ],
+        [
+          "policy paper",
+          "pdf"
+        ]
+      ]
+    }
+  }
+}

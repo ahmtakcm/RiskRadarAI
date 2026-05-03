@@ -1,0 +1,15 @@
+{
+  "name": "saglik",
+  "sources": [
+    "WHO Newsroom",
+    "WHO Events",
+    "BBC World"
+  ],
+  "enabled_feeds": [
+    "WHO Newsroom",
+    "WHO Events",
+    "BBC World"
+  ],
+  "keyword_set": "saglik",
+  "priority_note": ""
+}

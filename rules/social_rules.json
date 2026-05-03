@@ -1,0 +1,41 @@
+{
+  "strict_geopolitics": {
+    "required_any": [
+      "iran",
+      "hormuz",
+      "nuclear",
+      "missile",
+      "white house",
+      "pentagon",
+      "nato",
+      "idf",
+      "kremlin"
+    ],
+    "extra_terms": [
+      "war",
+      "attack",
+      "strike",
+      "oil",
+      "military",
+      "operation",
+      "retaliation",
+      "mobilization",
+      "sanction",
+      "swift",
+      "tariff"
+    ],
+    "minimum_term_hits": 2,
+    "blocked_terms": [
+      "birthday",
+      "sports",
+      "congratulations",
+      "ceremony"
+    ]
+  },
+  "off": {
+    "required_any": [],
+    "extra_terms": [],
+    "minimum_term_hits": 999,
+    "blocked_terms": []
+  }
+}

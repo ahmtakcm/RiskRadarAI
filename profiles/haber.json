@@ -1,0 +1,27 @@
+{
+  "name": "haber",
+  "sources": [
+    "NYT World",
+    "BBC World",
+    "Al Jazeera",
+    "Anadolu Ajansı",
+    "JPost Iran",
+    "JPost Middle East",
+    "JPost International",
+    "TASS",
+    "TASS RSS"
+  ],
+  "enabled_feeds": [
+    "NYT World",
+    "BBC World",
+    "Al Jazeera",
+    "Anadolu Ajansı",
+    "JPost Iran",
+    "JPost Middle East",
+    "JPost International",
+    "TASS",
+    "TASS RSS"
+  ],
+  "keyword_set": "haber",
+  "priority_note": ""
+}

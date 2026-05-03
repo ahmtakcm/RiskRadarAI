@@ -1,0 +1,484 @@
+from core.cooldown import should_send_alert, mark_alert_sent
+from clients.telegram_client import telegram_client
+from clients.ai_client import ai_client
+from config.settings import settings
+from core.logger import get_logger
+from core.matching import now_ts, topic_overlap
+from source_selectors.profile_loader import load_active_config
+from services.assistant_output import build_signal_message, build_analysis_message, build_official_confirmation_message
+from fetchers.html_fetcher import fetch_article_text
+from filters.ai_parse import choose_best_summary
+from core.news_log import build_log_entry, append_news_log
+from core.event_merger import group_items, should_send_cluster, build_alert
+
+logger = get_logger('process_candidates')
+
+
+def _is_strict_official_item(item: dict) -> bool:
+    official_class = str(item.get('official_class', '') or '').strip().lower()
+    return official_class.startswith('official_')
+
+
+def _split_primary_feed_candidates(candidates: list) -> tuple[list, list]:
+    strict_official = []
+    primary_news = []
+    for candidate in candidates:
+        if _is_strict_official_item(candidate.get('item', {})):
+            strict_official.append(candidate)
+        else:
+            primary_news.append(candidate)
+    return strict_official, primary_news
+
+
+def _trim_history(entries: list, limit: int = 300):
+    return sorted(entries, key=lambda x: x.get('ts', 0), reverse=True)[:limit]
+
+
+def _remember_story(state: dict, candidate: dict):
+    story_hashes = set(state.get('seen_story_hashes', []))
+    story_key = str(candidate.get('story_key', '') or '').strip()
+    if story_key:
+        story_hashes.add(story_key)
+    state['seen_story_hashes'] = list(story_hashes)[-5000:]
+
+
+def _cleanup_pending(state: dict):
+    cutoff = now_ts() - (settings.pending_social_ttl_minutes * 60)
+    pending = [x for x in state.get('pending_unofficial_signals', []) if x.get('ts', 0) >= cutoff]
+    state['pending_unofficial_signals'] = _trim_history(pending)
+
+
+def _ensure_article_text(item: dict):
+    if item.get('article_text'):
+        return
+    link = item.get('link', '')
+    source_kind = item.get('source_kind', '')
+    text = fetch_article_text(link, source_kind=source_kind)
+    if text:
+        item['article_text'] = text
+
+
+def _log_news_event(state: dict, item: dict, candidate: dict, analysis: dict | None = None, *, alert_sent: bool, delivery_mode: str, drop_reason: str | None = None, meta: dict | None = None):
+    analysis = analysis or {}
+    summary = choose_best_summary(item, analysis.get('gemini') or analysis) or str(analysis.get('summary_tr', '') or '').strip()
+    if not summary:
+        summary = str(item.get('translated_text', '') or item.get('description', '') or '').strip()
+
+    entry = build_log_entry(
+        item,
+        candidate['hash'],
+        alert_sent=alert_sent,
+        drop_reason=drop_reason,
+        translated_text=summary,
+        delivery_mode=delivery_mode,
+        score=analysis.get('alarm_score', candidate.get('score')),
+        meta=meta or {},
+    )
+    append_news_log(state, entry)
+
+def _register_official_signal(state: dict, item: dict, candidate: dict):
+    history = state.get('official_signal_history', [])
+    history.append({
+        'hash': candidate['hash'],
+        'source_name': item.get('source_name', ''),
+        'title': item.get('title', ''),
+        'link': item.get('link', ''),
+        'pub_date': item.get('pub_date', ''),
+        'description': item.get('description', ''),
+        'article_text': item.get('article_text', ''),
+        'age_minutes': item.get('age_minutes'),
+        'topic_tokens': candidate.get('topic_tokens', []),
+        'ts': now_ts(),
+    })
+    state['official_signal_history'] = _trim_history(history)
+
+
+def _register_pending_unofficial(state: dict, item: dict, candidate: dict, origin: str):
+    pending = state.get('pending_unofficial_signals', [])
+    pending.append({
+        'hash': candidate['hash'],
+        'origin': origin,
+        'source_name': item.get('source_name', ''),
+        'title': item.get('title', ''),
+        'link': item.get('link', ''),
+        'pub_date': item.get('pub_date', ''),
+        'description': item.get('description', ''),
+        'article_text': item.get('article_text', ''),
+        'age_minutes': item.get('age_minutes'),
+        'topic_tokens': candidate.get('topic_tokens', []),
+        'score': candidate.get('score', 0),
+        'ts': now_ts(),
+    })
+    state['pending_unofficial_signals'] = _trim_history(pending)
+
+
+def _gemini_confirms_match(candidate_item: dict, official_match: dict) -> tuple[bool, str | None]:
+    if not ai_client.is_matching_enabled():
+        return False, None
+    result = ai_client.match_items(candidate_item, official_match)
+    if not result:
+        return False, None
+    same = str(result.get('same_event', '')).strip().lower() in {'true', '1', 'yes', 'evet'}
+    note = result.get('overlap_reason') or result.get('reason_short') or ''
+    return same, note[:180] if note else None
+
+
+def _find_best_official_match(candidate: dict, official_candidates: list, state: dict, verification_rules: dict):
+    best_match = None
+    best_overlap = set()
+    best_note = None
+    candidate_tokens = set(candidate.get('topic_tokens', []))
+    min_overlap = int(verification_rules.get('min_overlap_terms', 2))
+    min_hp_overlap = int(verification_rules.get('min_high_priority_overlap_terms', 1))
+    high_priority_terms = set(term.lower() for term in verification_rules.get('high_priority_terms', []))
+
+    official_pool = []
+    for off in official_candidates:
+        official_pool.append({
+            'hash': off['hash'],
+            'source_name': off['item'].get('source_name', ''),
+            'title': off['item'].get('title', ''),
+            'link': off['item'].get('link', ''),
+            'pub_date': off['item'].get('pub_date', ''),
+            'description': off['item'].get('description', ''),
+            'article_text': off['item'].get('article_text', ''),
+            'topic_tokens': off.get('topic_tokens', []),
+        })
+    official_pool.extend(state.get('official_signal_history', []))
+
+    for off in official_pool:
+        overlap = topic_overlap(candidate_tokens, set(off.get('topic_tokens', [])))
+        if not overlap:
+            continue
+        hp_overlap = overlap & high_priority_terms
+        passes_rule = len(overlap) >= min_overlap or len(hp_overlap) >= min_hp_overlap
+        if not passes_rule:
+            continue
+        same_ai, note = _gemini_confirms_match(candidate['item'], off)
+        if ai_client.is_matching_enabled() and not same_ai:
+            continue
+        if len(overlap) > len(best_overlap):
+            best_overlap = overlap
+            best_match = off
+            best_note = note
+    return best_match, best_overlap, best_note
+
+
+def _process_official_confirmations(state: dict, official_candidates: list, verification_rules: dict):
+    for official_candidate in official_candidates:
+        official_item = official_candidate['item']
+        official_tokens = set(official_candidate.get('topic_tokens', []))
+        if not official_tokens:
+            continue
+        remaining_pending = []
+        for signal in state.get('pending_unofficial_signals', []):
+            overlap = topic_overlap(official_tokens, set(signal.get('topic_tokens', [])))
+            if not overlap:
+                remaining_pending.append(signal)
+                continue
+            min_overlap = int(verification_rules.get('min_overlap_terms', 2))
+            high_priority_terms = set(term.lower() for term in verification_rules.get('high_priority_terms', []))
+            hp_overlap = overlap & high_priority_terms
+            if len(overlap) < min_overlap and not hp_overlap:
+                remaining_pending.append(signal)
+                continue
+            same_ai, note = _gemini_confirms_match(signal, official_item)
+            if ai_client.is_matching_enabled() and not same_ai:
+                remaining_pending.append(signal)
+                continue
+            confirm_key = f"VERIFY_{signal['hash']}_{official_candidate['hash']}"
+            if should_send_alert(state, confirm_key, settings.news_cooldown_seconds):
+                try:
+                    telegram_client.send_message(build_official_confirmation_message(signal, official_item, overlap, note))
+                    mark_alert_sent(state, confirm_key)
+                    logger.info('Gayriresmî sinyal için resmî teyit gönderildi: %s', confirm_key)
+                except Exception as exc:
+                    logger.warning('Telegram resmî teyit alarm hatası: %s', exc)
+                    remaining_pending.append(signal)
+            else:
+                remaining_pending.append(signal)
+        state['pending_unofficial_signals'] = _trim_history(remaining_pending)
+
+
+def _process_official_candidates(state: dict, official_candidates: list, seen_hashes: set[str], sent_count: int):
+    for candidate in official_candidates:
+        if sent_count >= settings.max_news_alerts_per_scan:
+            break
+        item = candidate['item']
+        if not _is_strict_official_item(item):
+            continue
+        _ensure_article_text(item)
+        alert_key = f"NEWS_{candidate['hash']}"
+        if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            continue
+        analysis = ai_client.analyze_item(item, {}, verified=True)
+        if not choose_best_summary(item, analysis.get('gemini') or analysis):
+            continue
+        text = build_signal_message(item, candidate['score'], analysis, origin_label='Resmî/Kurumsal', verified=False)
+        try:
+            telegram_client.send_message(text)
+            mark_alert_sent(state, alert_key)
+            seen_hashes.add(candidate['hash'])
+            _remember_story(state, candidate)
+            _register_official_signal(state, item, candidate)
+            _log_news_event(
+                state,
+                item,
+                candidate,
+                analysis,
+                alert_sent=True,
+                delivery_mode='alert',
+                meta={'origin': 'official', 'verified': True},
+            )
+            sent_count += 1
+            logger.info('Resmî haber alarmı gönderildi: %s', alert_key)
+        except Exception as exc:
+            logger.warning('Telegram resmî haber alarm hatası: %s', exc)
+    return sent_count
+
+def _process_unofficial_group(state: dict, candidates: list, official_candidates: list, seen_hashes: set[str], sent_count: int, origin_label: str, send_unverified: bool, verification_rules: dict):
+    for candidate in candidates:
+        limit_reached = sent_count >= settings.max_news_alerts_per_scan
+        item = candidate['item']
+        _ensure_article_text(item)
+        analysis = ai_client.analyze_item(item, verification_rules, verified=False)
+        if analysis.get('category') == 'ignore':
+            continue
+        if not choose_best_summary(item, analysis.get('gemini') or analysis):
+            continue
+        verified_match, overlap, match_note = _find_best_official_match(candidate, official_candidates, state, verification_rules)
+        verified = bool(verified_match)
+
+        if not verified and not send_unverified:
+            _log_news_event(
+                state,
+                item,
+                candidate,
+                analysis,
+                alert_sent=False,
+                delivery_mode='digest',
+                drop_reason='unverified_hold',
+                meta={'origin': origin_label.lower(), 'verified': False},
+            )
+            continue
+
+        if not verified and not analysis.get('should_notify'):
+            _log_news_event(
+                state,
+                item,
+                candidate,
+                analysis,
+                alert_sent=False,
+                delivery_mode='digest',
+                drop_reason='below_alert_threshold',
+                meta={'origin': origin_label.lower(), 'verified': False},
+            )
+            continue
+
+        if limit_reached:
+            _log_news_event(
+                state,
+                item,
+                candidate,
+                analysis,
+                alert_sent=False,
+                delivery_mode='digest',
+                drop_reason='scan_limit_reached',
+                meta={'origin': origin_label.lower(), 'verified': verified},
+            )
+            continue
+
+        suffix = 'VERIFIED' if verified else 'UNVERIFIED'
+        alert_key = f"{origin_label.upper()}_{suffix}_{candidate['hash']}"
+        if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            continue
+
+        text = build_signal_message(item, candidate['score'], analysis, origin_label=origin_label, verified=verified, official_match=verified_match, overlap=overlap)
+        try:
+            telegram_client.send_message(text)
+            mark_alert_sent(state, alert_key)
+            seen_hashes.add(candidate['hash'])
+            _remember_story(state, candidate)
+            _log_news_event(
+                state,
+                item,
+                candidate,
+                analysis,
+                alert_sent=True,
+                delivery_mode='alert',
+                meta={'origin': origin_label.lower(), 'verified': verified},
+            )
+            sent_count += 1
+            if verified:
+                logger.info('%s çift doğrulamalı alarm gönderildi: %s', origin_label, alert_key)
+            else:
+                _register_pending_unofficial(state, item, candidate, origin_label)
+                logger.info('%s erken sinyal gönderildi: %s', origin_label, alert_key)
+        except Exception as exc:
+            logger.warning('Telegram %s alarm hatası: %s', origin_label, exc)
+    return sent_count
+
+def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str], sent_count: int, verification_rules: dict):
+    for candidate in candidates:
+        limit_reached = sent_count >= settings.max_news_alerts_per_scan
+        item = candidate['item']
+        _ensure_article_text(item)
+        analysis = ai_client.analyze_item(item, verification_rules, verified=False)
+
+        if not choose_best_summary(item, analysis.get('gemini') or analysis):
+            continue
+
+        if not analysis.get('should_notify') and not analysis.get('priority_hits'):
+            _log_news_event(
+                state,
+                item,
+                candidate,
+                analysis,
+                alert_sent=False,
+                delivery_mode='digest',
+                drop_reason='analysis_low_priority',
+                meta={'origin': 'analysis', 'verified': False},
+            )
+            continue
+
+        if limit_reached:
+            _log_news_event(
+                state,
+                item,
+                candidate,
+                analysis,
+                alert_sent=False,
+                delivery_mode='digest',
+                drop_reason='scan_limit_reached',
+                meta={'origin': 'analysis', 'verified': False},
+            )
+            continue
+
+        alert_key = f"ANALYSIS_{candidate['hash']}"
+        if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            continue
+
+        text = build_analysis_message(item, candidate['score'], analysis)
+        try:
+            telegram_client.send_message(text)
+            mark_alert_sent(state, alert_key)
+            seen_hashes.add(candidate['hash'])
+            _remember_story(state, candidate)
+            _log_news_event(
+                state,
+                item,
+                candidate,
+                analysis,
+                alert_sent=True,
+                delivery_mode='alert',
+                meta={'origin': 'analysis', 'verified': False},
+            )
+            sent_count += 1
+            logger.info('Analiz/rapor alarmı gönderildi: %s', alert_key)
+        except Exception as exc:
+            logger.warning('Telegram analiz alarm hatası: %s', exc)
+    return sent_count
+
+
+def _candidate_to_cluster_item(candidate: dict, origin: str) -> dict:
+    item = dict(candidate.get('item', {}) or {})
+    item['_candidate_hash'] = candidate.get('hash')
+    item['_origin'] = origin
+    item['score'] = candidate.get('score', item.get('score', 0))
+    if not item.get('summary'):
+        item['summary'] = item.get('description') or item.get('article_text') or item.get('title') or ''
+    if not item.get('url'):
+        item['url'] = item.get('link', '')
+    return item
+
+
+def _send_cluster_alerts(state: dict, buckets: list[tuple[str, list]], seen_hashes: set[str], sent_count: int) -> tuple[int, set[str]]:
+    sent_hashes = set()
+
+    cluster_items = []
+    for origin, candidates in buckets:
+        for candidate in candidates:
+            cluster_items.append(_candidate_to_cluster_item(candidate, origin))
+
+    groups = group_items(cluster_items)
+
+    for cluster, items in groups.items():
+        if sent_count >= settings.max_news_alerts_per_scan:
+            break
+
+        sources = {x.get('source_name') for x in items if x.get('source_name')}
+        if len(sources) < 2:
+            continue
+
+        if not should_send_cluster(cluster, items):
+            continue
+
+        text = build_alert(cluster, items)
+
+        try:
+            telegram_client.send_message(text)
+            sent_count += 1
+
+            for item in items:
+                h = item.get('_candidate_hash')
+                if h:
+                    sent_hashes.add(h)
+                    seen_hashes.add(h)
+
+            logger.info('Birleştirilmiş olay alarmı gönderildi: %s | kaynak=%s | item=%s', cluster, len(sources), len(items))
+        except Exception as exc:
+            logger.warning('Telegram birleştirilmiş olay alarm hatası: %s', exc)
+
+    return sent_count, sent_hashes
+
+
+def _drop_sent_cluster_candidates(candidates: list, sent_hashes: set[str]) -> list:
+    if not sent_hashes:
+        return candidates
+    return [c for c in candidates if c.get('hash') not in sent_hashes]
+
+
+def process_candidates(state: dict, official_candidates: list, social_candidates: list, osint_candidates: list, analysis_candidates: list):
+    active_config = load_active_config()
+    verification_rules = active_config.get('verification_rules', {})
+    overrides = active_config.get('overrides', {})
+    send_unverified_social = overrides.get('send_unverified_social_alerts', settings.send_unverified_social_alerts)
+    send_unverified_osint = overrides.get('send_unverified_osint_alerts', True)
+    seen_hashes = set(state.get('seen_news_hashes', []))
+    _cleanup_pending(state)
+
+    strict_official_candidates, primary_news_candidates = _split_primary_feed_candidates(official_candidates)
+
+    sent_count = 0
+
+    # AI'sız olay birleştirme: aynı olayı farklı kaynaklardan yakalarsa tek alarm basar.
+    sent_count, cluster_sent_hashes = _send_cluster_alerts(
+        state,
+        [
+            ('Resmî/Kurumsal', strict_official_candidates),
+            ('Haber', primary_news_candidates),
+            ('Sosyal', social_candidates),
+            ('OSINT', osint_candidates),
+            ('Analiz', analysis_candidates),
+        ],
+        seen_hashes,
+        sent_count,
+    )
+
+    strict_official_candidates = _drop_sent_cluster_candidates(strict_official_candidates, cluster_sent_hashes)
+    primary_news_candidates = _drop_sent_cluster_candidates(primary_news_candidates, cluster_sent_hashes)
+    social_candidates = _drop_sent_cluster_candidates(social_candidates, cluster_sent_hashes)
+    osint_candidates = _drop_sent_cluster_candidates(osint_candidates, cluster_sent_hashes)
+    analysis_candidates = _drop_sent_cluster_candidates(analysis_candidates, cluster_sent_hashes)
+
+    sent_count = _process_official_candidates(state, strict_official_candidates, seen_hashes, sent_count)
+    _process_official_confirmations(state, strict_official_candidates, verification_rules)
+    sent_count = _process_unofficial_group(state, primary_news_candidates, strict_official_candidates, seen_hashes, sent_count, 'Haber', True, verification_rules)
+    sent_count = _process_unofficial_group(state, social_candidates, strict_official_candidates, seen_hashes, sent_count, 'Sosyal', send_unverified_social, verification_rules)
+    sent_count = _process_unofficial_group(state, osint_candidates, strict_official_candidates, seen_hashes, sent_count, 'OSINT', send_unverified_osint, verification_rules)
+    sent_count = _process_analysis_group(state, analysis_candidates, seen_hashes, sent_count, verification_rules)
+
+    state['seen_news_hashes'] = list(seen_hashes)[-5000:]
+    state['seen_story_hashes'] = list(set(state.get('seen_story_hashes', [])))[-5000:]
+    state['official_signal_history'] = _trim_history(state.get('official_signal_history', []), limit=400)
+    state['pending_unofficial_signals'] = _trim_history(state.get('pending_unofficial_signals', []), limit=400)

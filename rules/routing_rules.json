@@ -1,0 +1,7 @@
+{
+  "routes": [
+    {"if_score_gte": 12, "action": "telegram"},
+    {"if_source_kind": "official_html", "action": "telegram"},
+    {"if_score_lt": 6, "action": "log_only"}
+  ]
+}
