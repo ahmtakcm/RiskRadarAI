@@ -10,14 +10,14 @@
     "name": "WarMonitors",
     "url": "https://twitt.re/WarMonitors/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 7
   },
   {
     "name": "Intel Sky",
     "url": "https://twitt.re/intel_sky/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 6
   }
 ]

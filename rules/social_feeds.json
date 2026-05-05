@@ -58,63 +58,63 @@
     "name": "NATO X",
     "url": "https://nitter.net/NATO/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 8
   },
   {
     "name": "Federal Reserve X",
     "url": "https://nitter.net/federalreserve/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 8
   },
   {
     "name": "OPEC X",
     "url": "https://nitter.net/OPECSecretariat/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 8
   },
   {
     "name": "ECB X",
     "url": "https://nitter.net/ecb/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 7
   },
   {
     "name": "WHO X",
     "url": "https://nitter.net/WHO/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 7
   },
   {
     "name": "EEAS X",
     "url": "https://nitter.net/eu_eeas/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 7
   },
   {
     "name": "IDF X",
     "url": "https://nitter.net/IDF/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 9
   },
   {
     "name": "Saudi MOD X",
     "url": "https://nitter.net/modgovksa/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 7
   },
   {
     "name": "TCMB X",
     "url": "https://nitter.net/Merkez_Bankasi/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "priority": 8
   },
   {
@@ -134,7 +134,7 @@
     "name": "SentDefender",
     "url": "https://twitt.re/sentdefender/rss",
     "kind": "rss_social",
-    "enabled": false,
+    "enabled": true,
     "tags": [
       "osint"
     ],
@@ -209,7 +209,7 @@
     "name": "Trump Truth Social Relay",
     "url": "https://truthsocial.com/@realDonaldTrump",
     "kind": "listing_html",
-    "enabled": false,
+    "enabled": true,
     "priority": 10,
     "official_class": "official_head_of_state",
     "official_country": "US",
