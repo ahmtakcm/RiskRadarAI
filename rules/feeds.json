@@ -198,13 +198,21 @@
   },
   {
     "name": "Trump Truth Social",
-    "url": "https://truthsocial.com/@realDonaldTrump",
+    "url": "https://www.presidency.ucsb.edu/documents/app-attributes/truth-social",
     "kind": "listing_html",
     "enabled": true,
     "priority": 10,
-    "official_class": "official_head_of_state",
+    "official_class": "official_head_of_state_relay",
     "official_country": "US",
-    "official_red_alert": true
+    "official_red_alert": false,
+    "account": "realDonaldTrump",
+    "access_risk": "low",
+    "notes": "Truth Social doğrudan 403/Cloudflare verdiği için American Presidency Project Truth Social attribute arşivi izlenir; resmi site değil, lider post relay/arşiv kaynağıdır.",
+    "source_class": "relay_archive",
+    "source_country": "US",
+    "source_family": "truth_social_archive",
+    "stale_minutes": 1440,
+    "parser": "presidency_truth_social_archive"
   },
   {
     "name": "Iran Leader",

@@ -6,6 +6,7 @@ from parsers.rss_parser import parse_rss_items
 from parsers.whitehouse_parser import parse_whitehouse_html
 from parsers.iran_mfa_parser import parse_iran_mfa_html
 from parsers.link_listing_parser import parse_link_listing
+from parsers.presidency_app_parser import parse_truth_social_archive
 from parsers.centcom_parser import parse_centcom_listing
 from parsers.tr_mfa_parser import parse_listing as parse_tr_mfa_listing
 from parsers.iran_mfa_new_parser import parse_listing as parse_iran_mfa_new_listing
@@ -103,6 +104,10 @@ def fetch_feed_items(feed: dict):
                 html = "".join(html_parts)
 
             items = parse_iran_mfa_new_listing(html, feed.get("name", "Iran MFA Official EN")) if html else []
+
+        elif parser_name == "presidency_truth_social_archive":
+            html = html_fetcher.fetch(url)
+            items = parse_truth_social_archive(html, url)
 
         elif "centcom.mil" in url.lower() or "centcom" in str(feed.get("name", "")).lower():
             html, resolved_url = html_fetcher.fetch_centcom_listing(url)
