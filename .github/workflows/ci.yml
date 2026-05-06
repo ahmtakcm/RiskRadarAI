@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      BOT_TOKEN: dummy-token
+      CHAT_ID: "0"
+      ACTIVE_PROFILE: tum_profiller
+      GITHUB_MODELS_ENABLED: "false"
+      GEMINI_ENABLED: "false"
+      GROQ_ENABLED: "false"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate JSON files
+        run: |
+          python -m json.tool rules/feeds.json >/dev/null
+          python -m json.tool rules/social_feeds.json >/dev/null
+          python -m json.tool rules/osint_feeds.json >/dev/null
+          python -m json.tool rules/analysis_feeds.json >/dev/null
+          python -m json.tool rules/calendar_watch.json >/dev/null
+          python -m json.tool profiles/tum_profiller.json >/dev/null
+
+      - name: Compile Python modules
+        run: python -m compileall app config core workflows filters source_selectors ops parsers commands clients services
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests
+
+      - name: Generate notification audit
+        run: python ops/notification_audit.py >/tmp/notification_audit.txt
+
+      - name: Generate source health report
+        run: python ops/source_health_report.py >/tmp/source_health_report.txt
