@@ -46,9 +46,21 @@ def _candidate_urls(original_url: str, preferred_base: str | None = None) -> lis
     return [(base, f"{base}{path}") for base in bases]
 
 
+def _extra_headers_for_base(base: str) -> dict | None:
+    low = (base or '').lower()
+    if 'xcancel.com' in low:
+        return {
+            'User-Agent': 'Inoreader/1.0',
+            'Accept': 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+        }
+    return None
+
+
 def _looks_like_rss(text: str) -> bool:
     blob = str(text or '').strip().lower()
     if not blob:
+        return False
+    if 'rss reader not yet whitelist' in blob or 'rss reader not yet whitelisted' in blob:
         return False
     return '<rss' in blob or '<feed' in blob or '<?xml' in blob
 
@@ -83,7 +95,7 @@ def fetch(feed: dict) -> str:
 
     for base, candidate_url in _candidate_urls(feed["url"], preferred_base=preferred_base):
         try:
-            text = http_client.get_text(candidate_url, feed_mode=True)
+            text = http_client.get_text(candidate_url, extra_headers=_extra_headers_for_base(base), feed_mode=True)
             if not _looks_like_rss(text):
                 raise ValueError('RSS/XML yerine geçersiz içerik döndü')
             previous_failures = int(health.get("consecutive_failures") or 0)

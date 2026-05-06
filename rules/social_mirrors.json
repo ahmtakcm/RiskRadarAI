@@ -1,28 +1,44 @@
 {
   "mirrors": [
     {
-      "name": "twitt.re",
-      "base_url": "https://twitt.re",
+      "name": "rss.xcancel.com",
+      "base_url": "https://rss.xcancel.com",
       "enabled": true,
       "priority": 1
     },
     {
-      "name": "xcancel",
+      "name": "xcancel.com",
       "base_url": "https://xcancel.com",
       "enabled": true,
       "priority": 2
     },
     {
+      "name": "twiiit.com",
+      "base_url": "https://twiiit.com",
+      "enabled": false,
+      "priority": 20,
+      "notes": "Redirect proxy; inconsistent target quality during May 2026 checks."
+    },
+    {
+      "name": "twitt.re",
+      "base_url": "https://twitt.re",
+      "enabled": false,
+      "priority": 30,
+      "notes": "Returned 503 during May 2026 checks."
+    },
+    {
       "name": "nitter.poast.org",
       "base_url": "https://nitter.poast.org",
-      "enabled": true,
-      "priority": 3
+      "enabled": false,
+      "priority": 40,
+      "notes": "Returned browser verification/403 during May 2026 checks."
     },
     {
       "name": "nitter.net",
       "base_url": "https://nitter.net",
-      "enabled": true,
-      "priority": 4
+      "enabled": false,
+      "priority": 50,
+      "notes": "Closed connections during May 2026 checks."
     }
   ]
 }

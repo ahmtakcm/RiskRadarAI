@@ -1,7 +1,7 @@
 [
   {
     "name": "WhiteHouse X",
-    "url": "https://nitter.net/WhiteHouse/rss",
+    "url": "https://xcancel.com/WhiteHouse/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 8,
@@ -12,7 +12,7 @@
   },
   {
     "name": "POTUS X",
-    "url": "https://nitter.net/POTUS/rss",
+    "url": "https://xcancel.com/POTUS/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 8,
@@ -23,7 +23,7 @@
   },
   {
     "name": "Iran MFA EN X",
-    "url": "https://nitter.net/IRIMFA_EN/rss",
+    "url": "https://xcancel.com/IRIMFA_EN/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 8,
@@ -34,7 +34,7 @@
   },
   {
     "name": "Russia MFA X",
-    "url": "https://nitter.net/mfa_russia/rss",
+    "url": "https://xcancel.com/mfa_russia/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 8,
@@ -45,7 +45,7 @@
   },
   {
     "name": "TR Presidency X",
-    "url": "https://nitter.net/trpresidency/rss",
+    "url": "https://xcancel.com/trpresidency/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 7,
@@ -56,63 +56,63 @@
   },
   {
     "name": "NATO X",
-    "url": "https://nitter.net/NATO/rss",
+    "url": "https://xcancel.com/NATO/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 8
   },
   {
     "name": "Federal Reserve X",
-    "url": "https://nitter.net/federalreserve/rss",
+    "url": "https://xcancel.com/federalreserve/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 8
   },
   {
     "name": "OPEC X",
-    "url": "https://nitter.net/OPECSecretariat/rss",
+    "url": "https://xcancel.com/OPECSecretariat/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 8
   },
   {
     "name": "ECB X",
-    "url": "https://nitter.net/ecb/rss",
+    "url": "https://xcancel.com/ecb/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 7
   },
   {
     "name": "WHO X",
-    "url": "https://nitter.net/WHO/rss",
+    "url": "https://xcancel.com/WHO/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 7
   },
   {
     "name": "EEAS X",
-    "url": "https://nitter.net/eu_eeas/rss",
+    "url": "https://xcancel.com/eu_eeas/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 7
   },
   {
     "name": "IDF X",
-    "url": "https://nitter.net/IDF/rss",
+    "url": "https://xcancel.com/IDF/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 9
   },
   {
     "name": "Saudi MOD X",
-    "url": "https://nitter.net/modgovksa/rss",
+    "url": "https://xcancel.com/modgovksa/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 7
   },
   {
     "name": "TCMB X",
-    "url": "https://nitter.net/Merkez_Bankasi/rss",
+    "url": "https://xcancel.com/Merkez_Bankasi/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 8
@@ -196,7 +196,7 @@
   },
   {
     "name": "CENTCOM X",
-    "url": "https://nitter.net/CENTCOM/rss",
+    "url": "https://xcancel.com/CENTCOM/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 10,
@@ -225,7 +225,7 @@
   },
   {
     "name": "LiveUAMap X",
-    "url": "https://nitter.net/Liveuamap/rss",
+    "url": "https://xcancel.com/Liveuamap/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 6,
@@ -235,12 +235,36 @@
   },
   {
     "name": "LummiEast X",
-    "url": "https://nitter.net/lummideast/rss",
+    "url": "https://xcancel.com/lummideast/rss",
     "kind": "rss_social",
     "enabled": true,
     "priority": 7,
     "source_class": "osint_social",
     "source_family": "osint",
     "notes": "Middle East OSINT X kaynağı."
+  },
+  {
+    "name": "UKMTO X Relay",
+    "url": "https://xcancel.com/UK_MTO/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 9,
+    "official_class": "official_security_relay",
+    "official_country": "UK",
+    "official_red_alert": true,
+    "source_class": "official_social_relay",
+    "source_country": "UK",
+    "source_family": "maritime_security",
+    "stale_minutes": 720,
+    "region_tags": [
+      "maritime",
+      "gulf",
+      "red_sea",
+      "hormuz"
+    ],
+    "verification_group": "maritime_security_cluster",
+    "access_risk": "medium",
+    "account": "UK_MTO",
+    "notes": "UKMTO official X account via xcancel RSS relay; used because ukmto.org pages return Cloudflare 403 from the VPS."
   }
 ]

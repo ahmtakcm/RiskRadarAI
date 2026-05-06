@@ -510,9 +510,9 @@
   },
   {
     "name": "UKMTO Warnings",
-    "url": "https://www.ukmto.org/ukmto-products/warnings",
+    "url": "https://www.ukmto.org/indian-ocean/ukmto-products/warnings",
     "kind": "listing_html",
-    "enabled": true,
+    "enabled": false,
     "official_class": "official_security",
     "source_class": "official",
     "source_country": "UK",
@@ -524,13 +524,14 @@
       "red_sea",
       "hormuz"
     ],
-    "notes": "Official UKMTO maritime security warnings"
+    "notes": "Official UKMTO warning page; disabled because Cloudflare returns 403 from the VPS. UKMTO X Relay is used instead.",
+    "access_risk": "high"
   },
   {
     "name": "UKMTO Advisories",
-    "url": "https://www.ukmto.org/ukmto-products/advisories",
+    "url": "https://www.ukmto.org/indian-ocean/ukmto-products/advisories",
     "kind": "listing_html",
-    "enabled": true,
+    "enabled": false,
     "official_class": "official_security",
     "source_class": "official",
     "source_country": "UK",
@@ -542,7 +543,32 @@
       "red_sea",
       "hormuz"
     ],
-    "notes": "Official UKMTO maritime security advisories"
+    "notes": "Official UKMTO advisory page; disabled because Cloudflare returns 403 from the VPS. UKMTO X Relay is used instead.",
+    "access_risk": "high"
+  },
+  {
+    "name": "UKMTO X Relay",
+    "url": "https://xcancel.com/UK_MTO/rss",
+    "kind": "rss_social",
+    "enabled": true,
+    "priority": 9,
+    "official_class": "official_security_relay",
+    "official_country": "UK",
+    "official_red_alert": true,
+    "source_class": "official_social_relay",
+    "source_country": "UK",
+    "source_family": "maritime_security",
+    "stale_minutes": 720,
+    "region_tags": [
+      "maritime",
+      "gulf",
+      "red_sea",
+      "hormuz"
+    ],
+    "verification_group": "maritime_security_cluster",
+    "access_risk": "medium",
+    "account": "UK_MTO",
+    "notes": "UKMTO official X account via xcancel RSS relay; used because ukmto.org pages return Cloudflare 403 from the VPS."
   },
   {
     "name": "OFAC Recent Actions",
