@@ -499,5 +499,144 @@
     "source_class": "official_government",
     "source_family": "defense",
     "notes": "CENTCOM RSS endpoint."
+  },
+  {
+    "name": "UKMTO Warnings",
+    "url": "https://www.ukmto.org/ukmto-products/warnings",
+    "kind": "listing_html",
+    "enabled": true,
+    "official_class": "official_security",
+    "source_class": "official",
+    "source_country": "UK",
+    "source_family": "maritime_security",
+    "stale_minutes": 720,
+    "region_tags": [
+      "maritime",
+      "gulf",
+      "red_sea",
+      "hormuz"
+    ],
+    "notes": "Official UKMTO maritime security warnings"
+  },
+  {
+    "name": "UKMTO Advisories",
+    "url": "https://www.ukmto.org/ukmto-products/advisories",
+    "kind": "listing_html",
+    "enabled": true,
+    "official_class": "official_security",
+    "source_class": "official",
+    "source_country": "UK",
+    "source_family": "maritime_security",
+    "stale_minutes": 720,
+    "region_tags": [
+      "maritime",
+      "gulf",
+      "red_sea",
+      "hormuz"
+    ],
+    "notes": "Official UKMTO maritime security advisories"
+  },
+  {
+    "name": "OFAC Recent Actions",
+    "url": "https://ofac.treasury.gov/recent-actions",
+    "kind": "listing_html",
+    "enabled": true,
+    "official_class": "official_sanctions",
+    "source_class": "official",
+    "source_country": "US",
+    "source_family": "sanctions",
+    "stale_minutes": 1440,
+    "region_tags": [
+      "sanctions",
+      "finance",
+      "us"
+    ],
+    "notes": "US Treasury OFAC recent actions"
+  },
+  {
+    "name": "OFAC Sanctions List Updates",
+    "url": "https://ofac.treasury.gov/recent-actions/sanctions-list-updates",
+    "kind": "listing_html",
+    "enabled": true,
+    "official_class": "official_sanctions",
+    "source_class": "official",
+    "source_country": "US",
+    "source_family": "sanctions",
+    "stale_minutes": 1440,
+    "region_tags": [
+      "sanctions",
+      "finance",
+      "us"
+    ],
+    "notes": "US Treasury OFAC sanctions list updates"
+  },
+  {
+    "name": "UN Security Council",
+    "url": "https://press.un.org/en/security-council",
+    "kind": "listing_html",
+    "enabled": true,
+    "official_class": "official_multilateral",
+    "source_class": "official",
+    "source_country": "UN",
+    "source_family": "security_council",
+    "stale_minutes": 1440,
+    "region_tags": [
+      "un",
+      "security",
+      "conflict"
+    ],
+    "notes": "UN Security Council meetings coverage and press releases"
+  },
+  {
+    "name": "IAEA Top News",
+    "url": "https://www.iaea.org/feeds/topnews",
+    "kind": "rss",
+    "enabled": true,
+    "official_class": "official_nuclear",
+    "source_class": "official",
+    "source_country": "IAEA",
+    "source_family": "nuclear",
+    "stale_minutes": 1440,
+    "region_tags": [
+      "nuclear",
+      "iaea",
+      "safeguards"
+    ],
+    "notes": "IAEA top news RSS"
+  },
+  {
+    "name": "IAEA DG Statements",
+    "url": "https://www.iaea.org/feeds/dgstatements",
+    "kind": "rss",
+    "enabled": true,
+    "official_class": "official_nuclear",
+    "source_class": "official",
+    "source_country": "IAEA",
+    "source_family": "nuclear",
+    "stale_minutes": 1440,
+    "region_tags": [
+      "nuclear",
+      "iaea",
+      "safeguards"
+    ],
+    "notes": "IAEA Director General statements RSS"
+  },
+  {
+    "name": "EIA Press Releases",
+    "url": "https://www.eia.gov/rss/press_rss.xml",
+    "kind": "rss",
+    "enabled": true,
+    "official_class": "official_energy",
+    "source_class": "official",
+    "source_country": "US",
+    "source_family": "energy",
+    "stale_minutes": 1440,
+    "region_tags": [
+      "energy",
+      "oil",
+      "gas",
+      "us"
+    ],
+    "notes": "US EIA press releases RSS"
   }
 ]

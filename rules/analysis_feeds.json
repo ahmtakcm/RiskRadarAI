@@ -26,5 +26,22 @@
     "kind": "listing_html",
     "enabled": true,
     "priority": 6
+  },
+  {
+    "name": "EIA Today in Energy",
+    "url": "https://www.eia.gov/rss/todayinenergy.xml",
+    "kind": "rss",
+    "enabled": true,
+    "source_class": "official_analysis",
+    "source_country": "US",
+    "source_family": "energy_analysis",
+    "stale_minutes": 2880,
+    "region_tags": [
+      "energy",
+      "oil",
+      "gas",
+      "markets"
+    ],
+    "notes": "US EIA Today in Energy analysis RSS"
   }
 ]
