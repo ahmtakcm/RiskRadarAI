@@ -23,6 +23,9 @@ FEED_META_KEYS = (
     "verification_group",
     "access_risk",
     "notes",
+    "notify_policy",
+    "confirmation_required",
+    "relay_label",
 )
 
 def _pub_date_sort_key(pub_date: str) -> float:

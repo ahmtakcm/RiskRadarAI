@@ -10,8 +10,29 @@ from fetchers.html_fetcher import fetch_article_text
 from filters.ai_parse import choose_best_summary
 from core.news_log import build_log_entry, append_news_log
 from core.event_merger import group_items, should_send_cluster, build_alert
+from core.notification_policy import item_policy_context
 
 logger = get_logger('process_candidates')
+
+
+def _notification_context(item: dict, origin_label: str | None = None) -> dict:
+    return item_policy_context(
+        item,
+        origin_label=origin_label,
+        settings=settings,
+        send_unverified_social=item.get('_send_unverified_social', settings.send_unverified_social_alerts),
+        send_unverified_osint=item.get('_send_unverified_osint', True),
+    )
+
+
+def _log_notification_decision(action: str, item: dict, *, reason: str | None = None, origin_label: str | None = None, alert_key: str | None = None):
+    ctx = _notification_context(item, origin_label=origin_label)
+    logger.info(
+        'Notification %s | source=%s | policy=%s | lane=%s | reason=%s | direct=%s | requires_ai=%s | requires_confirmation=%s | digest_only=%s | relay=%s | key=%s',
+        action, item.get('source_name', ''), ctx.get('notify_policy'), ctx.get('notification_lane'), reason or '',
+        ctx.get('can_notify_direct'), ctx.get('requires_ai_should_notify'), ctx.get('requires_official_confirmation'),
+        ctx.get('can_be_digest_only'), ctx.get('relay_label'), alert_key or '',
+    )
 
 
 def _is_strict_official_item(item: dict) -> bool:
@@ -64,6 +85,10 @@ def _log_news_event(state: dict, item: dict, candidate: dict, analysis: dict | N
     if not summary:
         summary = str(item.get('translated_text', '') or item.get('description', '') or '').strip()
 
+    policy_context = _notification_context(item, origin_label=(meta or {}).get('origin'))
+    merged_meta = dict(meta or {})
+    merged_meta.setdefault('notification_policy', policy_context)
+
     entry = build_log_entry(
         item,
         candidate['hash'],
@@ -72,7 +97,7 @@ def _log_news_event(state: dict, item: dict, candidate: dict, analysis: dict | N
         translated_text=summary,
         delivery_mode=delivery_mode,
         score=analysis.get('alarm_score', candidate.get('score')),
-        meta=meta or {},
+        meta=merged_meta,
     )
     append_news_log(state, entry)
 
@@ -210,9 +235,15 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
         _ensure_article_text(item)
         alert_key = f"NEWS_{candidate['hash']}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            _log_notification_decision('drop', item, reason='cooldown', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
         analysis = ai_client.analyze_item(item, {}, verified=True)
+        if item.get('is_official_routine') or analysis.get('category') == 'ignore':
+            _log_news_event(state, item, candidate, analysis, alert_sent=False, delivery_mode='none', drop_reason='routine_suppressed', meta={'origin': 'official', 'verified': True})
+            _log_notification_decision('drop', item, reason='routine_suppressed', origin_label='Resmî/Kurumsal', alert_key=alert_key)
+            continue
         if not choose_best_summary(item, analysis.get('gemini') or analysis):
+            _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
         text = build_signal_message(item, candidate['score'], analysis, origin_label='Resmî/Kurumsal', verified=False)
         try:
@@ -231,6 +262,7 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
                 meta={'origin': 'official', 'verified': True},
             )
             sent_count += 1
+            _log_notification_decision('sent', item, origin_label='Resmî/Kurumsal', alert_key=alert_key)
             logger.info('Resmî haber alarmı gönderildi: %s', alert_key)
         except Exception as exc:
             logger.warning('Telegram resmî haber alarm hatası: %s', exc)
@@ -240,11 +272,17 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
     for candidate in candidates:
         limit_reached = sent_count >= settings.max_news_alerts_per_scan
         item = candidate['item']
+        if origin_label == 'Sosyal':
+            item['_send_unverified_social'] = send_unverified
+        elif origin_label == 'OSINT':
+            item['_send_unverified_osint'] = send_unverified
         _ensure_article_text(item)
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
         if analysis.get('category') == 'ignore':
+            _log_notification_decision('drop', item, reason='not_relevant', origin_label=origin_label)
             continue
         if not choose_best_summary(item, analysis.get('gemini') or analysis):
+            _log_notification_decision('drop', item, reason='no_usable_summary', origin_label=origin_label)
             continue
         verified_match, overlap, match_note = _find_best_official_match(candidate, official_candidates, state, verification_rules)
         verified = bool(verified_match)
@@ -260,6 +298,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
                 drop_reason='unverified_hold',
                 meta={'origin': origin_label.lower(), 'verified': False},
             )
+            _log_notification_decision('digest_only', item, reason='unverified_hold', origin_label=origin_label)
             continue
 
         if not verified and not analysis.get('should_notify'):
@@ -273,6 +312,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
                 drop_reason='below_alert_threshold',
                 meta={'origin': origin_label.lower(), 'verified': False},
             )
+            _log_notification_decision('digest_only', item, reason='below_alert_threshold', origin_label=origin_label)
             continue
 
         if limit_reached:
@@ -286,11 +326,13 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
                 drop_reason='scan_limit_reached',
                 meta={'origin': origin_label.lower(), 'verified': verified},
             )
+            _log_notification_decision('digest_only', item, reason='scan_limit_reached', origin_label=origin_label)
             continue
 
         suffix = 'VERIFIED' if verified else 'UNVERIFIED'
         alert_key = f"{origin_label.upper()}_{suffix}_{candidate['hash']}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            _log_notification_decision('drop', item, reason='cooldown', origin_label=origin_label, alert_key=alert_key)
             continue
 
         text = build_signal_message(item, candidate['score'], analysis, origin_label=origin_label, verified=verified, official_match=verified_match, overlap=overlap)
@@ -310,9 +352,11 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
             )
             sent_count += 1
             if verified:
+                _log_notification_decision('sent', item, origin_label=origin_label, alert_key=alert_key)
                 logger.info('%s çift doğrulamalı alarm gönderildi: %s', origin_label, alert_key)
             else:
                 _register_pending_unofficial(state, item, candidate, origin_label)
+                _log_notification_decision('sent', item, origin_label=origin_label, alert_key=alert_key)
                 logger.info('%s erken sinyal gönderildi: %s', origin_label, alert_key)
         except Exception as exc:
             logger.warning('Telegram %s alarm hatası: %s', origin_label, exc)
@@ -326,6 +370,7 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
 
         if not choose_best_summary(item, analysis.get('gemini') or analysis):
+            _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Analiz')
             continue
 
         if not analysis.get('should_notify') and not analysis.get('priority_hits'):
@@ -336,9 +381,10 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
                 analysis,
                 alert_sent=False,
                 delivery_mode='digest',
-                drop_reason='analysis_low_priority',
+                drop_reason='below_alert_threshold',
                 meta={'origin': 'analysis', 'verified': False},
             )
+            _log_notification_decision('digest_only', item, reason='below_alert_threshold', origin_label='Analiz')
             continue
 
         if limit_reached:
@@ -352,10 +398,12 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
                 drop_reason='scan_limit_reached',
                 meta={'origin': 'analysis', 'verified': False},
             )
+            _log_notification_decision('digest_only', item, reason='scan_limit_reached', origin_label='Analiz')
             continue
 
         alert_key = f"ANALYSIS_{candidate['hash']}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            _log_notification_decision('drop', item, reason='cooldown', origin_label='Analiz', alert_key=alert_key)
             continue
 
         text = build_analysis_message(item, candidate['score'], analysis)
@@ -374,6 +422,7 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
                 meta={'origin': 'analysis', 'verified': False},
             )
             sent_count += 1
+            _log_notification_decision('sent', item, origin_label='Analiz', alert_key=alert_key)
             logger.info('Analiz/rapor alarmı gönderildi: %s', alert_key)
         except Exception as exc:
             logger.warning('Telegram analiz alarm hatası: %s', exc)

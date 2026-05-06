@@ -183,6 +183,9 @@ def _handle_event(event: dict, now: datetime) -> bool:
 
     if delta_minutes >= 0:
         for key, threshold in thresholds:
+            if delta_minutes <= threshold and _sent(event, key):
+                logger.info("Notification drop | source=%s | policy=calendar_only | lane=calendar_threshold | reason=cooldown | key=%s:%s", event.get('source_name', ''), event.get('id'), key)
+                continue
             if delta_minutes <= threshold and not _sent(event, key):
                 telegram_client.send_message(_calendar_message(event, key, delta_minutes))
 
@@ -190,11 +193,15 @@ def _handle_event(event: dict, now: datetime) -> bool:
                     activate_high_alert(event, mode="pre_event", hours=3)
 
                 _mark(event, key)
+                logger.info("Notification sent | source=%s | policy=calendar_only | lane=calendar_threshold | reason=%s | key=%s", event.get('source_name', ''), key, event.get('id'))
                 logger.info("Takvim geri sayım alarmı gönderildi: %s %s", event.get("id"), key)
                 changed = True
                 break
 
     # Event zamanı geçtiyse yayın kontrolü
+    if delta_minutes <= 0 and abs(delta_minutes) <= post_window and _sent(event, "published"):
+        logger.info("Notification drop | source=%s | policy=calendar_only | lane=calendar_threshold | reason=cooldown | key=%s:published", event.get('source_name', ''), event.get('id'))
+
     if delta_minutes <= 0 and abs(delta_minutes) <= post_window and not _sent(event, "published"):
         if _check_publish_signals(event):
             telegram_client.send_message(_calendar_message(event, "published"))
@@ -216,6 +223,7 @@ def _handle_event(event: dict, now: datetime) -> bool:
 
             _mark(event, "published")
             event["status"] = "done"
+            logger.info("Notification sent | source=%s | policy=calendar_only | lane=calendar_threshold | reason=published | key=%s", event.get('source_name', ''), event.get('id'))
             logger.info("Takvim yayınlandı alarmı gönderildi: %s", event.get("id"))
             changed = True
 

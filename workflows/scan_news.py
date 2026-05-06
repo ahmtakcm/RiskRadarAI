@@ -65,6 +65,9 @@ def normalize(item):
         'verification_group': item.get('verification_group', ''),
         'access_risk': item.get('access_risk', ''),
         'notes': item.get('notes', ''),
+        'notify_policy': item.get('notify_policy', ''),
+        'confirmation_required': item.get('confirmation_required', False),
+        'relay_label': item.get('relay_label', ''),
     }
 
 
@@ -112,6 +115,7 @@ def scan_news(state: dict, mode: str = 'all'):
                 freshness = evaluate_item_freshness(item, mode, settings)
                 item.update(freshness)
                 if freshness.get('is_stale'):
+                    logger.info('Notification drop | source=%s | reason=stale | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))
                     stale_count += 1
                     stale_limit = freshness.get('max_age_minutes')
                     age = int(freshness.get('age_minutes') or 0)
@@ -125,6 +129,7 @@ def scan_news(state: dict, mode: str = 'all'):
                 item.update(official_meta)
 
                 if should_drop_from_alerting(item) and not item.get('is_official_source'):
+                    logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | content_class=%s', feed.get('name'), mode, item.get('content_class'))
                     continue
 
                 h = text_hash(item['title'] + '|' + item['link'] + '|' + item['source_name'])
@@ -137,7 +142,12 @@ def scan_news(state: dict, mode: str = 'all'):
                     and not item.get('is_official_routine')
                     and (item.get('official_keyword_hits') or item.get('official_entity_hits'))
                 )
+                if not force_keep and item.get('is_official_routine'):
+                    logger.info('Notification drop | source=%s | reason=routine_suppressed | mode=%s', feed.get('name'), mode)
+                    continue
+
                 if not force_keep and not is_relevant_news(item, keywords, social_rule, min_score):
+                    logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | score=%s', feed.get('name'), mode, item.get('score', ''))
                     continue
 
                 score, _, _, pattern_hits = get_risk_score(item, keywords)
@@ -146,6 +156,7 @@ def scan_news(state: dict, mode: str = 'all'):
                 elif item.get('is_official_source') and not item.get('is_official_routine') and (item.get('official_keyword_hits') or item.get('official_entity_hits')):
                     score = max(score, 18)
 
+                item['scan_mode'] = mode
                 topic_tokens = sorted(build_topic_tokens(item, tracked_terms + item.get('official_keyword_hits', []) + item.get('official_entity_hits', [])))
                 candidates.append({
                     'hash': h,

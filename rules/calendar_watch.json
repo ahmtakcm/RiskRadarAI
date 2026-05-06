@@ -23,7 +23,10 @@
         "economic projections",
         "minutes"
       ],
-      "enabled": true
+      "enabled": true,
+      "notify_policy": "calendar_only",
+      "confirmation_required": false,
+      "relay_label": "direct"
     },
     {
       "id": "opec_may_2026",
@@ -48,7 +51,10 @@
         "production",
         "opec"
       ],
-      "enabled": true
+      "enabled": true,
+      "notify_policy": "calendar_only",
+      "confirmation_required": false,
+      "relay_label": "direct"
     },
     {
       "id": "tcmb_inf_report_ii_2026",
@@ -74,7 +80,10 @@
         "2026 - ii",
         "basın bilgilendirme"
       ],
-      "enabled": true
+      "enabled": true,
+      "notify_policy": "calendar_only",
+      "confirmation_required": false,
+      "relay_label": "direct"
     },
     {
       "id": "who_one_health_2026",
@@ -97,7 +106,10 @@
         "summit",
         "world health day"
       ],
-      "enabled": false
+      "enabled": false,
+      "notify_policy": "calendar_only",
+      "confirmation_required": false,
+      "relay_label": "direct"
     }
   ]
 }

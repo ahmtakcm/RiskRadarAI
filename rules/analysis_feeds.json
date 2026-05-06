@@ -4,28 +4,40 @@
     "url": "https://www.crisisgroup.org/rss.xml",
     "kind": "rss",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Security Council Report",
     "url": "https://www.securitycouncilreport.org/whatsinblue/",
     "kind": "listing_html",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "IMF Press Releases",
     "url": "https://www.imf.org/en/News/Articles",
     "kind": "listing_html",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "WHO Newsroom",
     "url": "https://www.who.int/news-room",
     "kind": "listing_html",
     "enabled": true,
-    "priority": 6
+    "priority": 6,
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "EIA Today in Energy",
@@ -42,6 +54,9 @@
       "gas",
       "markets"
     ],
-    "notes": "US EIA Today in Energy analysis RSS"
+    "notes": "US EIA Today in Energy analysis RSS",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   }
 ]

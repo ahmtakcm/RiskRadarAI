@@ -4,14 +4,20 @@
     "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
     "kind": "news",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "BBC World",
     "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
     "kind": "news",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Al Jazeera",
@@ -29,7 +35,10 @@
     ],
     "verification_group": "gulf_media_cluster",
     "access_risk": "low",
-    "notes": "Bölgesel ve küresel güçlü medya; liveblog ve sıcak gelişme yoğun."
+    "notes": "Bölgesel ve küresel güçlü medya; liveblog ve sıcak gelişme yoğun.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Anadolu Ajansı",
@@ -47,7 +56,10 @@
     ],
     "verification_group": "tr_mainstream_cluster",
     "access_risk": "low",
-    "notes": "Ana Türkçe ajans akışı; hızlı ve geniş kapsama."
+    "notes": "Ana Türkçe ajans akışı; hızlı ve geniş kapsama.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Türkiye MFA RSS",
@@ -56,7 +68,10 @@
     "enabled": true,
     "priority": 8,
     "official_class": "official_diplomacy",
-    "official_country": "TR"
+    "official_country": "TR",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "White House News",
@@ -65,7 +80,10 @@
     "enabled": true,
     "priority": 10,
     "official_class": "official_executive",
-    "official_country": "US"
+    "official_country": "US",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "White House Briefings",
@@ -74,7 +92,10 @@
     "enabled": true,
     "priority": 10,
     "official_class": "official_executive",
-    "official_country": "US"
+    "official_country": "US",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "NATO Media Advisories",
@@ -84,7 +105,10 @@
     "priority": 10,
     "official_class": "official_security_org",
     "official_country": "NATO",
-    "stale_minutes": 2880
+    "stale_minutes": 2880,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "WHO Newsroom",
@@ -94,7 +118,10 @@
     "priority": 8,
     "official_class": "official_health_org",
     "official_country": "WHO",
-    "stale_minutes": 2880
+    "stale_minutes": 2880,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "WHO Events",
@@ -103,7 +130,10 @@
     "enabled": true,
     "priority": 8,
     "official_class": "official_health_org",
-    "official_country": "WHO"
+    "official_country": "WHO",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "EEAS Newsroom",
@@ -113,7 +143,10 @@
     "priority": 8,
     "official_class": "official_diplomacy",
     "official_country": "EU",
-    "stale_minutes": 2880
+    "stale_minutes": 2880,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "MSB Haftalık Basın",
@@ -123,7 +156,10 @@
     "priority": 9,
     "official_class": "official_military",
     "official_country": "TR",
-    "stale_minutes": 2880
+    "stale_minutes": 2880,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Federal Reserve Calendar",
@@ -133,7 +169,10 @@
     "priority": 10,
     "official_class": "official_central_bank",
     "official_country": "US",
-    "stale_minutes": 10080
+    "stale_minutes": 10080,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Federal Reserve FOMC",
@@ -143,7 +182,10 @@
     "priority": 10,
     "official_class": "official_central_bank",
     "official_country": "US",
-    "stale_minutes": 10080
+    "stale_minutes": 10080,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "ECB RSS Feeds",
@@ -153,7 +195,10 @@
     "priority": 8,
     "official_class": "official_central_bank",
     "official_country": "EU",
-    "stale_minutes": 4320
+    "stale_minutes": 4320,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TCMB Basın Bilgilendirme",
@@ -163,7 +208,10 @@
     "priority": 9,
     "official_class": "official_central_bank",
     "official_country": "TR",
-    "stale_minutes": 4320
+    "stale_minutes": 4320,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TCMB Enflasyon Raporu 2026",
@@ -173,14 +221,20 @@
     "priority": 9,
     "official_class": "official_central_bank",
     "official_country": "TR",
-    "stale_minutes": 10080
+    "stale_minutes": 10080,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Security Council Report",
     "url": "https://www.securitycouncilreport.org/whatsinblue/",
     "kind": "listing_html",
     "enabled": true,
-    "priority": 8
+    "priority": 8,
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Crisis Group RSS",
@@ -194,7 +248,10 @@
     "priority": 8,
     "source_class": "osint_analysis",
     "source_family": "osint",
-    "notes": "Crisis Group genel RSS; Watch List/Horizon sayfaları 403 verdiği için kullanılıyor."
+    "notes": "Crisis Group genel RSS; Watch List/Horizon sayfaları 403 verdiği için kullanılıyor.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Trump Truth Social",
@@ -212,7 +269,10 @@
     "source_country": "US",
     "source_family": "truth_social_archive",
     "stale_minutes": 1440,
-    "parser": "presidency_truth_social_archive"
+    "parser": "presidency_truth_social_archive",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "relay_archive"
   },
   {
     "name": "Iran Leader",
@@ -234,7 +294,10 @@
     ],
     "verification_group": "ir_state_cluster",
     "access_risk": "medium",
-    "notes": "İran liderlik makamı listing kaynağı; şu aşamada disabled kalır."
+    "notes": "İran liderlik makamı listing kaynağı; şu aşamada disabled kalır.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Iran President",
@@ -256,7 +319,10 @@
     ],
     "verification_group": "ir_state_cluster",
     "access_risk": "medium",
-    "notes": "İran cumhurbaşkanlığı listing kaynağı; şu aşamada disabled kalır."
+    "notes": "İran cumhurbaşkanlığı listing kaynağı; şu aşamada disabled kalır.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "IRNA English",
@@ -277,7 +343,10 @@
     ],
     "verification_group": "ir_state_cluster",
     "access_risk": "low",
-    "notes": "İran resmî ajansı İngilizce RSS akışı. Legacy official_class alanı şimdilik korunur."
+    "notes": "İran resmî ajansı İngilizce RSS akışı. Legacy official_class alanı şimdilik korunur.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Iran MFA News",
@@ -299,7 +368,10 @@
     ],
     "verification_group": "ir_state_cluster",
     "access_risk": "medium",
-    "notes": "İran MFA arşiv/listeleme hattı; gerekirse sonra etkinleştirilir."
+    "notes": "İran MFA arşiv/listeleme hattı; gerekirse sonra etkinleştirilir.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TASS",
@@ -317,7 +389,10 @@
     ],
     "verification_group": "ru_state_cluster",
     "access_risk": "low",
-    "notes": "Rusya resmi devlet haber ajansı (İngilizce). Kremlin ve resmi Rus görüşüne yakın."
+    "notes": "Rusya resmi devlet haber ajansı (İngilizce). Kremlin ve resmi Rus görüşüne yakın.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Europarl AFET",
@@ -335,7 +410,10 @@
     ],
     "verification_group": "eu_institutions",
     "access_risk": "low",
-    "notes": "AFET committee feed. Kurumsal/diplomatik sinyal kaynağı; kontrollü gözlemle açılacak."
+    "notes": "AFET committee feed. Kurumsal/diplomatik sinyal kaynağı; kontrollü gözlemle açılacak.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "JPost Iran",
@@ -353,7 +431,10 @@
     ],
     "verification_group": "il_media_cluster",
     "access_risk": "low",
-    "notes": "Jerusalem Post Iran odaklı feed. Test başarılı ve güncel."
+    "notes": "Jerusalem Post Iran odaklı feed. Test başarılı ve güncel.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "JPost Middle East",
@@ -370,7 +451,10 @@
     ],
     "verification_group": "il_media_cluster",
     "access_risk": "low",
-    "notes": "Jerusalem Post Middle East feed. Test başarılı ve güncel."
+    "notes": "Jerusalem Post Middle East feed. Test başarılı ve güncel.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Europarl ECON Committee",
@@ -388,7 +472,10 @@
     ],
     "verification_group": "eu_institutions",
     "access_risk": "low",
-    "notes": "ECON committee feed. Kurumsal ekonomi sinyali için kontrollü açıldı."
+    "notes": "ECON committee feed. Kurumsal ekonomi sinyali için kontrollü açıldı.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "JPost International",
@@ -404,7 +491,10 @@
     ],
     "verification_group": "il_media_cluster",
     "access_risk": "low",
-    "notes": "Jerusalem Post International feed. Kullanıcı kararıyla dedupe öncesi aktif edildi."
+    "notes": "Jerusalem Post International feed. Kullanıcı kararıyla dedupe öncesi aktif edildi.",
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Federal Reserve Press Releases",
@@ -414,7 +504,10 @@
     "priority": 10,
     "official_class": "official_central_bank",
     "official_country": "US",
-    "stale_minutes": 10080
+    "stale_minutes": 10080,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TR MFA Açıklamalar",
@@ -425,7 +518,10 @@
     "priority": 10,
     "official_class": "official_foreign_ministry",
     "official_country": "TR",
-    "stale_minutes": 1440
+    "stale_minutes": 1440,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TR MFA Ana Sayfa Açıklamalar",
@@ -437,7 +533,10 @@
     "official_class": "official_foreign_ministry",
     "official_country": "TR",
     "stale_minutes": 1440,
-    "disabled_reason": "Ana sayfa navigasyon/menü metni ürettiği için kapatıldı."
+    "disabled_reason": "Ana sayfa navigasyon/menü metni ürettiği için kapatıldı.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Iran MFA Official EN",
@@ -448,7 +547,10 @@
     "priority": 10,
     "official_class": "official_foreign_ministry",
     "official_country": "IR",
-    "stale_minutes": 1440
+    "stale_minutes": 1440,
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TASS RSS",
@@ -458,7 +560,10 @@
     "priority": 7,
     "official_class": "state_media",
     "official_country": "RU",
-    "stale_minutes": 360
+    "stale_minutes": 360,
+    "notify_policy": "ai_threshold",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Defense.gov RSS Content 1",
@@ -470,7 +575,10 @@
     "official_country": "US",
     "source_class": "official_government",
     "source_family": "defense",
-    "notes": "Defense.gov RSS endpoint; war.gov kaynakları yerine."
+    "notes": "Defense.gov RSS endpoint; war.gov kaynakları yerine.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Defense.gov RSS Content 2",
@@ -482,7 +590,10 @@
     "official_country": "US",
     "source_class": "official_government",
     "source_family": "defense",
-    "notes": "Defense.gov RSS endpoint; war.gov kaynakları yerine."
+    "notes": "Defense.gov RSS endpoint; war.gov kaynakları yerine.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "CENTCOM RSS Content 1",
@@ -494,7 +605,10 @@
     "official_country": "US",
     "source_class": "official_government",
     "source_family": "defense",
-    "notes": "CENTCOM RSS endpoint."
+    "notes": "CENTCOM RSS endpoint.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "CENTCOM RSS Content 2",
@@ -506,7 +620,10 @@
     "official_country": "US",
     "source_class": "official_government",
     "source_family": "defense",
-    "notes": "CENTCOM RSS endpoint."
+    "notes": "CENTCOM RSS endpoint.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "UKMTO Warnings",
@@ -525,7 +642,10 @@
       "hormuz"
     ],
     "notes": "Official UKMTO warning page; disabled because Cloudflare returns 403 from the VPS. UKMTO X Relay is used instead.",
-    "access_risk": "high"
+    "access_risk": "high",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "official"
   },
   {
     "name": "UKMTO Advisories",
@@ -544,7 +664,10 @@
       "hormuz"
     ],
     "notes": "Official UKMTO advisory page; disabled because Cloudflare returns 403 from the VPS. UKMTO X Relay is used instead.",
-    "access_risk": "high"
+    "access_risk": "high",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "official"
   },
   {
     "name": "UKMTO X Relay",
@@ -568,7 +691,10 @@
     "verification_group": "maritime_security_cluster",
     "access_risk": "medium",
     "account": "UK_MTO",
-    "notes": "UKMTO official X account via xcancel RSS relay; used because ukmto.org pages return Cloudflare 403 from the VPS."
+    "notes": "UKMTO official X account via xcancel RSS relay; used because ukmto.org pages return Cloudflare 403 from the VPS.",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "official_social_relay"
   },
   {
     "name": "OFAC Recent Actions",
@@ -585,7 +711,10 @@
       "finance",
       "us"
     ],
-    "notes": "US Treasury OFAC recent actions"
+    "notes": "US Treasury OFAC recent actions",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "OFAC Sanctions List Updates",
@@ -602,7 +731,10 @@
       "finance",
       "us"
     ],
-    "notes": "US Treasury OFAC sanctions list updates"
+    "notes": "US Treasury OFAC sanctions list updates",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "UN Security Council",
@@ -619,7 +751,10 @@
       "security",
       "conflict"
     ],
-    "notes": "UN Security Council meetings coverage and press releases"
+    "notes": "UN Security Council meetings coverage and press releases",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "IAEA Top News",
@@ -636,7 +771,10 @@
       "iaea",
       "safeguards"
     ],
-    "notes": "IAEA top news RSS"
+    "notes": "IAEA top news RSS",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "IAEA DG Statements",
@@ -653,7 +791,10 @@
       "iaea",
       "safeguards"
     ],
-    "notes": "IAEA Director General statements RSS"
+    "notes": "IAEA Director General statements RSS",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "EIA Press Releases",
@@ -671,6 +812,9 @@
       "gas",
       "us"
     ],
-    "notes": "US EIA press releases RSS"
+    "notes": "US EIA press releases RSS",
+    "notify_policy": "direct_official",
+    "confirmation_required": false,
+    "relay_label": "direct"
   }
 ]

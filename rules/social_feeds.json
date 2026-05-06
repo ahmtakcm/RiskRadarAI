@@ -8,7 +8,10 @@
     "official_class": "official_executive",
     "official_country": "US",
     "official_red_alert": true,
-    "stale_minutes": 180
+    "stale_minutes": 180,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "POTUS X",
@@ -19,7 +22,10 @@
     "official_class": "official_executive",
     "official_country": "US",
     "official_red_alert": true,
-    "stale_minutes": 180
+    "stale_minutes": 180,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Iran MFA EN X",
@@ -30,7 +36,10 @@
     "official_class": "official_diplomacy",
     "official_country": "IR",
     "official_red_alert": true,
-    "stale_minutes": 180
+    "stale_minutes": 180,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Russia MFA X",
@@ -41,7 +50,10 @@
     "official_class": "official_diplomacy",
     "official_country": "RU",
     "official_red_alert": true,
-    "stale_minutes": 180
+    "stale_minutes": 180,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TR Presidency X",
@@ -52,70 +64,100 @@
     "official_class": "official_executive",
     "official_country": "TR",
     "official_red_alert": true,
-    "stale_minutes": 300
+    "stale_minutes": 300,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "NATO X",
     "url": "https://xcancel.com/NATO/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 8
+    "priority": 8,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Federal Reserve X",
     "url": "https://xcancel.com/federalreserve/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 8
+    "priority": 8,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "OPEC X",
     "url": "https://xcancel.com/OPECSecretariat/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 8
+    "priority": 8,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "ECB X",
     "url": "https://xcancel.com/ecb/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "WHO X",
     "url": "https://xcancel.com/WHO/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "EEAS X",
     "url": "https://xcancel.com/eu_eeas/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "IDF X",
     "url": "https://xcancel.com/IDF/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 9
+    "priority": 9,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Saudi MOD X",
     "url": "https://xcancel.com/modgovksa/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TCMB X",
     "url": "https://xcancel.com/Merkez_Bankasi/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 8
+    "priority": 8,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Pentagon X",
@@ -128,7 +170,10 @@
     "priority": 8,
     "official_class": "official_military",
     "official_country": "US",
-    "official_red_alert": true
+    "official_red_alert": true,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "SentDefender",
@@ -138,7 +183,10 @@
     "tags": [
       "osint"
     ],
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "IMF X",
@@ -148,7 +196,10 @@
     "tags": [
       "ekonomi"
     ],
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TC Bestepe",
@@ -162,7 +213,10 @@
     "official_class": "official_executive",
     "official_country": "TR",
     "official_red_alert": true,
-    "stale_minutes": 180
+    "stale_minutes": 180,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "TC Savunma",
@@ -177,7 +231,10 @@
     "official_class": "official_military",
     "official_country": "TR",
     "official_red_alert": true,
-    "stale_minutes": 180
+    "stale_minutes": 180,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "USTreasury X",
@@ -192,7 +249,10 @@
     "official_class": "official_finance",
     "official_country": "US",
     "official_red_alert": true,
-    "stale_minutes": 240
+    "stale_minutes": 240,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "CENTCOM X",
@@ -203,7 +263,10 @@
     "official_class": "official_military",
     "official_country": "US",
     "official_red_alert": true,
-    "stale_minutes": 360
+    "stale_minutes": 360,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Trump Truth Social Relay",
@@ -221,7 +284,10 @@
     "source_country": "US",
     "source_family": "truth_social_archive",
     "stale_minutes": 1440,
-    "parser": "presidency_truth_social_archive"
+    "parser": "presidency_truth_social_archive",
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "relay_archive"
   },
   {
     "name": "LiveUAMap X",
@@ -231,7 +297,10 @@
     "priority": 6,
     "source_class": "osint_social",
     "source_family": "osint",
-    "notes": "LiveUAMap resmi X hesabı yedeği; web/RSS erişimi Termux ortamında reset verdiği için sosyal yedek."
+    "notes": "LiveUAMap resmi X hesabı yedeği; web/RSS erişimi Termux ortamında reset verdiği için sosyal yedek.",
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "LummiEast X",
@@ -241,7 +310,10 @@
     "priority": 7,
     "source_class": "osint_social",
     "source_family": "osint",
-    "notes": "Middle East OSINT X kaynağı."
+    "notes": "Middle East OSINT X kaynağı.",
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "UKMTO X Relay",
@@ -265,6 +337,9 @@
     "verification_group": "maritime_security_cluster",
     "access_risk": "medium",
     "account": "UK_MTO",
-    "notes": "UKMTO official X account via xcancel RSS relay; used because ukmto.org pages return Cloudflare 403 from the VPS."
+    "notes": "UKMTO official X account via xcancel RSS relay; used because ukmto.org pages return Cloudflare 403 from the VPS.",
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "official_social_relay"
   }
 ]

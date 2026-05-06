@@ -4,20 +4,29 @@
     "url": "https://twitt.re/sentdefender/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "WarMonitors",
     "url": "https://twitt.re/WarMonitors/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 7
+    "priority": 7,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   },
   {
     "name": "Intel Sky",
     "url": "https://twitt.re/intel_sky/rss",
     "kind": "rss_social",
     "enabled": true,
-    "priority": 6
+    "priority": 6,
+    "notify_policy": "verified_or_ai",
+    "confirmation_required": false,
+    "relay_label": "direct"
   }
 ]
