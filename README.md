@@ -1,6 +1,51 @@
-# Risk Haber Botu
+# RiskRadarAI
 
-Modüler Telegram haber akış botu.
+Resmî + sosyal + OSINT kaynaklarından risk sinyali toplayan, **çift doğrulama** mantığıyla güven seviyesini etiketleyen modüler Telegram alarm botu.
+
+## Neler yapar?
+- Resmî (kurumsal) kaynaklar, RSS, HTML liste sayfaları ve sosyal “erken sinyal” kaynaklarını birlikte tarar
+- Sosyal/OSINT sinyallerini “kesin alarm” yerine ayrı sınıfta işler; resmî sinyalle kesişirse **✅ çift doğrulandı** olarak yükseltir
+- Takvim bazlı “yaklaşıyor / yayınlandı” alarmı üretebilir
+- AI sağlayıcıları (GitHub Models / Groq / opsiyonel Gemini) ile sınıflandırma/özetleme/matching işlerini kademeli ve hata toleranslı yürütür
+
+## Hızlı başlangıç (yerel)
+Python 3.11+ önerilir.
+
+```bash
+python -m venv venv
+source venv/bin/activate  # Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+`.env` içine en az şu iki alanı gir:
+- `BOT_TOKEN`: Telegram bot token
+- `CHAT_ID`: Mesaj gidecek grup/kanal/sohbet ID
+
+Çalıştır:
+
+```bash
+python main.py
+```
+
+## Üretim (Ubuntu + systemd)
+Kurulum adımları `ops/SYSTEMD.md` içinde.
+
+## Konfigürasyon
+- **Kurallar / kaynaklar**: `rules/`
+- **Profiller**: `profiles/` (ör. `ACTIVE_PROFILE=...`)
+- **Runtime state**: `storage/` ve `user_inputs/` (GitHub'a commit edilmez)
+
+## Proje yapısı (kısa)
+- `main.py`: uygulama girişi (single-instance kilidiyle)
+- `workflows/`: tarama/işleme akışları
+- `fetchers/`, `parsers/`, `filters/`: toplama → parse → filtreleme zinciri
+- `services/`: Telegram/AI sağlayıcıları vb.
+- `ops/`: systemd ve operasyon scriptleri
+
+---
+
+## Detaylar (mevcut notlar)
 
 ## Yeni eklenenler
 - `rules/social_feeds.json`: sosyal kaynaklar ayrı dosyada tutulur.
