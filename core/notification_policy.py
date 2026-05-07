@@ -113,7 +113,7 @@ def policy_name_for_lane(lane: str, source: dict | None = None) -> str:
         'strict_official_direct': 'direct_official',
         'primary_news_ai': 'ai_threshold',
         'social_ai_or_verified': 'verified_or_ai',
-        'osint_ai_or_verified': 'verified_or_ai',
+        'osint_ai_or_verified': 'keyword_or_score',
         'analysis_priority': 'ai_threshold',
         'calendar_threshold': 'calendar_only',
     }.get(lane, 'support_only')
@@ -182,7 +182,7 @@ def notification_policy_for_source(
     elif lane == 'osint_ai_or_verified':
         can_direct = bool(send_unverified_osint)
         requires_ai = True
-        requires_confirmation = not bool(send_unverified_osint)
+        requires_confirmation = False
         digest = True
         reasons = ['stale', 'not_relevant', 'below_alert_threshold', 'unverified_hold', 'scan_limit_reached', 'cooldown', 'no_usable_summary']
     elif lane == 'analysis_priority':
@@ -204,7 +204,7 @@ def notification_policy_for_source(
         digest = True
         reasons = DROP_REASON_CATALOG[:]
 
-    if source.get('confirmation_required') is True:
+    if source.get('confirmation_required') is True and lane != 'osint_ai_or_verified':
         requires_confirmation = True
 
     cooldown = 'sent_alerts' if lane == 'calendar_threshold' else getattr(settings, 'news_cooldown_seconds', None)
@@ -237,6 +237,9 @@ def source_policy_metadata(source: dict, *, scan_mode: str | None = None, source
         'notify_policy': policy.notify_policy,
         'confirmation_required': policy.requires_official_confirmation,
         'relay_label': policy.relay_label,
+        'matching_mode': source.get('matching_mode', 'keyword'),
+        'ai_matching_enabled': bool(source.get('ai_matching_enabled', False)),
+        'allow_unverified': bool(source.get('allow_unverified', True)),
     }
 
 

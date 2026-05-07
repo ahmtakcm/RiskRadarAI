@@ -1,138 +1,14 @@
 {
   "active_profile": "tum_profiller",
   "counts": {
-    "official_only": 46,
-    "social_only": 25,
+    "official_only": 57,
+    "social_only": 3,
     "osint_only": 3,
     "analysis_only": 5,
     "calendar": 3,
-    "total": 82
+    "total": 71
   },
   "sources": [
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 360,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "NYT World",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "news",
-      "kind": "news",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "",
-      "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 360,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "BBC World",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "news",
-      "kind": "news",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "",
-      "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 360,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "Al Jazeera",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "news",
-      "kind": "news",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "strong_media",
-      "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 360,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "Anadolu Ajansı",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "news",
-      "kind": "news",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "strong_media",
-      "official_country": "",
-      "official_red_alert": false
-    },
     {
       "notification_lane": "strict_official_direct",
       "notify_policy": "direct_official",
@@ -161,7 +37,19 @@
       "official_class": "official_diplomacy",
       "source_class": "",
       "official_country": "TR",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "official",
+        "tr",
+        "turkiye"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -191,7 +79,17 @@
       "official_class": "official_executive",
       "source_class": "",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "executive",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -221,7 +119,17 @@
       "official_class": "official_executive",
       "source_class": "",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "executive",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -251,7 +159,17 @@
       "official_class": "official_security_org",
       "source_class": "",
       "official_country": "NATO",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -281,7 +199,18 @@
       "official_class": "official_health_org",
       "source_class": "",
       "official_country": "WHO",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "health",
+        "health_org",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -311,7 +240,18 @@
       "official_class": "official_health_org",
       "source_class": "",
       "official_country": "WHO",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "health",
+        "health_org",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -341,7 +281,17 @@
       "official_class": "official_diplomacy",
       "source_class": "",
       "official_country": "EU",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -371,7 +321,20 @@
       "official_class": "official_military",
       "source_class": "",
       "official_country": "TR",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "defense",
+        "official",
+        "security",
+        "tr",
+        "turkiye"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -401,7 +364,19 @@
       "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "central_bank",
+        "economy",
+        "finance",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -431,7 +406,19 @@
       "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "central_bank",
+        "economy",
+        "finance",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -461,7 +448,19 @@
       "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "EU",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "central_bank",
+        "economy",
+        "finance",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -491,7 +490,21 @@
       "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "TR",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "central_bank",
+        "economy",
+        "finance",
+        "official",
+        "tr",
+        "turkiye"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -521,69 +534,21 @@
       "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "TR",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "central_bank",
+        "economy",
+        "finance",
+        "official",
+        "tr",
+        "turkiye"
       ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 360,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "Security Council Report",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "listing_html",
-      "kind": "listing_html",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "",
-      "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 360,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "Crisis Group RSS",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "rss",
-      "kind": "rss",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "osint_analysis",
-      "official_country": "",
-      "official_red_alert": false
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -613,7 +578,18 @@
       "official_class": "official_head_of_state_relay",
       "source_class": "relay_archive",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "executive",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -643,7 +619,18 @@
       "official_class": "official_head_of_state",
       "source_class": "official_government",
       "official_country": "IR",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "executive",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -673,7 +660,18 @@
       "official_class": "official_head_of_state",
       "source_class": "official_government",
       "official_country": "IR",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "executive",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "primary_news_ai",
@@ -704,7 +702,16 @@
       "official_class": "state_media",
       "source_class": "official_agency",
       "official_country": "IR",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -734,7 +741,17 @@
       "official_class": "official_diplomacy",
       "source_class": "official_government",
       "official_country": "IR",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "primary_news_ai",
@@ -765,7 +782,16 @@
       "official_class": "",
       "source_class": "official_agency",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "primary_news_ai",
@@ -796,69 +822,16 @@
       "official_class": "",
       "source_class": "official_government",
       "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official"
       ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 480,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "JPost Iran",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "rss",
-      "kind": "rss",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "strong_media",
-      "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 480,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "JPost Middle East",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "rss",
-      "kind": "rss",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "strong_media",
-      "official_country": "",
-      "official_red_alert": false
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "primary_news_ai",
@@ -889,38 +862,16 @@
       "official_class": "",
       "source_class": "official_government",
       "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official"
       ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 480,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "JPost International",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "rss",
-      "kind": "rss",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "strong_media",
-      "official_country": "",
-      "official_red_alert": false
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -950,7 +901,19 @@
       "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "central_bank",
+        "economy",
+        "finance",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -980,7 +943,19 @@
       "official_class": "official_foreign_ministry",
       "source_class": "",
       "official_country": "TR",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "official",
+        "tr",
+        "turkiye"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1010,7 +985,19 @@
       "official_class": "official_foreign_ministry",
       "source_class": "",
       "official_country": "TR",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "official",
+        "tr",
+        "turkiye"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1040,38 +1027,17 @@
       "official_class": "official_foreign_ministry",
       "source_class": "",
       "official_country": "IR",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "primary_news_ai",
-      "notify_policy": "ai_threshold",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "routine_suppressed",
-        "below_alert_threshold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "official"
       ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 360,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "TASS RSS",
-      "source_file": "rules/feeds.json",
-      "scan_mode": "official_only",
-      "kind_source_kind": "rss",
-      "kind": "rss",
-      "source_kind": "",
-      "official_class": "state_media",
-      "source_class": "",
-      "official_country": "RU",
-      "official_red_alert": false
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1101,7 +1067,18 @@
       "official_class": "official_military",
       "source_class": "official_government",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "defense",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1131,7 +1108,18 @@
       "official_class": "official_military",
       "source_class": "official_government",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "defense",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1161,7 +1149,18 @@
       "official_class": "official_military",
       "source_class": "official_government",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "defense",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1191,7 +1190,18 @@
       "official_class": "official_military",
       "source_class": "official_government",
       "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "defense",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1221,7 +1231,18 @@
       "official_class": "official_security_relay",
       "source_class": "official_social_relay",
       "official_country": "UK",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "maritime_security",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1251,7 +1272,19 @@
       "official_class": "official_sanctions",
       "source_class": "official",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "economy",
+        "finance",
+        "official",
+        "sanctions"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1281,7 +1314,19 @@
       "official_class": "official_sanctions",
       "source_class": "official",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "economy",
+        "finance",
+        "official",
+        "sanctions"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1311,7 +1356,18 @@
       "official_class": "official_multilateral",
       "source_class": "official",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "multilateral",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1341,7 +1397,18 @@
       "official_class": "official_nuclear",
       "source_class": "official",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "nuclear",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1371,7 +1438,18 @@
       "official_class": "official_nuclear",
       "source_class": "official",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "nuclear",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "strict_official_direct",
@@ -1401,7 +1479,18 @@
       "official_class": "official_energy",
       "source_class": "official",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "economy",
+        "energy",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1425,14 +1514,24 @@
       "relay_label": "direct",
       "source_name": "WhiteHouse X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
       "official_class": "official_executive",
       "source_class": "",
       "official_country": "US",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "executive",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1456,14 +1555,24 @@
       "relay_label": "direct",
       "source_name": "POTUS X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
       "official_class": "official_executive",
       "source_class": "",
       "official_country": "US",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "executive",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1487,14 +1596,24 @@
       "relay_label": "direct",
       "source_name": "Iran MFA EN X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
       "official_class": "official_diplomacy",
       "source_class": "",
       "official_country": "IR",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1518,14 +1637,24 @@
       "relay_label": "direct",
       "source_name": "Russia MFA X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
       "official_class": "official_diplomacy",
       "source_class": "",
       "official_country": "RU",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1549,14 +1678,26 @@
       "relay_label": "direct",
       "source_name": "TR Presidency X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
       "official_class": "official_executive",
       "source_class": "",
       "official_country": "TR",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "executive",
+        "official",
+        "tr",
+        "turkiye"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1575,19 +1716,31 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "NATO X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_security_relay",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "security",
+        "defense",
+        "multilateral"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1606,19 +1759,31 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "Federal Reserve X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "economy",
+        "finance",
+        "central_bank"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1637,19 +1802,30 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "OPEC X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_energy",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "economy",
+        "energy"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1668,19 +1844,31 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "ECB X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "economy",
+        "finance",
+        "central_bank"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1699,19 +1887,30 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "WHO X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_health_org",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "health",
+        "health_org"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1730,19 +1929,30 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "EEAS X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_diplomacy",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "diplomacy",
+        "multilateral"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1761,19 +1971,30 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "IDF X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_military",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "defense",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1792,19 +2013,30 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "Saudi MOD X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_military",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "defense",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1823,19 +2055,33 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "TCMB X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
-      "official_class": "",
+      "official_class": "official_central_bank",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "economy",
+        "finance",
+        "central_bank",
+        "turkiye",
+        "tr"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1854,19 +2100,286 @@
         "no_usable_summary"
       ],
       "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
+      "freshness_window_used": 360,
       "relay_archive": false,
       "relay_label": "direct",
       "source_name": "Pentagon X",
       "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
+      "scan_mode": "official_only",
       "kind_source_kind": "rss_social",
       "kind": "rss_social",
       "source_kind": "",
       "official_class": "official_military",
       "source_class": "",
       "official_country": "US",
-      "official_red_alert": true
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "defense",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
+    },
+    {
+      "notification_lane": "social_ai_or_verified",
+      "notify_policy": "verified_or_ai",
+      "can_notify_direct": true,
+      "requires_ai_should_notify": true,
+      "requires_official_confirmation": false,
+      "can_be_digest_only": true,
+      "drop_reasons": [
+        "stale",
+        "not_relevant",
+        "below_alert_threshold",
+        "unverified_hold",
+        "scan_limit_reached",
+        "cooldown",
+        "no_usable_summary"
+      ],
+      "cooldown_setting_used": 21600,
+      "freshness_window_used": 360,
+      "relay_archive": false,
+      "relay_label": "direct",
+      "source_name": "IMF X",
+      "source_file": "rules/social_feeds.json",
+      "scan_mode": "official_only",
+      "kind_source_kind": "rss_social",
+      "kind": "rss_social",
+      "source_kind": "",
+      "official_class": "official_finance",
+      "source_class": "",
+      "official_country": "",
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "official",
+        "economy",
+        "finance",
+        "multilateral"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
+    },
+    {
+      "notification_lane": "social_ai_or_verified",
+      "notify_policy": "verified_or_ai",
+      "can_notify_direct": true,
+      "requires_ai_should_notify": true,
+      "requires_official_confirmation": false,
+      "can_be_digest_only": true,
+      "drop_reasons": [
+        "stale",
+        "not_relevant",
+        "below_alert_threshold",
+        "unverified_hold",
+        "scan_limit_reached",
+        "cooldown",
+        "no_usable_summary"
+      ],
+      "cooldown_setting_used": 21600,
+      "freshness_window_used": 180,
+      "relay_archive": false,
+      "relay_label": "direct",
+      "source_name": "TC Bestepe",
+      "source_file": "rules/social_feeds.json",
+      "scan_mode": "official_only",
+      "kind_source_kind": "rss_social",
+      "kind": "rss_social",
+      "source_kind": "",
+      "official_class": "official_executive",
+      "source_class": "",
+      "official_country": "TR",
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "executive",
+        "official",
+        "tr",
+        "turkiye"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
+    },
+    {
+      "notification_lane": "social_ai_or_verified",
+      "notify_policy": "verified_or_ai",
+      "can_notify_direct": true,
+      "requires_ai_should_notify": true,
+      "requires_official_confirmation": false,
+      "can_be_digest_only": true,
+      "drop_reasons": [
+        "stale",
+        "not_relevant",
+        "below_alert_threshold",
+        "unverified_hold",
+        "scan_limit_reached",
+        "cooldown",
+        "no_usable_summary"
+      ],
+      "cooldown_setting_used": 21600,
+      "freshness_window_used": 180,
+      "relay_archive": false,
+      "relay_label": "direct",
+      "source_name": "TC Savunma",
+      "source_file": "rules/social_feeds.json",
+      "scan_mode": "official_only",
+      "kind_source_kind": "rss_social",
+      "kind": "rss_social",
+      "source_kind": "",
+      "official_class": "official_military",
+      "source_class": "",
+      "official_country": "TR",
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "defense",
+        "official",
+        "security",
+        "tr",
+        "turkiye"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
+    },
+    {
+      "notification_lane": "social_ai_or_verified",
+      "notify_policy": "verified_or_ai",
+      "can_notify_direct": true,
+      "requires_ai_should_notify": true,
+      "requires_official_confirmation": false,
+      "can_be_digest_only": true,
+      "drop_reasons": [
+        "stale",
+        "not_relevant",
+        "below_alert_threshold",
+        "unverified_hold",
+        "scan_limit_reached",
+        "cooldown",
+        "no_usable_summary"
+      ],
+      "cooldown_setting_used": 21600,
+      "freshness_window_used": 240,
+      "relay_archive": false,
+      "relay_label": "direct",
+      "source_name": "USTreasury X",
+      "source_file": "rules/social_feeds.json",
+      "scan_mode": "official_only",
+      "kind_source_kind": "rss_social",
+      "kind": "rss_social",
+      "source_kind": "",
+      "official_class": "official_finance",
+      "source_class": "",
+      "official_country": "US",
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "economy",
+        "finance",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
+    },
+    {
+      "notification_lane": "social_ai_or_verified",
+      "notify_policy": "verified_or_ai",
+      "can_notify_direct": true,
+      "requires_ai_should_notify": true,
+      "requires_official_confirmation": false,
+      "can_be_digest_only": true,
+      "drop_reasons": [
+        "stale",
+        "not_relevant",
+        "below_alert_threshold",
+        "unverified_hold",
+        "scan_limit_reached",
+        "cooldown",
+        "no_usable_summary"
+      ],
+      "cooldown_setting_used": 21600,
+      "freshness_window_used": 360,
+      "relay_archive": false,
+      "relay_label": "direct",
+      "source_name": "CENTCOM X",
+      "source_file": "rules/social_feeds.json",
+      "scan_mode": "official_only",
+      "kind_source_kind": "rss_social",
+      "kind": "rss_social",
+      "source_kind": "",
+      "official_class": "official_military",
+      "source_class": "",
+      "official_country": "US",
+      "official_red_alert": true,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "defense",
+        "official",
+        "security"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
+    },
+    {
+      "notification_lane": "social_ai_or_verified",
+      "notify_policy": "verified_or_ai",
+      "can_notify_direct": true,
+      "requires_ai_should_notify": true,
+      "requires_official_confirmation": false,
+      "can_be_digest_only": true,
+      "drop_reasons": [
+        "stale",
+        "not_relevant",
+        "below_alert_threshold",
+        "unverified_hold",
+        "scan_limit_reached",
+        "cooldown",
+        "no_usable_summary"
+      ],
+      "cooldown_setting_used": 21600,
+      "freshness_window_used": 1440,
+      "relay_archive": true,
+      "relay_label": "relay_archive",
+      "source_name": "Trump Truth Social Relay",
+      "source_file": "rules/social_feeds.json",
+      "scan_mode": "official_only",
+      "kind_source_kind": "listing_html",
+      "kind": "listing_html",
+      "source_kind": "",
+      "official_class": "official_head_of_state_relay",
+      "source_class": "relay_archive",
+      "official_country": "US",
+      "official_red_alert": false,
+      "applies_to_all_profiles": true,
+      "source_tags": [
+        "diplomacy",
+        "executive",
+        "official"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -1897,193 +2410,14 @@
       "official_class": "",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "social_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "below_alert_threshold",
-        "unverified_hold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 120,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "IMF X",
-      "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
-      "kind_source_kind": "rss_social",
-      "kind": "rss_social",
-      "source_kind": "",
-      "official_class": "",
-      "source_class": "",
-      "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "social_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "below_alert_threshold",
-        "unverified_hold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 180,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "TC Bestepe",
-      "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
-      "kind_source_kind": "rss_social",
-      "kind": "rss_social",
-      "source_kind": "",
-      "official_class": "official_executive",
-      "source_class": "",
-      "official_country": "TR",
-      "official_red_alert": true
-    },
-    {
-      "notification_lane": "social_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "below_alert_threshold",
-        "unverified_hold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 180,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "TC Savunma",
-      "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
-      "kind_source_kind": "rss_social",
-      "kind": "rss_social",
-      "source_kind": "",
-      "official_class": "official_military",
-      "source_class": "",
-      "official_country": "TR",
-      "official_red_alert": true
-    },
-    {
-      "notification_lane": "social_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "below_alert_threshold",
-        "unverified_hold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 240,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "USTreasury X",
-      "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
-      "kind_source_kind": "rss_social",
-      "kind": "rss_social",
-      "source_kind": "",
-      "official_class": "official_finance",
-      "source_class": "",
-      "official_country": "US",
-      "official_red_alert": true
-    },
-    {
-      "notification_lane": "social_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "below_alert_threshold",
-        "unverified_hold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 360,
-      "relay_archive": false,
-      "relay_label": "direct",
-      "source_name": "CENTCOM X",
-      "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
-      "kind_source_kind": "rss_social",
-      "kind": "rss_social",
-      "source_kind": "",
-      "official_class": "official_military",
-      "source_class": "",
-      "official_country": "US",
-      "official_red_alert": true
-    },
-    {
-      "notification_lane": "social_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "below_alert_threshold",
-        "unverified_hold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 1440,
-      "relay_archive": true,
-      "relay_label": "relay_archive",
-      "source_name": "Trump Truth Social Relay",
-      "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
-      "kind_source_kind": "listing_html",
-      "kind": "listing_html",
-      "source_kind": "",
-      "official_class": "official_head_of_state_relay",
-      "source_class": "relay_archive",
-      "official_country": "US",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -2114,7 +2448,14 @@
       "official_class": "",
       "source_class": "osint_social",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "social_ai_or_verified",
@@ -2145,45 +2486,21 @@
       "official_class": "",
       "source_class": "osint_social",
       "official_country": "",
-      "official_red_alert": false
-    },
-    {
-      "notification_lane": "social_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": true,
-      "requires_ai_should_notify": true,
-      "requires_official_confirmation": false,
-      "can_be_digest_only": true,
-      "drop_reasons": [
-        "stale",
-        "not_relevant",
-        "below_alert_threshold",
-        "unverified_hold",
-        "scan_limit_reached",
-        "cooldown",
-        "no_usable_summary"
-      ],
-      "cooldown_setting_used": 21600,
-      "freshness_window_used": 720,
-      "relay_archive": true,
-      "relay_label": "official_social_relay",
-      "source_name": "UKMTO X Relay",
-      "source_file": "rules/social_feeds.json",
-      "scan_mode": "social_only",
-      "kind_source_kind": "rss_social",
-      "kind": "rss_social",
-      "source_kind": "",
-      "official_class": "official_security_relay",
-      "source_class": "official_social_relay",
-      "official_country": "UK",
-      "official_red_alert": true
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "osint_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": false,
+      "notify_policy": "keyword_or_score",
+      "can_notify_direct": true,
       "requires_ai_should_notify": true,
-      "requires_official_confirmation": true,
+      "requires_official_confirmation": false,
       "can_be_digest_only": true,
       "drop_reasons": [
         "stale",
@@ -2207,14 +2524,24 @@
       "official_class": "",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [
+        "osint",
+        "fast_signal"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "osint_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": false,
+      "notify_policy": "keyword_or_score",
+      "can_notify_direct": true,
       "requires_ai_should_notify": true,
-      "requires_official_confirmation": true,
+      "requires_official_confirmation": false,
       "can_be_digest_only": true,
       "drop_reasons": [
         "stale",
@@ -2238,14 +2565,24 @@
       "official_class": "",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [
+        "osint",
+        "fast_signal"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "osint_ai_or_verified",
-      "notify_policy": "verified_or_ai",
-      "can_notify_direct": false,
+      "notify_policy": "keyword_or_score",
+      "can_notify_direct": true,
       "requires_ai_should_notify": true,
-      "requires_official_confirmation": true,
+      "requires_official_confirmation": false,
       "can_be_digest_only": true,
       "drop_reasons": [
         "stale",
@@ -2269,7 +2606,17 @@
       "official_class": "",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [
+        "osint",
+        "fast_signal"
+      ],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "analysis_priority",
@@ -2299,7 +2646,14 @@
       "official_class": "",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "analysis_priority",
@@ -2329,7 +2683,14 @@
       "official_class": "",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "analysis_priority",
@@ -2359,7 +2720,14 @@
       "official_class": "",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "analysis_priority",
@@ -2389,7 +2757,14 @@
       "official_class": "",
       "source_class": "",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "analysis_priority",
@@ -2419,7 +2794,14 @@
       "official_class": "",
       "source_class": "official_analysis",
       "official_country": "",
-      "official_red_alert": false
+      "official_red_alert": false,
+      "applies_to_all_profiles": false,
+      "source_tags": [],
+      "matching_mode": "keyword",
+      "ai_matching_enabled": false,
+      "keywords_include": [],
+      "keywords_exclude": [],
+      "topic_tags": []
     },
     {
       "notification_lane": "calendar_threshold",

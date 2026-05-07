@@ -37,8 +37,15 @@ def _confirmation_text(label: str) -> str:
         'official_parallel': 'Resmî paralel',
         'media_verified': 'Güçlü medya',
         'analysis_inferred': 'Analiz/çıkarım',
+        'osint_unconfirmed': 'OSINT / resmî teyit yok',
     }
     return mapping.get(label, 'Analiz/çıkarım')
+
+
+def _verification_line(origin_label: str, confirmation_class: str, verified: bool) -> str:
+    if str(origin_label or '').upper() == 'OSINT' and not verified:
+        return 'Teyit: OSINT / resmî teyit yok'
+    return f'Teyit Sınıfı: {_confirmation_text(confirmation_class)}'
 
 
 def build_signal_message(item: dict, score: int, analysis: dict, origin_label: str, verified: bool = False, official_match: dict | None = None, overlap: set[str] | None = None):
@@ -56,7 +63,7 @@ def build_signal_message(item: dict, score: int, analysis: dict, origin_label: s
         '',
         f'Akış: {origin_label}',
         f"Kaynak: {item.get('source_name', 'Bilinmiyor')}",
-        f'Teyit Sınıfı: {_confirmation_text(confirmation_class)}',
+        _verification_line(origin_label, confirmation_class, verified),
         f'Alarm Düzeyi: {level_label}',
         f'Alarm Puanı: {alarm_score}/100',
         '',
@@ -65,6 +72,9 @@ def build_signal_message(item: dict, score: int, analysis: dict, origin_label: s
     ]
 
     lines += _time_lines(item)
+
+    if item.get('triggered_profiles'):
+        lines += ['', 'Tetiklenen profiller: ' + ', '.join(item.get('triggered_profiles', []))]
 
     if verified and official_match:
         lines += ['', f"Paralel resmî kaynak: {official_match.get('source_name', 'Bilinmiyor')}"]

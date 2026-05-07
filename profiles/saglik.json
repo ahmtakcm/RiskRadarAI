@@ -1,15 +1,29 @@
 {
   "name": "saglik",
-  "sources": [
-    "WHO Newsroom",
-    "WHO Events",
-    "BBC World"
+  "policy_profile": "saglik",
+  "notify_policy": "health_risk",
+  "min_score": 25,
+  "allow_unverified": true,
+  "require_official_confirmation": false,
+  "include_shared_official_sources": true,
+  "matching_mode": "keyword",
+  "ai_matching_enabled": false,
+  "keywords_include": [
+    "who",
+    "outbreak",
+    "epidemic",
+    "pandemic",
+    "health",
+    "disease",
+    "virus",
+    "vaccine",
+    "emergency"
   ],
-  "enabled_feeds": [
-    "WHO Newsroom",
-    "WHO Events",
-    "BBC World"
+  "keywords_exclude": [],
+  "topic_tags": [
+    "official",
+    "health",
+    "health_org"
   ],
-  "keyword_set": "saglik",
-  "priority_note": ""
+  "keyword_set": "saglik"
 }

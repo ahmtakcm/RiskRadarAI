@@ -11,7 +11,12 @@
     "stale_minutes": 180,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "executive",
+      "official"
+    ]
   },
   {
     "name": "POTUS X",
@@ -25,7 +30,12 @@
     "stale_minutes": 180,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "executive",
+      "official"
+    ]
   },
   {
     "name": "Iran MFA EN X",
@@ -39,7 +49,12 @@
     "stale_minutes": 180,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "official"
+    ]
   },
   {
     "name": "Russia MFA X",
@@ -53,7 +68,12 @@
     "stale_minutes": 180,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "official"
+    ]
   },
   {
     "name": "TR Presidency X",
@@ -67,7 +87,14 @@
     "stale_minutes": 300,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "executive",
+      "official",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "NATO X",
@@ -77,7 +104,15 @@
     "priority": 8,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_security_relay",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "security",
+      "defense",
+      "multilateral"
+    ]
   },
   {
     "name": "Federal Reserve X",
@@ -87,7 +122,15 @@
     "priority": 8,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_central_bank",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "economy",
+      "finance",
+      "central_bank"
+    ]
   },
   {
     "name": "OPEC X",
@@ -97,7 +140,14 @@
     "priority": 8,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_energy",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "economy",
+      "energy"
+    ]
   },
   {
     "name": "ECB X",
@@ -107,7 +157,15 @@
     "priority": 7,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_central_bank",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "economy",
+      "finance",
+      "central_bank"
+    ]
   },
   {
     "name": "WHO X",
@@ -117,7 +175,14 @@
     "priority": 7,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_health_org",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "health",
+      "health_org"
+    ]
   },
   {
     "name": "EEAS X",
@@ -127,7 +192,14 @@
     "priority": 7,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_diplomacy",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "diplomacy",
+      "multilateral"
+    ]
   },
   {
     "name": "IDF X",
@@ -137,7 +209,14 @@
     "priority": 9,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_military",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "defense",
+      "security"
+    ]
   },
   {
     "name": "Saudi MOD X",
@@ -147,7 +226,14 @@
     "priority": 7,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_military",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "defense",
+      "security"
+    ]
   },
   {
     "name": "TCMB X",
@@ -157,7 +243,17 @@
     "priority": 8,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_central_bank",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "economy",
+      "finance",
+      "central_bank",
+      "turkiye",
+      "tr"
+    ]
   },
   {
     "name": "Pentagon X",
@@ -173,7 +269,13 @@
     "official_red_alert": true,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "defense",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "SentDefender",
@@ -199,7 +301,15 @@
     "priority": 7,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "official_class": "official_finance",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "economy",
+      "finance",
+      "multilateral"
+    ]
   },
   {
     "name": "TC Bestepe",
@@ -216,7 +326,14 @@
     "stale_minutes": 180,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "executive",
+      "official",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "TC Savunma",
@@ -234,7 +351,15 @@
     "stale_minutes": 180,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "defense",
+      "official",
+      "security",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "USTreasury X",
@@ -252,7 +377,13 @@
     "stale_minutes": 240,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "economy",
+      "finance",
+      "official"
+    ]
   },
   {
     "name": "CENTCOM X",
@@ -266,7 +397,13 @@
     "stale_minutes": 360,
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "defense",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "Trump Truth Social Relay",
@@ -287,7 +424,13 @@
     "parser": "presidency_truth_social_archive",
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "relay_archive"
+    "relay_label": "relay_archive",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "executive",
+      "official"
+    ]
   },
   {
     "name": "LiveUAMap X",
@@ -340,6 +483,12 @@
     "notes": "UKMTO official X account via xcancel RSS relay; used because ukmto.org pages return Cloudflare 403 from the VPS.",
     "notify_policy": "verified_or_ai",
     "confirmation_required": false,
-    "relay_label": "official_social_relay"
+    "relay_label": "official_social_relay",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "maritime_security",
+      "official",
+      "security"
+    ]
   }
 ]

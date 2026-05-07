@@ -2,6 +2,7 @@ from fetchers.feed_fetcher import fetch_feed_items
 from source_selectors.profile_loader import load_active_config
 from source_selectors.feed_selector import select_feeds
 from source_selectors.keyword_selector import select_keywords
+from source_selectors.profile_policy import evaluate_item_across_active_profiles, profile_keywords
 from filters.relevance import is_relevant_news
 from filters.scoring import get_risk_score
 from filters.freshness import evaluate_item_freshness
@@ -71,13 +72,17 @@ def normalize(item):
     }
 
 
-def scan_news(state: dict, mode: str = 'all'):
+def scan_news(state: dict, mode: str = 'all', manual_query: str | None = None):
     active_config = load_active_config()
     feeds = select_feeds(active_config, mode=mode)
     keywords = select_keywords(active_config)
+    if manual_query:
+        query_terms = [x.strip().lower() for x in str(manual_query).split() if len(x.strip()) >= 3]
+        keywords = dict(keywords)
+        keywords['primary_terms'] = list(keywords.get('primary_terms', [])) + query_terms + [str(manual_query).strip().lower()]
     social_rule_name = active_config['profile'].get('social_rule_set', 'strict_geopolitics')
     social_rule = active_config['social_rules'].get(social_rule_name, {})
-    min_score = int(active_config['profile'].get('min_score', 9))
+    min_score = 0 if manual_query else int(active_config['profile'].get('min_score', 9))
     tracked_terms = list(keywords.get('primary_terms', [])) + list(keywords.get('secondary_terms', [])) + list(active_config.get('verification_rules', {}).get('high_priority_terms', [])) + list(active_config.get('official_entities', {}).get('iran_official_entities', []))
 
     seen_hashes = set(state.get('seen_news_hashes', []))
@@ -107,6 +112,17 @@ def scan_news(state: dict, mode: str = 'all'):
                     'verification_group',
                     'access_risk',
                     'notes',
+                    'source_file',
+                    'applies_to_all_profiles',
+                    'source_tags',
+                    'matching_mode',
+                    'ai_matching_enabled',
+                    'keywords_include',
+                    'keywords_exclude',
+                    'topic_tags',
+                    'notify_policy',
+                    'confirmation_required',
+                    'relay_label',
                 ):
                     if key not in item or item.get(key) in ('', None, [], False):
                         if raw_item.get(key) is not None:
@@ -132,6 +148,26 @@ def scan_news(state: dict, mode: str = 'all'):
                     logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | content_class=%s', feed.get('name'), mode, item.get('content_class'))
                     continue
 
+                if mode == 'official_only' and item.get('applies_to_all_profiles'):
+                    profile_matches = evaluate_item_across_active_profiles(item, active_config)
+                    if not profile_matches and not manual_query:
+                        logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | policy=shared_official_profile_match', feed.get('name'), mode)
+                        continue
+                    item['triggered_profiles'] = [m['profile'] for m in profile_matches]
+                    item['profile_policy_matches'] = profile_matches
+                    if profile_matches:
+                        top_match = max(profile_matches, key=lambda x: x.get('score', 0))
+                        item['matched_profile'] = top_match.get('profile')
+                        item['profile_match_score'] = top_match.get('score', 0)
+                        if top_match.get('notify_policy'):
+                            item['profile_notify_policy'] = top_match.get('notify_policy')
+
+                if manual_query:
+                    text_blob = f"{item.get('title', '')} {item.get('description', '')}".lower()
+                    q = str(manual_query).strip().lower()
+                    if q and q not in text_blob and not any(part in text_blob for part in q.split() if len(part) >= 3):
+                        continue
+
                 h = text_hash(item['title'] + '|' + item['link'] + '|' + item['source_name'])
                 story_key = _canonical_story_key(item)
                 if h in seen_hashes or story_key in seen_story_hashes or story_key in scan_story_hashes:
@@ -146,11 +182,15 @@ def scan_news(state: dict, mode: str = 'all'):
                     logger.info('Notification drop | source=%s | reason=routine_suppressed | mode=%s', feed.get('name'), mode)
                     continue
 
-                if not force_keep and not is_relevant_news(item, keywords, social_rule, min_score):
+                if not force_keep and not manual_query and not is_relevant_news(item, keywords, social_rule, min_score):
                     logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | score=%s', feed.get('name'), mode, item.get('score', ''))
                     continue
 
-                score, _, _, pattern_hits = get_risk_score(item, keywords)
+                if mode == 'official_only' and item.get('matched_profile'):
+                    policy = active_config.get('profile_policies', {}).get(item.get('matched_profile'), {})
+                    score, _, _, pattern_hits = get_risk_score(item, profile_keywords(active_config, policy))
+                else:
+                    score, _, _, pattern_hits = get_risk_score(item, keywords)
                 if force_keep:
                     score = max(score, 25)
                 elif item.get('is_official_source') and not item.get('is_official_routine') and (item.get('official_keyword_hits') or item.get('official_entity_hits')):

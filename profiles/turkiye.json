@@ -1,0 +1,32 @@
+{
+  "name": "turkiye",
+  "policy_profile": "turkiye",
+  "notify_policy": "national_watch",
+  "min_score": 25,
+  "allow_unverified": true,
+  "require_official_confirmation": false,
+  "include_shared_official_sources": true,
+  "matching_mode": "keyword",
+  "ai_matching_enabled": false,
+  "keywords_include": [
+    "turkey",
+    "turkiye",
+    "türkiye",
+    "ankara",
+    "tcmb",
+    "mfa",
+    "msb",
+    "bestepe",
+    "savunma",
+    "foreign ministry"
+  ],
+  "keywords_exclude": [],
+  "topic_tags": [
+    "official",
+    "turkiye",
+    "tr",
+    "defense",
+    "diplomacy"
+  ],
+  "keyword_set": "turkiye"
+}

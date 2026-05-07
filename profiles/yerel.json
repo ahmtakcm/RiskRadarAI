@@ -1,0 +1,28 @@
+{
+  "name": "yerel",
+  "policy_profile": "yerel",
+  "notify_policy": "local_watch",
+  "min_score": 20,
+  "allow_unverified": true,
+  "require_official_confirmation": false,
+  "include_shared_official_sources": true,
+  "matching_mode": "keyword",
+  "ai_matching_enabled": false,
+  "keywords_include": [
+    "municipality",
+    "governor",
+    "valilik",
+    "belediye",
+    "local",
+    "province",
+    "district"
+  ],
+  "keywords_exclude": [],
+  "topic_tags": [
+    "official",
+    "local",
+    "municipality",
+    "governor"
+  ],
+  "keyword_set": "yerel"
+}

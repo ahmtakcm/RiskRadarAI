@@ -1,0 +1,27 @@
+{
+  "name": "analiz",
+  "policy_profile": "analiz",
+  "notify_policy": "analysis_priority",
+  "min_score": 35,
+  "allow_unverified": true,
+  "require_official_confirmation": false,
+  "matching_mode": "keyword",
+  "ai_matching_enabled": false,
+  "keywords_include": [
+    "analysis",
+    "report",
+    "risk",
+    "security council",
+    "crisis",
+    "outlook",
+    "assessment"
+  ],
+  "keywords_exclude": [],
+  "topic_tags": [
+    "analysis",
+    "report",
+    "priority"
+  ],
+  "keyword_set": "stratejik_karma",
+  "enabled_analysis": true
+}

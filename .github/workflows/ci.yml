@@ -37,10 +37,11 @@ jobs:
           python -m json.tool rules/osint_feeds.json >/dev/null
           python -m json.tool rules/analysis_feeds.json >/dev/null
           python -m json.tool rules/calendar_watch.json >/dev/null
+          python -m json.tool rules/profile_policies.json >/dev/null
           python -m json.tool profiles/tum_profiller.json >/dev/null
 
       - name: Compile Python modules
-        run: python -m compileall app config core workflows filters source_selectors ops parsers commands clients services
+        run: python -m compileall app config core workflows filters source_selectors ops parsers commands clients services fetchers
 
       - name: Run unit tests
         run: python -m unittest discover -s tests

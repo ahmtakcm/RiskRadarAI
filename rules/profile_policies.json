@@ -1,0 +1,268 @@
+{
+  "resmi_aciklamalar": {
+    "notify_policy": "direct_official",
+    "min_score": 20,
+    "allow_unverified": true,
+    "require_official_confirmation": false,
+    "include_shared_official_sources": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "keyword_set": "stratejik_karma",
+    "keywords_include": [
+      "statement",
+      "press release",
+      "briefing",
+      "defense",
+      "military",
+      "sanctions",
+      "security",
+      "maritime",
+      "nato",
+      "centcom",
+      "ukmto",
+      "mfa",
+      "foreign ministry"
+    ],
+    "keywords_exclude": [],
+    "topic_tags": [
+      "official",
+      "defense",
+      "security",
+      "diplomacy",
+      "sanctions",
+      "maritime_security",
+      "multilateral"
+    ]
+  },
+  "ekonomi": {
+    "notify_policy": "market_sensitive",
+    "min_score": 25,
+    "allow_unverified": true,
+    "require_official_confirmation": false,
+    "include_shared_official_sources": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "keyword_set": "ekonomi",
+    "keywords_include": [
+      "fed",
+      "fomc",
+      "federal reserve",
+      "ecb",
+      "tcmb",
+      "central bank",
+      "inflation",
+      "interest rate",
+      "policy rate",
+      "monetary",
+      "sanctions",
+      "ofac",
+      "oil",
+      "energy",
+      "market"
+    ],
+    "keywords_exclude": [],
+    "topic_tags": [
+      "official",
+      "economy",
+      "finance",
+      "central_bank",
+      "sanctions",
+      "energy"
+    ]
+  },
+  "saglik": {
+    "notify_policy": "health_risk",
+    "min_score": 25,
+    "allow_unverified": true,
+    "require_official_confirmation": false,
+    "include_shared_official_sources": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "keyword_set": "saglik",
+    "keywords_include": [
+      "who",
+      "outbreak",
+      "epidemic",
+      "pandemic",
+      "health",
+      "disease",
+      "virus",
+      "vaccine",
+      "emergency"
+    ],
+    "keywords_exclude": [],
+    "topic_tags": [
+      "official",
+      "health",
+      "health_org"
+    ]
+  },
+  "dunya": {
+    "notify_policy": "ai_threshold",
+    "min_score": 35,
+    "allow_unverified": true,
+    "require_official_confirmation": false,
+    "include_shared_official_sources": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "keyword_set": "haber",
+    "keywords_include": [
+      "war",
+      "attack",
+      "strike",
+      "ceasefire",
+      "nuclear",
+      "sanctions",
+      "security",
+      "maritime",
+      "defense",
+      "diplomacy",
+      "un",
+      "nato",
+      "middle east",
+      "ukraine",
+      "russia",
+      "iran",
+      "israel"
+    ],
+    "keywords_exclude": [],
+    "topic_tags": [
+      "official",
+      "world",
+      "security",
+      "diplomacy",
+      "defense",
+      "multilateral",
+      "maritime_security"
+    ]
+  },
+  "turkiye": {
+    "notify_policy": "national_watch",
+    "min_score": 25,
+    "allow_unverified": true,
+    "require_official_confirmation": false,
+    "include_shared_official_sources": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "keyword_set": "turkiye",
+    "keywords_include": [
+      "turkey",
+      "turkiye",
+      "türkiye",
+      "ankara",
+      "tcmb",
+      "mfa",
+      "msb",
+      "bestepe",
+      "savunma",
+      "foreign ministry"
+    ],
+    "keywords_exclude": [],
+    "topic_tags": [
+      "official",
+      "turkiye",
+      "tr",
+      "defense",
+      "diplomacy"
+    ]
+  },
+  "yerel": {
+    "notify_policy": "local_watch",
+    "min_score": 20,
+    "allow_unverified": true,
+    "require_official_confirmation": false,
+    "include_shared_official_sources": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "keyword_set": "yerel",
+    "keywords_include": [
+      "municipality",
+      "governor",
+      "valilik",
+      "belediye",
+      "local",
+      "province",
+      "district"
+    ],
+    "keywords_exclude": [],
+    "topic_tags": [
+      "official",
+      "local",
+      "municipality",
+      "governor"
+    ]
+  },
+  "osint": {
+    "notify_policy": "keyword_or_score",
+    "min_score": 35,
+    "allow_unverified": true,
+    "require_official_confirmation": false,
+    "label_unverified": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "keyword_set": "osint",
+    "keywords_include": [
+      "osint",
+      "missile",
+      "drone",
+      "attack",
+      "strike",
+      "explosion",
+      "air defense",
+      "military",
+      "convoy",
+      "maritime",
+      "hormuz",
+      "evacuation"
+    ],
+    "keywords_exclude": [],
+    "topic_tags": [
+      "osint",
+      "fast_signal",
+      "security",
+      "defense"
+    ]
+  },
+  "analiz": {
+    "notify_policy": "analysis_priority",
+    "min_score": 35,
+    "allow_unverified": true,
+    "require_official_confirmation": false,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "keyword_set": "stratejik_karma",
+    "keywords_include": [
+      "analysis",
+      "report",
+      "risk",
+      "security council",
+      "crisis",
+      "outlook",
+      "assessment"
+    ],
+    "keywords_exclude": [],
+    "topic_tags": [
+      "analysis",
+      "report",
+      "priority"
+    ]
+  },
+  "tum_profiller": {
+    "notify_policy": "aggregate",
+    "deduplicate_across_profiles": true,
+    "show_triggered_profiles": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "include_shared_official_sources": true,
+    "topic_profiles": [
+      "resmi_aciklamalar",
+      "ekonomi",
+      "saglik",
+      "dunya",
+      "turkiye",
+      "yerel",
+      "osint",
+      "analiz"
+    ]
+  }
+}

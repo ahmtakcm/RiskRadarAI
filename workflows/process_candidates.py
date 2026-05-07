@@ -492,7 +492,8 @@ def process_candidates(state: dict, official_candidates: list, social_candidates
     verification_rules = active_config.get('verification_rules', {})
     overrides = active_config.get('overrides', {})
     send_unverified_social = overrides.get('send_unverified_social_alerts', settings.send_unverified_social_alerts)
-    send_unverified_osint = overrides.get('send_unverified_osint_alerts', True)
+    osint_policy = active_config.get('profile_policies', {}).get('osint', {})
+    send_unverified_osint = bool(osint_policy.get('allow_unverified', True))
     seen_hashes = set(state.get('seen_news_hashes', []))
     _cleanup_pending(state)
 

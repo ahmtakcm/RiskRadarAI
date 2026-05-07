@@ -71,7 +71,14 @@
     "official_country": "TR",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "official",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "White House News",
@@ -83,7 +90,12 @@
     "official_country": "US",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "executive",
+      "official"
+    ]
   },
   {
     "name": "White House Briefings",
@@ -95,7 +107,12 @@
     "official_country": "US",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "executive",
+      "official"
+    ]
   },
   {
     "name": "NATO Media Advisories",
@@ -108,7 +125,12 @@
     "stale_minutes": 2880,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official",
+      "security"
+    ]
   },
   {
     "name": "WHO Newsroom",
@@ -121,7 +143,13 @@
     "stale_minutes": 2880,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "health",
+      "health_org",
+      "official"
+    ]
   },
   {
     "name": "WHO Events",
@@ -133,7 +161,13 @@
     "official_country": "WHO",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "health",
+      "health_org",
+      "official"
+    ]
   },
   {
     "name": "EEAS Newsroom",
@@ -146,7 +180,12 @@
     "stale_minutes": 2880,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "official"
+    ]
   },
   {
     "name": "MSB Haftalık Basın",
@@ -159,7 +198,15 @@
     "stale_minutes": 2880,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "defense",
+      "official",
+      "security",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "Federal Reserve Calendar",
@@ -172,7 +219,14 @@
     "stale_minutes": 10080,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "central_bank",
+      "economy",
+      "finance",
+      "official"
+    ]
   },
   {
     "name": "Federal Reserve FOMC",
@@ -185,7 +239,14 @@
     "stale_minutes": 10080,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "central_bank",
+      "economy",
+      "finance",
+      "official"
+    ]
   },
   {
     "name": "ECB RSS Feeds",
@@ -198,7 +259,14 @@
     "stale_minutes": 4320,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "central_bank",
+      "economy",
+      "finance",
+      "official"
+    ]
   },
   {
     "name": "TCMB Basın Bilgilendirme",
@@ -211,7 +279,16 @@
     "stale_minutes": 4320,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "central_bank",
+      "economy",
+      "finance",
+      "official",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "TCMB Enflasyon Raporu 2026",
@@ -224,7 +301,16 @@
     "stale_minutes": 10080,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "central_bank",
+      "economy",
+      "finance",
+      "official",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "Security Council Report",
@@ -272,7 +358,13 @@
     "parser": "presidency_truth_social_archive",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "relay_archive"
+    "relay_label": "relay_archive",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "executive",
+      "official"
+    ]
   },
   {
     "name": "Iran Leader",
@@ -297,7 +389,13 @@
     "notes": "İran liderlik makamı listing kaynağı; şu aşamada disabled kalır.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "executive",
+      "official"
+    ]
   },
   {
     "name": "Iran President",
@@ -322,7 +420,13 @@
     "notes": "İran cumhurbaşkanlığı listing kaynağı; şu aşamada disabled kalır.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "executive",
+      "official"
+    ]
   },
   {
     "name": "IRNA English",
@@ -346,7 +450,11 @@
     "notes": "İran resmî ajansı İngilizce RSS akışı. Legacy official_class alanı şimdilik korunur.",
     "notify_policy": "ai_threshold",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official"
+    ]
   },
   {
     "name": "Iran MFA News",
@@ -371,7 +479,12 @@
     "notes": "İran MFA arşiv/listeleme hattı; gerekirse sonra etkinleştirilir.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "official"
+    ]
   },
   {
     "name": "TASS",
@@ -392,7 +505,11 @@
     "notes": "Rusya resmi devlet haber ajansı (İngilizce). Kremlin ve resmi Rus görüşüne yakın.",
     "notify_policy": "ai_threshold",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official"
+    ]
   },
   {
     "name": "Europarl AFET",
@@ -413,7 +530,11 @@
     "notes": "AFET committee feed. Kurumsal/diplomatik sinyal kaynağı; kontrollü gözlemle açılacak.",
     "notify_policy": "ai_threshold",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official"
+    ]
   },
   {
     "name": "JPost Iran",
@@ -475,7 +596,11 @@
     "notes": "ECON committee feed. Kurumsal ekonomi sinyali için kontrollü açıldı.",
     "notify_policy": "ai_threshold",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "official"
+    ]
   },
   {
     "name": "JPost International",
@@ -507,7 +632,14 @@
     "stale_minutes": 10080,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "central_bank",
+      "economy",
+      "finance",
+      "official"
+    ]
   },
   {
     "name": "TR MFA Açıklamalar",
@@ -521,7 +653,14 @@
     "stale_minutes": 1440,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "official",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "TR MFA Ana Sayfa Açıklamalar",
@@ -536,7 +675,14 @@
     "disabled_reason": "Ana sayfa navigasyon/menü metni ürettiği için kapatıldı.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "official",
+      "tr",
+      "turkiye"
+    ]
   },
   {
     "name": "Iran MFA Official EN",
@@ -550,7 +696,12 @@
     "stale_minutes": 1440,
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "diplomacy",
+      "official"
+    ]
   },
   {
     "name": "TASS RSS",
@@ -578,7 +729,13 @@
     "notes": "Defense.gov RSS endpoint; war.gov kaynakları yerine.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "defense",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "Defense.gov RSS Content 2",
@@ -593,7 +750,13 @@
     "notes": "Defense.gov RSS endpoint; war.gov kaynakları yerine.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "defense",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "CENTCOM RSS Content 1",
@@ -608,7 +771,13 @@
     "notes": "CENTCOM RSS endpoint.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "defense",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "CENTCOM RSS Content 2",
@@ -623,7 +792,13 @@
     "notes": "CENTCOM RSS endpoint.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "defense",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "UKMTO Warnings",
@@ -645,7 +820,13 @@
     "access_risk": "high",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "official"
+    "relay_label": "official",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "maritime_security",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "UKMTO Advisories",
@@ -667,7 +848,13 @@
     "access_risk": "high",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "official"
+    "relay_label": "official",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "maritime_security",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "UKMTO X Relay",
@@ -694,7 +881,13 @@
     "notes": "UKMTO official X account via xcancel RSS relay; used because ukmto.org pages return Cloudflare 403 from the VPS.",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "official_social_relay"
+    "relay_label": "official_social_relay",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "maritime_security",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "OFAC Recent Actions",
@@ -714,7 +907,14 @@
     "notes": "US Treasury OFAC recent actions",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "economy",
+      "finance",
+      "official",
+      "sanctions"
+    ]
   },
   {
     "name": "OFAC Sanctions List Updates",
@@ -734,7 +934,14 @@
     "notes": "US Treasury OFAC sanctions list updates",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "economy",
+      "finance",
+      "official",
+      "sanctions"
+    ]
   },
   {
     "name": "UN Security Council",
@@ -754,7 +961,13 @@
     "notes": "UN Security Council meetings coverage and press releases",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "multilateral",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "IAEA Top News",
@@ -774,7 +987,13 @@
     "notes": "IAEA top news RSS",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "nuclear",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "IAEA DG Statements",
@@ -794,7 +1013,13 @@
     "notes": "IAEA Director General statements RSS",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "nuclear",
+      "official",
+      "security"
+    ]
   },
   {
     "name": "EIA Press Releases",
@@ -815,6 +1040,12 @@
     "notes": "US EIA press releases RSS",
     "notify_policy": "direct_official",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "applies_to_all_profiles": true,
+    "source_tags": [
+      "economy",
+      "energy",
+      "official"
+    ]
   }
 ]

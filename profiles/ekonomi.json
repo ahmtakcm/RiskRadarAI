@@ -1,25 +1,38 @@
 {
   "name": "ekonomi",
-  "sources": [
-    "Federal Reserve Press Releases",
-    "Federal Reserve FOMC",
-    "Federal Reserve Calendar",
-    "ECB RSS Feeds",
-    "TCMB Basın Bilgilendirme",
-    "TCMB Enflasyon Raporu 2026",
-    "Europarl ECON Committee",
-    "Anadolu Ajansı"
+  "policy_profile": "ekonomi",
+  "notify_policy": "market_sensitive",
+  "min_score": 25,
+  "allow_unverified": true,
+  "require_official_confirmation": false,
+  "include_shared_official_sources": true,
+  "matching_mode": "keyword",
+  "ai_matching_enabled": false,
+  "keywords_include": [
+    "fed",
+    "fomc",
+    "federal reserve",
+    "ecb",
+    "tcmb",
+    "central bank",
+    "inflation",
+    "interest rate",
+    "policy rate",
+    "monetary",
+    "sanctions",
+    "ofac",
+    "oil",
+    "energy",
+    "market"
   ],
-  "enabled_feeds": [
-    "Federal Reserve Press Releases",
-    "Federal Reserve FOMC",
-    "Federal Reserve Calendar",
-    "ECB RSS Feeds",
-    "TCMB Basın Bilgilendirme",
-    "TCMB Enflasyon Raporu 2026",
-    "Europarl ECON Committee",
-    "Anadolu Ajansı"
+  "keywords_exclude": [],
+  "topic_tags": [
+    "official",
+    "economy",
+    "finance",
+    "central_bank",
+    "sanctions",
+    "energy"
   ],
-  "keyword_set": "ekonomi",
-  "priority_note": ""
+  "keyword_set": "ekonomi"
 }

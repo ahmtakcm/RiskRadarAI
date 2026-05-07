@@ -116,7 +116,7 @@ class NotificationBehaviorTests(unittest.TestCase):
             'feeds': [
                 {'name': 'UKMTO Warnings', 'enabled': False, 'kind': 'listing_html'},
                 {'name': 'UKMTO Advisories', 'enabled': False, 'kind': 'listing_html'},
-                {'name': 'UKMTO X Relay', 'enabled': True, 'kind': 'rss_social'},
+                {'name': 'UKMTO X Relay', 'enabled': True, 'kind': 'rss_social', 'official_class': 'official_security_relay', 'applies_to_all_profiles': True},
             ],
         }
         names = [x['name'] for x in select_feeds(active, mode='official_only')]
@@ -135,6 +135,69 @@ class NotificationBehaviorTests(unittest.TestCase):
         policy = notification_policy_for_source(src, scan_mode='official_only', source_file='rules/feeds.json')
         self.assertEqual(policy.relay_label, 'relay_archive')
         self.assertTrue(policy.relay_archive)
+
+
+    def test_official_sources_are_shared_across_profiles(self):
+        from source_selectors.feed_selector import select_feeds
+        active = {
+            'profile': {'name': 'saglik', 'enabled_feeds': []},
+            'active_profile_names': ['saglik'],
+            'blocked_sources': set(),
+            'feeds': [
+                {'name': 'Federal Reserve FOMC', 'enabled': True, 'kind': 'rss', 'official_class': 'official_central_bank', 'applies_to_all_profiles': True},
+                {'name': 'WHO Newsroom', 'enabled': True, 'kind': 'rss', 'official_class': 'official_health_org', 'applies_to_all_profiles': True},
+                {'name': 'BBC World', 'enabled': True, 'kind': 'news'},
+            ],
+            'social_feeds': [],
+        }
+        names = [x['name'] for x in select_feeds(active, mode='official_only')]
+        self.assertIn('Federal Reserve FOMC', names)
+        self.assertIn('WHO Newsroom', names)
+        self.assertNotIn('BBC World', names)
+
+    def test_shared_official_candidate_records_triggered_profiles(self):
+        from source_selectors.profile_policy import evaluate_item_across_active_profiles
+        active = {
+            'active_profile_names': ['tum_profiller'],
+            'profile_policies': {
+                'tum_profiller': {'topic_profiles': ['ekonomi', 'saglik']},
+                'ekonomi': {'name': 'ekonomi', 'notify_policy': 'market_sensitive', 'min_score': 25, 'include_shared_official_sources': True, 'keyword_set': 'ekonomi', 'keywords_include': ['fomc', 'rate'], 'topic_tags': ['central_bank']},
+                'saglik': {'name': 'saglik', 'notify_policy': 'health_risk', 'min_score': 25, 'include_shared_official_sources': True, 'keyword_set': 'saglik', 'keywords_include': ['who'], 'topic_tags': ['health_org']},
+            },
+            'filters': {'keyword_sets': {'ekonomi': {'primary_terms': ['fomc', 'rate'], 'secondary_terms': [], 'high_risk_patterns': []}, 'saglik': {'primary_terms': ['who'], 'secondary_terms': [], 'high_risk_patterns': []}}},
+        }
+        item = {'title': 'FOMC policy rate decision', 'description': 'Federal Reserve rate statement', 'applies_to_all_profiles': True, 'source_tags': ['official', 'central_bank']}
+        matches = evaluate_item_across_active_profiles(item, active)
+        self.assertEqual([m['profile'] for m in matches], ['ekonomi'])
+
+    def test_osint_policy_defaults_to_unverified_allowed_without_confirmation_gate(self):
+        src = {'name': 'Intel Sky', 'kind': 'rss_social'}
+        policy = notification_policy_for_source(src, scan_mode='osint_only', source_file='rules/osint_feeds.json')
+        self.assertEqual(policy.notify_policy, 'keyword_or_score')
+        self.assertTrue(policy.can_notify_direct)
+        self.assertFalse(policy.requires_official_confirmation)
+
+    def test_osint_unverified_message_is_labeled(self):
+        from services.assistant_output import build_signal_message
+        text = build_signal_message(
+            {'source_name': 'Intel Sky', 'title': 'Missile movement', 'description': 'A detailed field signal.', 'link': 'https://example.com'},
+            70,
+            {'summary_tr': 'A detailed field signal summary.', 'alarm_score': 70},
+            origin_label='OSINT',
+            verified=False,
+        )
+        self.assertIn('Teyit: OSINT / resmî teyit yok', text)
+
+    def test_manual_scan_command_uses_scan_without_alerting(self):
+        import commands.manual_scan_commands as manual
+        calls = []
+        def fake_scan(state, mode='all', manual_query=None):
+            calls.append((mode, manual_query))
+            return [candidate('Federal Reserve FOMC', official_class='official_central_bank')] if mode == 'official_only' else []
+        with patch.object(manual, 'scan_news', fake_scan):
+            reply = manual.handle_manual_scan_command('/ara fomc')
+        self.assertIn('Federal Reserve FOMC', reply)
+        self.assertEqual(calls, [('official_only', 'fomc')])
 
     def test_calendar_sent_alerts_prevents_duplicate_notifications(self):
         import workflows.process_calendar_events as cal

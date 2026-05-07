@@ -5,6 +5,7 @@ import requests
 
 from commands.source_commands import handle_source_command
 from commands.audit_commands import handle_audit_command
+from commands.manual_scan_commands import handle_manual_scan_command
 from commands.profile_commands import (
     handle_profile_command,
     handle_watch_command,
@@ -87,6 +88,7 @@ def poll_once() -> bool:
                     or handle_feed_command(line)
                     or handle_source_command(line)
                     or handle_audit_command(line)
+                    or handle_manual_scan_command(line)
                 )
 
                 if reply:

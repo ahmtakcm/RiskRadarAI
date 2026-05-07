@@ -64,18 +64,20 @@ def build_report() -> dict:
             policy = notification_policy_for_source(
                 source,
                 scan_mode=scan_mode,
-                source_file=source_file,
+                source_file=source.get('source_file', source_file),
                 settings=settings,
                 send_unverified_social=active_config.get('overrides', {}).get('send_unverified_social_alerts', settings.send_unverified_social_alerts),
-                send_unverified_osint=active_config.get('overrides', {}).get('send_unverified_osint_alerts', True),
+                send_unverified_osint=bool(active_config.get('profile_policies', {}).get('osint', {}).get('allow_unverified', True)),
             )
             rows.append({
                 'source_name': name,
-                'source_file': source_file,
+                'source_file': source.get('source_file', source_file),
                 'scan_mode': scan_mode,
                 'kind': source.get('kind') or source.get('source_kind') or '',
                 'notify_policy': policy.notify_policy,
                 'relay_label': policy.relay_label,
+                'applies_to_all_profiles': bool(source.get('applies_to_all_profiles')),
+                'source_tags': source.get('source_tags', []),
                 'status': status,
                 'consecutive_failures': int(h.get('consecutive_failures') or 0),
                 'cooldown_remaining_seconds': max(0, int(float(h.get('cooldown_until') or 0) - now)),

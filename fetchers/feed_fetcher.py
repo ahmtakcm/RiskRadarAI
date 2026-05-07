@@ -26,6 +26,14 @@ FEED_META_KEYS = (
     "notify_policy",
     "confirmation_required",
     "relay_label",
+    "source_file",
+    "applies_to_all_profiles",
+    "source_tags",
+    "matching_mode",
+    "ai_matching_enabled",
+    "keywords_include",
+    "keywords_exclude",
+    "topic_tags",
 )
 
 def _pub_date_sort_key(pub_date: str) -> float:

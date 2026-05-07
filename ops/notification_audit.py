@@ -32,15 +32,15 @@ def _entry_for_source(source: dict, source_file: str, scan_mode: str, active_con
     policy = notification_policy_for_source(
         source,
         scan_mode=scan_mode,
-        source_file=source_file,
+        source_file=source.get('source_file', source_file),
         settings=settings,
         send_unverified_social=overrides.get('send_unverified_social_alerts', settings.send_unverified_social_alerts),
-        send_unverified_osint=overrides.get('send_unverified_osint_alerts', True),
+        send_unverified_osint=bool(active_config.get('profile_policies', {}).get('osint', {}).get('allow_unverified', True)),
     )
     data = policy.as_dict()
     data.update({
         'source_name': source.get('name', ''),
-        'source_file': source_file,
+        'source_file': source.get('source_file', source_file),
         'scan_mode': scan_mode,
         'kind_source_kind': source.get('kind') or source.get('source_kind') or '',
         'kind': source.get('kind', ''),
@@ -49,6 +49,13 @@ def _entry_for_source(source: dict, source_file: str, scan_mode: str, active_con
         'source_class': source.get('source_class', ''),
         'official_country': source.get('official_country', ''),
         'official_red_alert': _bool(source.get('official_red_alert')),
+        'applies_to_all_profiles': _bool(source.get('applies_to_all_profiles')),
+        'source_tags': source.get('source_tags', []),
+        'matching_mode': source.get('matching_mode', 'keyword'),
+        'ai_matching_enabled': _bool(source.get('ai_matching_enabled')),
+        'keywords_include': source.get('keywords_include', []),
+        'keywords_exclude': source.get('keywords_exclude', []),
+        'topic_tags': source.get('topic_tags', []),
     })
     return data
 

@@ -1,19 +1,34 @@
 {
   "name": "osint",
-  "sources": [
-    "Security Council Report",
-    "Crisis Group",
-    "LiveUAMap X",
-    "LummiEast X",
-    "Crisis Group RSS"
+  "policy_profile": "osint",
+  "notify_policy": "keyword_or_score",
+  "min_score": 35,
+  "allow_unverified": true,
+  "require_official_confirmation": false,
+  "matching_mode": "keyword",
+  "ai_matching_enabled": false,
+  "keywords_include": [
+    "osint",
+    "missile",
+    "drone",
+    "attack",
+    "strike",
+    "explosion",
+    "air defense",
+    "military",
+    "convoy",
+    "maritime",
+    "hormuz",
+    "evacuation"
   ],
-  "enabled_feeds": [
-    "Security Council Report",
-    "Crisis Group",
-    "LiveUAMap X",
-    "LummiEast X",
-    "Crisis Group RSS"
+  "keywords_exclude": [],
+  "topic_tags": [
+    "osint",
+    "fast_signal",
+    "security",
+    "defense"
   ],
+  "label_unverified": true,
   "keyword_set": "osint",
-  "priority_note": ""
+  "enabled_osint": true
 }

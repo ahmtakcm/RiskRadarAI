@@ -5,9 +5,16 @@
     "kind": "rss_social",
     "enabled": true,
     "priority": 7,
-    "notify_policy": "verified_or_ai",
+    "notify_policy": "keyword_or_score",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "allow_unverified": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "source_tags": [
+      "osint",
+      "fast_signal"
+    ]
   },
   {
     "name": "WarMonitors",
@@ -15,9 +22,16 @@
     "kind": "rss_social",
     "enabled": true,
     "priority": 7,
-    "notify_policy": "verified_or_ai",
+    "notify_policy": "keyword_or_score",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "allow_unverified": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "source_tags": [
+      "osint",
+      "fast_signal"
+    ]
   },
   {
     "name": "Intel Sky",
@@ -25,8 +39,15 @@
     "kind": "rss_social",
     "enabled": true,
     "priority": 6,
-    "notify_policy": "verified_or_ai",
+    "notify_policy": "keyword_or_score",
     "confirmation_required": false,
-    "relay_label": "direct"
+    "relay_label": "direct",
+    "allow_unverified": true,
+    "matching_mode": "keyword",
+    "ai_matching_enabled": false,
+    "source_tags": [
+      "osint",
+      "fast_signal"
+    ]
   }
 ]

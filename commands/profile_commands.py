@@ -55,11 +55,15 @@ def handle_profile_command(text: str) -> str | None:
         "/profil_liste": "/profil liste",
         "/profil_durum": "/profil durum",
         "/profil_tum": "/profil aktif tum_profiller",
-        "/profil_resmi": "/profil aktif resmi_kritik",
-        "/profil_haber": "/profil aktif haber",
+        "/profil_resmi": "/profil aktif resmi_aciklamalar",
+        "/profil_haber": "/profil aktif dunya",
         "/profil_ekonomi": "/profil aktif ekonomi",
         "/profil_osint": "/profil aktif osint",
         "/profil_saglik": "/profil aktif saglik",
+        "/profil_dunya": "/profil aktif dunya",
+        "/profil_turkiye": "/profil aktif turkiye",
+        "/profil_yerel": "/profil aktif yerel",
+        "/profil_analiz": "/profil aktif analiz",
     }
 
     raw = aliases.get(raw, raw)
@@ -79,6 +83,10 @@ def handle_profile_command(text: str) -> str | None:
             "/profil_tum\n"
             "/profil_resmi\n"
             "/profil_haber\n"
+            "/profil_dunya\n"
+            "/profil_turkiye\n"
+            "/profil_yerel\n"
+            "/profil_analiz\n"
             "/profil_ekonomi\n"
             "/profil_osint\n"
             "/profil_saglik\n\n"
@@ -86,11 +94,14 @@ def handle_profile_command(text: str) -> str | None:
             "/watch_liste\n"
             "/watch_ekle Mersin\n"
             "/watch_sil Mersin\n\n"
+            "Manuel arama:\n"
+            "/ara hormuz\n"
+            "/tara hormuz\n\n"
             "Feed kontrol:\n"
             "/feed_kontrol\n\n"
             "Gelişmiş:\n"
             "/profil ac ekonomi\n"
-            "/profil kapat haber"
+            "/profil kapat dunya"
         )
 
     cmd = parts[1].lower()

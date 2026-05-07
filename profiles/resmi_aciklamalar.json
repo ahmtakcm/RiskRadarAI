@@ -1,5 +1,5 @@
 {
-  "name": "resmi_kritik",
+  "name": "resmi_aciklamalar",
   "policy_profile": "resmi_aciklamalar",
   "notify_policy": "direct_official",
   "min_score": 20,
