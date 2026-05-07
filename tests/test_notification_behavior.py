@@ -191,7 +191,7 @@ class NotificationBehaviorTests(unittest.TestCase):
     def test_manual_scan_command_uses_scan_without_alerting(self):
         import commands.manual_scan_commands as manual
         calls = []
-        def fake_scan(state, mode='all', manual_query=None):
+        def fake_scan(state, mode='all', manual_query=None, max_feeds=None):
             calls.append((mode, manual_query))
             return [candidate('Federal Reserve FOMC', official_class='official_central_bank')] if mode == 'official_only' else []
         with patch.object(manual, 'scan_news', fake_scan):

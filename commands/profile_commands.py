@@ -2,6 +2,9 @@ import json
 from pathlib import Path
 
 from config.paths import PROFILES_DIR, USER_INPUTS_DIR
+from commands.audit_commands import handle_audit_command
+from commands.manual_scan_commands import handle_manual_scan_command
+from commands.source_commands import handle_source_command
 
 STATE_PATH = USER_INPUTS_DIR / "profile_state.json"
 WATCH_PATH = USER_INPUTS_DIR / "manual_watch.json"
@@ -48,8 +51,31 @@ def save_profile_state(state):
     _save_json(STATE_PATH, state)
 
 
+def _command_help() -> str:
+    return "\n".join([
+        "Komutlar:",
+        "/audit, /audit_json",
+        "/health, /health_json, /source_health, /kaynak_saglik",
+        "/ara <sorgu>, /tara <sorgu>",
+        "/profil, /watch_liste, /feed_kontrol, /kaynak_liste",
+    ])
+
+
 def handle_profile_command(text: str) -> str | None:
     raw = (text or "").strip()
+    if not raw:
+        return None
+
+    for name, handler in (
+        ("audit", handle_audit_command),
+        ("manual_scan", handle_manual_scan_command),
+    ):
+        try:
+            reply = handler(raw)
+        except Exception as exc:
+            return f"Komut çalıştırılamadı ({name}): {exc}"
+        if reply:
+            return reply
 
     aliases = {
         "/profil_liste": "/profil liste",
@@ -69,6 +95,19 @@ def handle_profile_command(text: str) -> str | None:
     raw = aliases.get(raw, raw)
 
     if not (raw == "/profil" or raw.startswith("/profil ")):
+        for name, handler in (
+            ("watch", handle_watch_command),
+            ("feed", handle_feed_command),
+            ("source", handle_source_command),
+        ):
+            try:
+                reply = handler(raw)
+            except Exception as exc:
+                return f"Komut çalıştırılamadı ({name}): {exc}"
+            if reply:
+                return reply
+        if raw.startswith('/'):
+            return "Bilinmeyen komut.\n" + _command_help()
         return None
 
     parts = raw.split()
@@ -167,7 +206,7 @@ def handle_profile_command(text: str) -> str | None:
         save_profile_state(state)
         return f"⛔ Profil kapatıldı: {target}"
 
-    return "❌ Bilinmeyen profil komutu. /profil"
+    return "Bilinmeyen profil komutu. /profil"
 
 
 def _load_watch():
@@ -224,3 +263,16 @@ def handle_feed_command(text: str) -> str | None:
         subprocess.Popen([sys.executable, "scripts/feed_log_check.py"])
         return "🔍 Feed log kontrolü başlatıldı..."
     return None
+
+
+
+def main(argv: list[str] | None = None) -> int:
+    import sys
+    args = sys.argv[1:] if argv is None else argv
+    text = " ".join(args).strip()
+    print(handle_profile_command(text) or "")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

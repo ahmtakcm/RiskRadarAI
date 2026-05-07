@@ -1,16 +1,10 @@
+import argparse
 import json
 import threading
 import time
 import requests
 
-from commands.source_commands import handle_source_command
-from commands.audit_commands import handle_audit_command
-from commands.manual_scan_commands import handle_manual_scan_command
-from commands.profile_commands import (
-    handle_profile_command,
-    handle_watch_command,
-    handle_feed_command,
-)
+from commands.profile_commands import handle_profile_command
 from config.paths import USER_INPUTS_DIR
 from config.settings import settings
 from core.logger import get_logger
@@ -40,15 +34,100 @@ def _save_offset(offset: int):
     )
 
 
+def _split_message(text: str, limit: int = 3800) -> list[str]:
+    text = str(text or "")
+    if len(text) <= limit:
+        return [text]
+    chunks: list[str] = []
+    current: list[str] = []
+    current_len = 0
+    for line in text.splitlines():
+        line_len = len(line) + 1
+        if current and current_len + line_len > limit:
+            chunks.append("\n".join(current))
+            current = []
+            current_len = 0
+        if line_len > limit:
+            for i in range(0, len(line), limit):
+                chunks.append(line[i:i + limit])
+            continue
+        current.append(line)
+        current_len += line_len
+    if current:
+        chunks.append("\n".join(current))
+    return chunks or [""]
+
+
 def _send_to_chat(chat_id, text: str):
     url = f"https://api.telegram.org/bot{settings.bot_token}/sendMessage"
-    r = requests.post(url, data={"chat_id": chat_id, "text": text}, timeout=20)
-    if r.status_code != 200:
-        logger.warning("Telegram komut cevabı gönderilemedi: %s | %s", r.status_code, r.text[:300])
+    statuses = []
+    chunks = _split_message(text)
+    for idx, chunk in enumerate(chunks, start=1):
+        r = requests.post(url, data={"chat_id": chat_id, "text": chunk}, timeout=20)
+        statuses.append(r.status_code)
+        logger.info(
+            "Telegram komut cevap HTTP: %s | chunk=%s/%s | len=%s",
+            r.status_code,
+            idx,
+            len(chunks),
+            len(chunk or ""),
+        )
+        if r.status_code != 200:
+            logger.warning("Telegram komut cevabı gönderilemedi: %s | %s", r.status_code, r.text[:300])
+    return statuses[-1] if statuses else None
+
+
+def _handle_text(text: str) -> tuple[str, str | None]:
+    reply = handle_profile_command(text)
+    return "handle_profile_command", reply
+
+
+def _process_update(update: dict) -> bool:
+    uid = update.get("update_id")
+    msg = update.get("message") or {}
+    chat = msg.get("chat") or {}
+    chat_id = chat.get("id")
+    text = msg.get("text") or ""
+
+    logger.info("Telegram update alındı | update_id=%s | chat_id=%s | text=%s", uid, chat_id, str(text)[:300])
+
+    if str(chat_id) != str(settings.chat_id):
+        logger.info("Telegram update atlandı: wrong_chat | update_id=%s | chat_id=%s", uid, chat_id)
+        return False
+
+    replies = []
+    for line in str(text).splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            handler_name, reply = _handle_text(line)
+            logger.info(
+                "Telegram handler seçildi | update_id=%s | handler=%s | reply_len=%s",
+                uid,
+                handler_name,
+                len(reply or ""),
+            )
+            if reply:
+                replies.append(reply)
+        except Exception as exc:
+            logger.exception("Telegram komut handler hatası | update_id=%s | text=%s", uid, line)
+            replies.append(f"Komut çalıştırılamadı: {exc}")
+
+    if not replies and str(text).strip():
+        replies.append("Komut işlenemedi. /profil")
+
+    if replies:
+        payload = "\n\n".join(x for x in replies if x)
+        logger.info("Telegram reply gönderiliyor | update_id=%s | chat_id=%s | reply_len=%s", uid, chat_id, len(payload))
+        _send_to_chat(chat_id, payload)
+        return True
+    return False
 
 
 def poll_once() -> bool:
     if not _LOCK.acquire(blocking=False):
+        logger.info("Telegram poll atlandı: worker_lock_busy")
         return False
 
     handled = False
@@ -61,50 +140,39 @@ def poll_once() -> bool:
             logger.warning("Telegram getUpdates ok=false: %s", str(data)[:300])
             return False
 
+        updates = data.get("result", []) or []
+        if updates:
+            logger.info("Telegram poll updates | offset=%s | update_count=%s", offset, len(updates))
+
         max_update_id = None
-
-        for upd in data.get("result", []):
+        for upd in updates:
             uid = upd.get("update_id")
-            if uid is not None:
-                max_update_id = uid if max_update_id is None else max(max_update_id, uid)
-
-            msg = upd.get("message") or {}
-            chat = msg.get("chat") or {}
-            chat_id = chat.get("id")
-            text = msg.get("text") or ""
-
-            if str(chat_id) != str(settings.chat_id):
-                continue
-
-            replies = []
-            for line in str(text).splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-
-                reply = (
-                    handle_profile_command(line)
-                    or handle_watch_command(line)
-                    or handle_feed_command(line)
-                    or handle_source_command(line)
-                    or handle_audit_command(line)
-                    or handle_manual_scan_command(line)
-                )
-
-                if reply:
-                    replies.append(reply)
-
-            if replies:
-                _send_to_chat(chat_id, "\n\n".join(replies))
-                handled = True
+            try:
+                if uid is not None:
+                    max_update_id = uid if max_update_id is None else max(max_update_id, uid)
+                if _process_update(upd):
+                    handled = True
+            except Exception:
+                logger.exception("Telegram update işleme hatası | update_id=%s", uid)
+                msg = upd.get("message") or {}
+                chat_id = (msg.get("chat") or {}).get("id")
+                if str(chat_id) == str(settings.chat_id):
+                    try:
+                        _send_to_chat(chat_id, "Komut işlenirken hata oluştu.")
+                    except Exception:
+                        logger.exception("Telegram hata cevabı gönderilemedi | update_id=%s", uid)
+            finally:
+                if uid is not None:
+                    _save_offset(int(uid) + 1)
+                    logger.info("Telegram offset kaydedildi | offset=%s", int(uid) + 1)
 
         if max_update_id is not None:
-            _save_offset(max_update_id + 1)
+            _save_offset(int(max_update_id) + 1)
 
         return handled
 
-    except Exception as exc:
-        logger.warning("Telegram komut worker hatası: %s", exc)
+    except Exception:
+        logger.exception("Telegram komut worker poll hatası")
         return False
 
     finally:
@@ -126,3 +194,20 @@ def start_telegram_command_worker():
     _STARTED = True
     t = threading.Thread(target=_loop, name="telegram-command-worker", daemon=True)
     t.start()
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("command", nargs="*")
+    args = parser.parse_args(argv)
+    text = " ".join(args.command).strip()
+    if args.dry_run:
+        print(handle_profile_command(text) or "")
+        return 0
+    poll_once()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

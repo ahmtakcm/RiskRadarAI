@@ -72,14 +72,22 @@ def normalize(item):
     }
 
 
-def scan_news(state: dict, mode: str = 'all', manual_query: str | None = None):
+def scan_news(state: dict, mode: str = 'all', manual_query: str | None = None, max_feeds: int | None = None):
     active_config = load_active_config()
     feeds = select_feeds(active_config, mode=mode)
+    if max_feeds is not None:
+        feeds = feeds[:max(0, int(max_feeds))]
     keywords = select_keywords(active_config)
     if manual_query:
-        query_terms = [x.strip().lower() for x in str(manual_query).split() if len(x.strip()) >= 3]
+        manual_text = str(manual_query).strip().lower()
+        alias_map = {'hürmüz': 'hormuz', 'hurmuz': 'hormuz', 'hormuz': 'hormuz'}
+        query_terms = [x.strip().lower() for x in manual_text.split() if len(x.strip()) >= 3]
+        for term in list(query_terms) + [manual_text]:
+            alias = alias_map.get(term)
+            if alias and alias not in query_terms:
+                query_terms.append(alias)
         keywords = dict(keywords)
-        keywords['primary_terms'] = list(keywords.get('primary_terms', [])) + query_terms + [str(manual_query).strip().lower()]
+        keywords['primary_terms'] = list(keywords.get('primary_terms', [])) + query_terms + [manual_text]
     social_rule_name = active_config['profile'].get('social_rule_set', 'strict_geopolitics')
     social_rule = active_config['social_rules'].get(social_rule_name, {})
     min_score = 0 if manual_query else int(active_config['profile'].get('min_score', 9))
@@ -165,7 +173,11 @@ def scan_news(state: dict, mode: str = 'all', manual_query: str | None = None):
                 if manual_query:
                     text_blob = f"{item.get('title', '')} {item.get('description', '')}".lower()
                     q = str(manual_query).strip().lower()
-                    if q and q not in text_blob and not any(part in text_blob for part in q.split() if len(part) >= 3):
+                    q_parts = [part for part in q.split() if len(part) >= 3]
+                    aliases = {'hürmüz': 'hormuz', 'hurmuz': 'hormuz'}
+                    q_parts += [aliases[part] for part in list(q_parts) if part in aliases]
+                    q_alias = aliases.get(q, q)
+                    if q and q not in text_blob and q_alias not in text_blob and not any(part in text_blob for part in q_parts):
                         continue
 
                 h = text_hash(item['title'] + '|' + item['link'] + '|' + item['source_name'])

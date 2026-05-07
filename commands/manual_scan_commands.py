@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from workflows.scan_news import scan_news
 
@@ -33,10 +33,11 @@ def handle_manual_scan_command(text: str) -> str | None:
     if not query:
         return f"Aranacak ifade eksik. Örn: {cmd} hormuz"
 
+    mode_limits = {'official_only': 14, 'social_only': 5, 'osint_only': 3, 'analysis_only': 5}
     modes = ['official_only'] if cmd == '/ara' else ['official_only', 'social_only', 'osint_only', 'analysis_only']
     candidates = []
     state = {}
     for mode in modes:
-        candidates.extend(scan_news(state, mode=mode, manual_query=query))
+        candidates.extend(scan_news(state, mode=mode, manual_query=query, max_feeds=mode_limits.get(mode)))
     candidates.sort(key=lambda x: (x.get('pattern_hits', 0), x.get('score', 0)), reverse=True)
     return _format_results(query, candidates)
