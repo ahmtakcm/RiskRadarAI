@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import threading
 import time
 import requests
@@ -15,6 +16,45 @@ logger = get_logger("telegram_command_worker")
 STATE_PATH = USER_INPUTS_DIR / "telegram_command_state.json"
 _LOCK = threading.Lock()
 _STARTED = False
+
+
+def _csv_set(value: str | None) -> set[str]:
+    return {x.strip() for x in str(value or "").split(",") if x.strip()}
+
+
+def _admin_user_ids() -> set[str]:
+    return _csv_set(os.getenv("TELEGRAM_ADMIN_USER_IDS"))
+
+
+def _allowed_chat_ids() -> set[str]:
+    values = _csv_set(os.getenv("TELEGRAM_ALLOWED_CHAT_IDS"))
+    if getattr(settings, "chat_id", None):
+        values.add(str(settings.chat_id))
+    return values
+
+
+def _is_private_chat(chat: dict) -> bool:
+    return str(chat.get("type") or "").lower() == "private"
+
+
+def _is_admin_user(user_id) -> bool:
+    return str(user_id) in _admin_user_ids()
+
+
+def _authorize_update(chat: dict, from_user: dict) -> tuple[bool, str]:
+    chat_id = chat.get("id")
+    user_id = from_user.get("id")
+    is_admin = _is_admin_user(user_id)
+
+    if _is_private_chat(chat):
+        if is_admin:
+            return True, "admin_private"
+        return False, "non_admin_private"
+
+    if str(chat_id) in _allowed_chat_ids():
+        return True, "allowed_group_admin" if is_admin else "allowed_group_member"
+
+    return False, "unknown_chat"
 
 
 def _load_offset():
@@ -86,13 +126,30 @@ def _process_update(update: dict) -> bool:
     uid = update.get("update_id")
     msg = update.get("message") or {}
     chat = msg.get("chat") or {}
+    from_user = msg.get("from") or {}
     chat_id = chat.get("id")
+    from_user_id = from_user.get("id")
     text = msg.get("text") or ""
 
-    logger.info("Telegram update alındı | update_id=%s | chat_id=%s | text=%s", uid, chat_id, str(text)[:300])
+    allowed, auth_reason = _authorize_update(chat, from_user)
 
-    if str(chat_id) != str(settings.chat_id):
-        logger.info("Telegram update atlandı: wrong_chat | update_id=%s | chat_id=%s", uid, chat_id)
+    logger.info(
+        "Telegram update alındı | update_id=%s | chat_id=%s | chat_type=%s | from_user_id=%s | auth=%s | text=%s",
+        uid,
+        chat_id,
+        chat.get("type"),
+        from_user_id,
+        auth_reason,
+        str(text)[:300],
+    )
+
+    if not allowed:
+        if auth_reason == "non_admin_private":
+            logger.info("Telegram update reddedildi: non_admin_private | update_id=%s | chat_id=%s | from_user_id=%s", uid, chat_id, from_user_id)
+            _send_to_chat(chat_id, "Bu bot özel komutları sadece admin için çalıştırır.")
+            return True
+
+        logger.info("Telegram update atlandı: %s | update_id=%s | chat_id=%s | from_user_id=%s", auth_reason, uid, chat_id, from_user_id)
         return False
 
     replies = []
@@ -156,7 +213,10 @@ def poll_once() -> bool:
                 logger.exception("Telegram update işleme hatası | update_id=%s", uid)
                 msg = upd.get("message") or {}
                 chat_id = (msg.get("chat") or {}).get("id")
-                if str(chat_id) == str(settings.chat_id):
+                chat = msg.get("chat") or {}
+                from_user = msg.get("from") or {}
+                allowed, _auth_reason = _authorize_update(chat, from_user)
+                if allowed:
                     try:
                         _send_to_chat(chat_id, "Komut işlenirken hata oluştu.")
                     except Exception:
