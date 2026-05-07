@@ -72,8 +72,17 @@ def normalize(item):
     }
 
 
-def scan_news(state: dict, mode: str = 'all', manual_query: str | None = None, max_feeds: int | None = None):
-    active_config = load_active_config()
+def scan_news(
+    state: dict,
+    mode: str = 'all',
+    manual_query: str | None = None,
+    max_feeds: int | None = None,
+    *,
+    active_config: dict | None = None,
+    settings_override=None,
+):
+    active_config = active_config or load_active_config()
+    runtime_settings = settings_override or settings
     feeds = select_feeds(active_config, mode=mode)
     if max_feeds is not None:
         feeds = feeds[:max(0, int(max_feeds))]
@@ -136,7 +145,7 @@ def scan_news(state: dict, mode: str = 'all', manual_query: str | None = None, m
                         if raw_item.get(key) is not None:
                             item[key] = raw_item.get(key)
 
-                freshness = evaluate_item_freshness(item, mode, settings)
+                freshness = evaluate_item_freshness(item, mode, runtime_settings)
                 item.update(freshness)
                 if freshness.get('is_stale'):
                     logger.info('Notification drop | source=%s | reason=stale | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))

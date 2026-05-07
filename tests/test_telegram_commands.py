@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+import json
 
 
 class TelegramCommandRoutingTests(unittest.TestCase):
@@ -32,6 +33,73 @@ class TelegramCommandRoutingTests(unittest.TestCase):
         self.assertTrue(reply)
         self.assertIn('Bilinmeyen komut', reply)
         self.assertIn('/audit', reply)
+
+    def test_profiles_and_status_commands_return_non_empty(self):
+        import commands.profile_commands as pc
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / "profile_state.json"
+            with patch.object(pc, "STATE_PATH", state):
+                self.assertIn("Profil", pc.handle_profile_command("/profiles"))
+                self.assertIn("Profil", pc.handle_profile_command("/profile_status"))
+
+    def test_profile_on_off_updates_runtime_state(self):
+        import commands.profile_commands as pc
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / "profile_state.json"
+            with patch.object(pc, "STATE_PATH", state):
+                pc.handle_profile_command("/profile_on ekonomi")
+                pc.handle_profile_command("/profile_on turkiye")
+                blob = json.loads(state.read_text(encoding="utf-8"))
+                self.assertIn("ekonomi", blob.get("active_profiles", []))
+                pc.handle_profile_command("/profile_off ekonomi")
+                blob = json.loads(state.read_text(encoding="utf-8"))
+                self.assertNotIn("ekonomi", blob.get("active_profiles", []))
+
+    def test_alarm_esik_writes_policy_override(self):
+        import commands.profile_commands as pc
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / "profile_state.json"
+            overrides = Path(tmp) / "notification_policy_overrides.json"
+            with patch.object(pc, "STATE_PATH", state), patch.object(pc, "POLICY_OVERRIDE_PATH", overrides):
+                pc.handle_profile_command("/alarm_esik ekonomi 30")
+                blob = json.loads(overrides.read_text(encoding="utf-8"))
+                self.assertEqual(blob["profiles"]["ekonomi"]["min_score"], 30)
+
+    def test_scoped_ara_uses_profile_id_and_preserves_legacy(self):
+        import commands.manual_scan_commands as manual
+
+        calls = []
+
+        def fake_scan(state, mode="all", manual_query=None, max_feeds=None, **kwargs):
+            calls.append((mode, manual_query, (kwargs.get("active_config") or {}).get("profile_name")))
+            return []
+
+        with patch.object(manual, "scan_news", fake_scan):
+            reply = manual.handle_manual_scan_command("/ara ekonomi faiz")
+            self.assertTrue(reply)
+            self.assertEqual(calls[0][0], "official_only")
+            self.assertEqual(calls[0][1], "faiz")
+            self.assertEqual(calls[0][2], "ekonomi")
+
+            calls.clear()
+            manual.handle_manual_scan_command("/ara hürmüz")
+            self.assertEqual(calls[0][1], "hürmüz")
+
+    def test_tara_duration_parses_24s_as_24_hours(self):
+        import commands.manual_scan_commands as manual
+
+        seen = []
+
+        def fake_scan(state, mode="all", manual_query=None, max_feeds=None, **kwargs):
+            s = kwargs.get("settings_override")
+            if s is not None:
+                seen.append(getattr(s, "news_max_age_minutes", None))
+            return []
+
+        with patch.object(manual, "scan_news", fake_scan):
+            manual.handle_manual_scan_command("/tara tum_profiller 24s")
+        self.assertTrue(seen)
+        self.assertIn(24 * 60, seen)
 
 
 class TelegramCommandWorkerTests(unittest.TestCase):

@@ -1,4 +1,5 @@
 import os
+import sys
 from dataclasses import dataclass
 from dotenv import load_dotenv
 from config import defaults
@@ -70,9 +71,20 @@ class Settings:
     state_store: StateStore
 
 
+def _in_test_mode() -> bool:
+    # Allow unit tests to import modules without requiring runtime secrets.
+    # Explicit override: RISKRADARAI_TEST_MODE=1
+    if os.getenv("RISKRADARAI_TEST_MODE", "").strip().lower() in {"1", "true", "yes", "on"}:
+        return True
+    # Heuristic: unittest runner imports 'unittest' early.
+    return "unittest" in sys.modules
+
+
 def _required(name: str) -> str:
     value = os.getenv(name)
     if not value:
+        if _in_test_mode():
+            return f"TEST_{name}"
         raise ValueError(f'{name} tanımlı değil')
     return value
 

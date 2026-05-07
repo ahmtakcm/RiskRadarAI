@@ -23,6 +23,7 @@ logs/
 log/
 backup/
 backups/
+reports/*.json
 *.log
 *.pid
 *.lock
