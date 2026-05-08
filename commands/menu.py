@@ -1,13 +1,23 @@
-MENU_TEXT = """RiskRadarAI men?
+﻿MENU_TEXT = """RiskRadarAI menü
 
-? /health   - Sistem/kaynak sa?l?k ?zeti
-?? /audit    - Bildirim politikas? denetimi
-?? /profiles - Profil listesi/durumu
-?? /sources  - Kaynak y?netimi
-?? /watch    - ?zlenen kelimeler
-?? /ara      - Resm?/profil arama
-?? /tara     - Manuel t?m kaynak tarama
-?? /digest_now - Sessiz digest ?imdi
+✅ /health       - Sistem/kaynak sağlık özeti
+🧾 /audit        - Bildirim politikası denetimi
+📚 /profiles     - Profil listesi/durumu
+📡 /sources      - Kaynak yönetimi
+👁 /watch        - İzlenen kelimeler
+🔎 /ara          - Resmî/profil arama
+🛰 /tara         - Manuel tüm kaynak tarama
+🧩 /policy       - Profil bildirim politikaları
+⚙️ /alarm_esik   - Profil alarm eşiği ayarla
+📰 /digest_now   - Sessiz digest şimdi
+
+Örnekler:
+- /profiles
+- /profile_on ekonomi
+- /profile_off osint
+- /alarm_esik ekonomi 30
+- /ara ekonomi faiz
+- /tara osint 24s
 """
 
 ALIAS_COMMAND_MAP = {
@@ -17,6 +27,12 @@ ALIAS_COMMAND_MAP = {
 
     "/profiles": "/profiles",
     "/profile": "/profiles",
+    "/profile_status": "/profile_status",
+    "/profile_on": "/profile_on",
+    "/profile_off": "/profile_off",
+
+    "/policy": "/policy",
+    "/alarm_esik": "/alarm_esik",
 
     "/audit": "/audit",
     "/audit_json": "/audit_json",
