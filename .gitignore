@@ -43,3 +43,16 @@ Thumbs.db
 
 # Visual Studio local files
 .vs/
+
+# Runtime reports
+reports/*.json
+
+# Runtime state
+user_inputs/*.json
+
+# Local feed mutations
+rules/feeds.json
+
+# Python cache
+__pycache__/
+*.pyc
