@@ -388,37 +388,31 @@ def handle_profile_command(text: str) -> str | None:
     profiles = available_profiles()
 
     if len(parts) == 1 or parts[1] in ("yardim", "help"):
-        return (
-            "🧭 Profil komutları\n\n"
-            "/profil_liste\n"
-            "/profil_durum\n"
-            "/profil_tum\n"
-            "/profil_resmi\n"
-            "/profil_haber\n"
-            "/profil_dunya\n"
-            "/profil_turkiye\n"
-            "/profil_yerel\n"
-            "/profil_analiz\n"
-            "/profil_ekonomi\n"
-            "/profil_osint\n"
-            "/profil_saglik\n\n"
-            "Manuel takip:\n"
-            "/watch_liste\n"
-            "/watch_ekle Mersin\n"
-            "/watch_sil Mersin\n\n"
-            "Manuel arama:\n"
-            "/ara ekonomi faiz\n"
-            "/ara osint h?rm?z\n"
-            "/tara osint 24s\n"
-            "/tara hormuz\n\n"
-            "Digest:\n"
-            "/digest_now\n\n"
-            "Feed kontrol:\n"
-            "/feed_kontrol\n\n"
-            "Gelişmiş:\n"
-            "/profil ac ekonomi\n"
-            "/profil kapat dunya"
-        )
+        return """🧩 Profil komutları
+
+Modern komutlar:
+- /profiles - Profil listesi/durumu
+- /profile_status - Aktif profil ve runtime durumu
+- /profile_on ekonomi - Profil aç
+- /profile_off osint - Profil kapat
+- /policy - Profil bildirim politikalarını göster
+- /alarm_esik ekonomi 30 - Profil alarm eşiğini ayarla
+
+Manuel arama/tarama:
+- /ara ekonomi faiz
+- /ara osint hürmüz
+- /tara osint 24s
+- /tara hormuz
+
+Diğer komutlar:
+- /watch - İzlenen kelimeler
+- /sources - Kaynak yönetimi
+- /audit - Bildirim politikası denetimi
+- /health - Sistem/kaynak sağlık özeti
+- /digest_now - Sessiz digest şimdi
+
+Not: Eski /profil_* komutları geriye dönük uyumluluk için çalışmaya devam eder.
+"""
 
     cmd = parts[1].lower()
 
