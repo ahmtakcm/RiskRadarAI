@@ -4,7 +4,7 @@ from collections import Counter
 
 from config.paths import PROFILES_DIR, USER_INPUTS_DIR
 from commands.audit_commands import handle_audit_command
-from commands.menu import command_help, menu_text
+from commands.menu import ALIAS_COMMAND_MAP, BUTTON_COMMAND_MAP, command_help, menu_text
 from commands.manual_scan_commands import handle_manual_scan_command
 from commands.source_commands import handle_source_command
 from source_selectors.profile_loader import load_config_for_profile
@@ -314,6 +314,12 @@ def _command_help() -> str:
 
 def handle_profile_command(text: str) -> str | None:
     raw = (text or "").strip()
+
+    exact_aliases = {}
+    exact_aliases.update(BUTTON_COMMAND_MAP)
+    exact_aliases.update(ALIAS_COMMAND_MAP)
+    raw = exact_aliases.get(raw, raw)
+
     if raw in {"/menu", "menu"}:
         return menu_text()
 
@@ -352,7 +358,8 @@ def handle_profile_command(text: str) -> str | None:
     if not (raw == "/profil" or raw.startswith("/profil ")):
         for name, handler in (
             ("watch", handle_watch_command),
-                ("source", handle_source_command),
+            ("feed", handle_feed_command),
+            ("source", handle_source_command),
         ):
             try:
                 reply = handler(raw)
@@ -514,7 +521,11 @@ def handle_feed_command(text: str) -> str | None:
     if raw == "/feed_kontrol":
         import subprocess
         import sys
-        subprocess.Popen([sys.executable, "scripts/feed_log_check.py"])
+        subprocess.Popen(
+            [sys.executable, "scripts/feed_log_check.py"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         return "🔍 Feed log kontrolü başlatıldı..."
     return None
 

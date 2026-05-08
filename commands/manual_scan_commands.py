@@ -97,7 +97,13 @@ def handle_manual_scan_command(text: str) -> str | None:
     cmd, _, rest = raw.partition(' ')
     rest = rest.strip()
     if not rest:
-        return f"Aranacak ifade eksik. Örn: {cmd} hormuz"
+        return (
+            "🔎 Manuel tarama için konu yazmalısın.\n\n"
+            "Örnekler:\n"
+            "/tara hormuz\n"
+            "/tara ekonomi brent\n"
+            "/ara resmi_aciklamalar nato"
+        )
 
     tokens = rest.split()
     profile_id = None

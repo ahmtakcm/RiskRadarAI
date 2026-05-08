@@ -4,6 +4,7 @@ COMMAND_HELP_LINES = [
     "Sağlık:",
     "/health",
     "/source_health",
+    "/kaynak_saglik",
     "",
     "Audit:",
     "/audit",
@@ -14,6 +15,7 @@ COMMAND_HELP_LINES = [
     "/profiles",
     "/profile_status",
     "/policy",
+    "/profile_policy",
     "/profile_on <profil>",
     "/profile_off <profil>",
     "/alarm_esik <profil> <puan>",
@@ -29,12 +31,17 @@ COMMAND_HELP_LINES = [
     "",
     "Kaynak:",
     "/kaynak",
+    "/kaynak_yardim",
     "/kaynak_ekle <ad> | <url/domain> | <profil>",
     "/kaynak_test <ad>",
     "/kaynak_sil <ad>",
     "",
+    "Kontrol:",
+    "/feed_kontrol",
+    "",
     "Menü:",
     "/menu",
+    "/komutlar",
 ]
 
 
@@ -46,6 +53,25 @@ BUTTON_COMMAND_MAP = {
     "👁 Watch": "/watch",
     "🔎 Tara": "/tara",
     "📋 Menü": "/menu",
+}
+
+
+ALIAS_COMMAND_MAP = {
+    "/komutlar": "/menu",
+    "komutlar": "/menu",
+    "/yardim": "/menu",
+    "/yardım": "/menu",
+    "yardim": "/menu",
+    "yardım": "/menu",
+    "/profile_policy": "/policy",
+    "/profil_policy": "/policy",
+    "/profil_durum": "/profile_status",
+    "/profil_liste": "/profiles",
+    "/kaynak_saglik": "/source_health",
+    "/kaynak_sağlık": "/source_health",
+    "/source_health": "/source_health",
+    "/kaynak_yardim": "/kaynak",
+    "/kaynak_yardım": "/kaynak",
 }
 
 
@@ -67,4 +93,25 @@ def menu_text() -> str:
 
 def normalize_command_text(text: str) -> str:
     raw = str(text or "").strip()
-    return BUTTON_COMMAND_MAP.get(raw, raw)
+    if raw in BUTTON_COMMAND_MAP:
+        return BUTTON_COMMAND_MAP[raw]
+    if raw in ALIAS_COMMAND_MAP:
+        return ALIAS_COMMAND_MAP[raw]
+
+    lowered = raw.lower()
+    if "sağlık" in lowered or "saglik" in lowered:
+        return "/health"
+    if "audit" in lowered:
+        return "/audit"
+    if "profil" in lowered:
+        return "/profiles"
+    if "kaynak" in lowered:
+        return "/kaynak"
+    if "watch" in lowered:
+        return "/watch"
+    if "tara" in lowered:
+        return "/tara"
+    if "menü" in lowered or "menu" in lowered or "komut" in lowered:
+        return "/menu"
+
+    return raw
