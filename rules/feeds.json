@@ -370,7 +370,7 @@
     "name": "Iran Leader",
     "url": "https://www.leader.ir/en",
     "kind": "listing_html",
-    "enabled": true,
+    "enabled": false,
     "priority": 10,
     "official_class": "official_head_of_state",
     "official_country": "IR",
@@ -395,7 +395,9 @@
       "diplomacy",
       "executive",
       "official"
-    ]
+    ],
+    "disabled_reason": "manual disabled: DNS resolution failure",
+    "disabled_at": "2026-05-08T03:30:00"
   },
   {
     "name": "Iran President",
