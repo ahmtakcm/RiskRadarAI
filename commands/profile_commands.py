@@ -4,6 +4,7 @@ from collections import Counter
 
 from config.paths import PROFILES_DIR, USER_INPUTS_DIR
 from commands.audit_commands import handle_audit_command
+from commands.menu import command_help, menu_text
 from commands.manual_scan_commands import handle_manual_scan_command
 from commands.source_commands import handle_source_command
 from source_selectors.profile_loader import load_config_for_profile
@@ -308,45 +309,14 @@ def handle_profiles_command(text: str) -> str | None:
 
 
 def _command_help() -> str:
-    return "\n".join([
-        "Komutlar:",
-        "",
-        "Sağlık:",
-        "/health",
-        "/source_health",
-        "",
-        "Audit:",
-        "/audit",
-        "/audit_sources",
-        "/audit_policy",
-        "",
-        "Profil:",
-        "/profiles",
-        "/profile_status",
-        "/policy",
-        "/profile_on <profil>",
-        "/profile_off <profil>",
-        "/alarm_esik <profil> <puan>",
-        "",
-        "Arama:",
-        "/ara <sorgu>",
-        "/tara <sorgu>",
-        "",
-        "Watch:",
-        "/watch",
-        "/watch_ekle <kelime>",
-        "/watch_sil <kelime>",
-        "",
-        "Kaynak:",
-        "/kaynak",
-        "/kaynak_ekle <ad> | <url/domain> | <profil>",
-        "/kaynak_test <ad>",
-        "/kaynak_sil <ad>",
-    ])
+    return command_help()
 
 
 def handle_profile_command(text: str) -> str | None:
     raw = (text or "").strip()
+    if raw in {"/menu", "menu"}:
+        return menu_text()
+
     if not raw:
         return None
 

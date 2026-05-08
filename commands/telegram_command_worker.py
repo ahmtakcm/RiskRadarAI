@@ -6,6 +6,8 @@ import time
 import requests
 
 from commands.profile_commands import handle_profile_command
+from commands.menu import normalize_command_text
+from telegram_ui.keyboard import build_reply_keyboard
 from config.paths import USER_INPUTS_DIR
 from config.settings import settings
 from core.logger import get_logger
@@ -130,6 +132,7 @@ def _process_update(update: dict) -> bool:
     chat_id = chat.get("id")
     from_user_id = from_user.get("id")
     text = msg.get("text") or ""
+    text = normalize_command_text(text)
 
     allowed, auth_reason = _authorize_update(chat, from_user)
 
