@@ -105,7 +105,12 @@ def _send_to_chat(chat_id, text: str):
     statuses = []
     chunks = _split_message(text)
     for idx, chunk in enumerate(chunks, start=1):
-        r = requests.post(url, data={"chat_id": chat_id, "text": chunk}, timeout=20)
+        payload = {
+            "chat_id": chat_id,
+            "text": chunk,
+            "reply_markup": build_reply_keyboard(),
+        }
+        r = requests.post(url, json=payload, timeout=20)
         statuses.append(r.status_code)
         logger.info(
             "Telegram komut cevap HTTP: %s | chunk=%s/%s | len=%s",
@@ -120,6 +125,7 @@ def _send_to_chat(chat_id, text: str):
 
 
 def _handle_text(text: str) -> tuple[str, str | None]:
+    text = normalize_command_text(text)
     reply = handle_profile_command(text)
     return "handle_profile_command", reply
 
