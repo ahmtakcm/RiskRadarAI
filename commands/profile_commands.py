@@ -152,7 +152,7 @@ def handle_profiles_command(text: str) -> str | None:
     cmd = parts[0].lower()
 
     if cmd in ("/profiles", "/profile_status", "/profile_on", "/profile_off", "/profile_policy", "/profile_sources",
-               "/alarm_on", "/alarm_off", "/digest_on", "/digest_off", "/alarm_esik"):
+               "/alarm_esik"):
         profiles = _known_profiles_available()
         state = load_profile_state()
         active = set(state.get("active_profiles", []))
@@ -226,22 +226,6 @@ def handle_profiles_command(text: str) -> str | None:
             return err
         per.setdefault(target, {})
 
-        if cmd == "/alarm_on":
-            per[target]["alarm_enabled"] = True
-            _save_policy_overrides(policy_blob)
-            return f"✅ Alarm açıldı: {target}"
-        if cmd == "/alarm_off":
-            per[target]["alarm_enabled"] = False
-            _save_policy_overrides(policy_blob)
-            return f"⛔ Alarm kapatıldı: {target}"
-        if cmd == "/digest_on":
-            per[target]["digest_enabled"] = True
-            _save_policy_overrides(policy_blob)
-            return f"✅ Digest açıldı: {target}"
-        if cmd == "/digest_off":
-            per[target]["digest_enabled"] = False
-            _save_policy_overrides(policy_blob)
-            return f"⛔ Digest kapatıldı: {target}"
         if cmd == "/alarm_esik":
             if len(parts) < 3:
                 return "Eksik kullanım. Örn: /alarm_esik ekonomi 30"
@@ -260,37 +244,32 @@ def _command_help() -> str:
     return "\n".join([
         "Komutlar:",
         "",
-        "Audit / sağlık:",
-        "/audit, /audit_json",
+        "Sağlık / audit:",
         "/health, /health_json",
-        "/source_health, /source_health_report, /kaynak_saglik",
-        "/notification_audit",
+        "/source_health, /kaynak_saglik",
+        "/audit, /audit_json",
         "",
         "Arama / tarama:",
         "/ara <sorgu> | /ara <profil> <sorgu>",
         "/tara <sorgu> | /tara <profil> <24s|24h|sorgu>",
         "",
         "Profil:",
-        "/profiles, /profile_status, /profile_on, /profile_off",
-        "/profile_policy, /profile_sources",
-        "/profil, /profil_liste, /profil_durum",
-        "/profil_tum, /profil_resmi, /profil_haber, /profil_analiz",
-        "/profil_ekonomi, /profil_osint, /profil_dunya, /profil_turkiye, /profil_yerel, /profil_saglik",
-        "/set_profile",
+        "/profiles, /profile_status",
+        "/profile_on <profil>, /profile_off <profil>",
+        "/profile_policy <profil>, /profile_sources <profil>",
         "",
-        "Alarm / digest:",
-        "/alarm_on, /alarm_off, /digest_on, /digest_off, /alarm_esik",
-        "/pause_alerts",
+        "Alarm eşiği:",
+        "/alarm_esik <profil> <puan>",
         "",
         "Watch list:",
-        "/watch, /watch_liste, /watch_ekle, /watch_sil",
+        "/watch, /watch_ekle <kelime>, /watch_sil <kelime>",
         "",
-        "Feed / kaynak:",
-        "/feed_kontrol, /feed_log_check, /feeds",
-        "/enable_feed, /disable_feed",
-        "/kaynak, /kaynak_liste, /kaynak_test, /kaynak_test_url",
-        "/kaynak_teklif, /kaynak_onay, /kaynak_red, /kaynak_sil, /kaynak_yardim",
-        "/source_pending",
+        "Kaynak:",
+        "/feed_kontrol",
+        "/kaynak, /kaynak_liste",
+        "/kaynak_test <ad>, /kaynak_test_url <url> | <tip>",
+        "/kaynak_teklif <ad> | <url> | <tip> | <profiller>",
+        "/kaynak_onay <ad>, /kaynak_red <ad>, /kaynak_sil <ad>",
     ])
 
 
