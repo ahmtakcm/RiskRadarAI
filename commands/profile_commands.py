@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from collections import Counter
 
 from config.paths import PROFILES_DIR, USER_INPUTS_DIR
 from commands.audit_commands import handle_audit_command
@@ -25,6 +26,92 @@ KNOWN_PROFILE_IDS = [
     "analiz",
     "tum_profiller",
 ]
+
+PROFILE_LABELS = {
+    "resmi_aciklamalar": "🏛 Resmî",
+    "dunya": "🌍 Dünya",
+    "turkiye": "🇹🇷 Türkiye",
+    "yerel": "📍 Yerel",
+    "ekonomi": "📈 Ekonomi",
+    "osint": "🕵 OSINT",
+    "analiz": "🧠 Analiz",
+    "saglik": "🏥 Sağlık",
+    "tum_profiller": "🧭 Tüm profiller",
+}
+
+
+def _profile_label(profile_id: str) -> str:
+    return PROFILE_LABELS.get(profile_id, profile_id)
+
+
+def _profile_examples() -> str:
+    return ", ".join(_profile_label(p) for p in _known_profiles_available())
+
+
+def _feed_totals() -> tuple[int, int, int]:
+    feeds_path = Path("rules/feeds.json")
+    data = _load_json(feeds_path, [])
+    total = len(data) if isinstance(data, list) else 0
+    active = sum(1 for f in data if isinstance(f, dict) and f.get("enabled", True))
+    passive = max(total - active, 0)
+    return total, active, passive
+
+
+def _watch_count() -> int:
+    data = _load_json(WATCH_PATH, {})
+    kws = data.get("keywords", []) if isinstance(data, dict) else []
+    return len(kws) if isinstance(kws, list) else 0
+
+
+def _format_all_policies() -> str:
+    profiles = _known_profiles_available()
+    overrides_blob = _load_policy_overrides().get("profiles", {}) or {}
+    lines = ["🧩 Policy özeti", ""]
+    for profile_id in profiles:
+        cfg = load_config_for_profile(profile_id, active_profile_names=[profile_id])
+        policies = cfg.get("profile_policies", {}) or {}
+        key = canonical_profile_name(profile_id)
+        policy = dict(policies.get(key, {}) or {})
+        override = overrides_blob.get(key, {}) or {}
+        min_score = override.get("min_score", policy.get("min_score", "-"))
+        notify = policy.get("notify_policy", "-")
+        unverified = "açık" if policy.get("allow_unverified", True) else "kapalı"
+        confirm = "evet" if policy.get("require_official_confirmation", False) else "hayır"
+        extra = " runtime" if override else ""
+        lines.append(f"{_profile_label(profile_id)}")
+        lines.append(f"- policy: {notify}")
+        lines.append(f"- min skor: {min_score}{extra}")
+        lines.append(f"- teyitsiz: {unverified} | resmî teyit: {confirm}")
+        lines.append("")
+    return "\n".join(lines).rstrip()
+
+
+def _format_runtime_status() -> str:
+    profiles = _known_profiles_available()
+    state = load_profile_state()
+    active = [p for p in profiles if p in set(state.get("active_profiles", []))]
+    total, active_sources, passive_sources = _feed_totals()
+    overrides = _load_policy_overrides().get("profiles", {}) or {}
+
+    lines = ["📡 Profil runtime durum", ""]
+    lines.append(f"Aktif profil: {len(active)}")
+    for p in active:
+        suffix = " (master)" if p == "tum_profiller" else ""
+        lines.append(f"✅ {_profile_label(p)}{suffix}")
+
+    lines.append("")
+    lines.append("Alarm eşikleri:")
+    for p in active:
+        key = canonical_profile_name(p)
+        cfg = load_config_for_profile(p, active_profile_names=[p])
+        policy = (cfg.get("profile_policies", {}) or {}).get(key, {}) or {}
+        value = (overrides.get(key, {}) or {}).get("min_score", policy.get("min_score", "-"))
+        lines.append(f"- {_profile_label(p)}: {value}")
+
+    lines.append("")
+    lines.append(f"Watch kelime: {_watch_count()}")
+    lines.append(f"Kaynak: {active_sources} aktif / {passive_sources} pasif / {total} toplam")
+    return "\n".join(lines)
 
 
 def _load_json(path: Path, default):
@@ -151,8 +238,7 @@ def handle_profiles_command(text: str) -> str | None:
     parts = raw.split()
     cmd = parts[0].lower()
 
-    if cmd in ("/profiles", "/profile_status", "/profile_on", "/profile_off", "/profile_policy", "/profile_sources",
-               "/alarm_esik"):
+    if cmd in ("/profiles", "/profile_status", "/profile_on", "/profile_off", "/policy", "/alarm_esik"):
         profiles = _known_profiles_available()
         state = load_profile_state()
         active = set(state.get("active_profiles", []))
@@ -160,22 +246,16 @@ def handle_profiles_command(text: str) -> str | None:
         if cmd == "/profiles":
             lines = ["📚 Profiller:"]
             for p in profiles:
-                lines.append(f"{'✅' if p in active else '⬜'} {p}")
+                suffix = " (master)" if p == "tum_profiller" else ""
+                lines.append(f"{'✅' if p in active else '⬜'} {_profile_label(p)}{suffix}")
             return "\n".join(lines)
 
         if cmd == "/profile_status":
-            disabled = [p for p in profiles if p not in active]
-            lines = ["📌 Profil durumu:"]
-            lines.append("Aktif:")
-            lines.extend([f"✅ {p}" for p in profiles if p in active] or ["(yok)"])
-            lines.append("")
-            lines.append("Kapalı:")
-            lines.extend([f"⛔ {p}" for p in disabled] or ["(yok)"])
-            return "\n".join(lines)
+            return _format_runtime_status()
 
         if cmd in ("/profile_on", "/profile_off"):
             if len(parts) < 2:
-                return f"Eksik kullanım. Örn: {cmd} ekonomi"
+                return f"Kullanım:\n{cmd} ekonomi\n{cmd} yerel\n{cmd} osint\n\nProfiller: {_profile_examples()}"
             target = canonical_profile_name(parts[1])
             if target not in profiles:
                 return _profile_not_found(target)
@@ -187,27 +267,14 @@ def handle_profiles_command(text: str) -> str | None:
             else:
                 active_set.discard(target)
                 if not active_set:
-                    return "❌ En az bir profil aktif kalmalı."
+                    return "❌ Bu profil kapatılamaz. En az bir profil aktif kalmalı.\nÖnce başka bir profil aç: /profile_on ekonomi"
             state["active_profiles"] = sorted(active_set)
             state["disabled_profiles"] = [p for p in profiles if p not in state["active_profiles"]]
             save_profile_state(state)
-            return f"{'✅' if cmd == '/profile_on' else '⛔'} Profil {'açıldı' if cmd == '/profile_on' else 'kapatıldı'}: {target}"
+            return f"{'✅' if cmd == '/profile_on' else '⛔'} Profil {'açıldı' if cmd == '/profile_on' else 'kapatıldı'}: {_profile_label(target)}"
 
-        if cmd == "/profile_policy":
-            if len(parts) < 2:
-                return "Eksik kullanım. Örn: /profile_policy ekonomi"
-            target = canonical_profile_name(parts[1])
-            if target not in profiles:
-                return _profile_not_found(target)
-            return _format_profile_policy(target)
-
-        if cmd == "/profile_sources":
-            if len(parts) < 2:
-                return "Eksik kullanım. Örn: /profile_sources ekonomi"
-            target = canonical_profile_name(parts[1])
-            if target not in profiles:
-                return _profile_not_found(target)
-            return _format_profile_sources(target)
+        if cmd == "/policy":
+            return _format_all_policies()
 
         # runtime-only notification policy overrides
         policy_blob = _load_policy_overrides()
@@ -228,14 +295,14 @@ def handle_profiles_command(text: str) -> str | None:
 
         if cmd == "/alarm_esik":
             if len(parts) < 3:
-                return "Eksik kullanım. Örn: /alarm_esik ekonomi 30"
+                return "Alarm eşik kullanımı:\n/alarm_esik ekonomi 30\n/alarm_esik osint 15"
             try:
                 value = int(parts[2])
             except Exception:
                 return "Eşik sayısal olmalı. Örn: /alarm_esik ekonomi 30"
             per[target]["min_score"] = value
             _save_policy_overrides(policy_blob)
-            return f"✅ Alarm eşiği güncellendi: {target} -> {value}"
+            return f"✅ Alarm eşiği güncellendi: {_profile_label(target)} → {value}"
 
     return None
 
@@ -244,32 +311,37 @@ def _command_help() -> str:
     return "\n".join([
         "Komutlar:",
         "",
-        "Sağlık / audit:",
-        "/health, /health_json",
-        "/source_health, /kaynak_saglik",
-        "/audit, /audit_json",
+        "Sağlık:",
+        "/health",
+        "/source_health",
         "",
-        "Arama / tarama:",
-        "/ara <sorgu> | /ara <profil> <sorgu>",
-        "/tara <sorgu> | /tara <profil> <24s|24h|sorgu>",
+        "Audit:",
+        "/audit",
+        "/audit_sources",
+        "/audit_policy",
         "",
         "Profil:",
-        "/profiles, /profile_status",
-        "/profile_on <profil>, /profile_off <profil>",
-        "/profile_policy <profil>, /profile_sources <profil>",
-        "",
-        "Alarm eşiği:",
+        "/profiles",
+        "/profile_status",
+        "/policy",
+        "/profile_on <profil>",
+        "/profile_off <profil>",
         "/alarm_esik <profil> <puan>",
         "",
-        "Watch list:",
-        "/watch, /watch_ekle <kelime>, /watch_sil <kelime>",
+        "Arama:",
+        "/ara <sorgu>",
+        "/tara <sorgu>",
+        "",
+        "Watch:",
+        "/watch",
+        "/watch_ekle <kelime>",
+        "/watch_sil <kelime>",
         "",
         "Kaynak:",
-        "/feed_kontrol",
-        "/kaynak, /kaynak_liste",
-        "/kaynak_test <ad>, /kaynak_test_url <url> | <tip>",
-        "/kaynak_teklif <ad> | <url> | <tip> | <profiller>",
-        "/kaynak_onay <ad>, /kaynak_red <ad>, /kaynak_sil <ad>",
+        "/kaynak",
+        "/kaynak_ekle <ad> | <url/domain> | <profil>",
+        "/kaynak_test <ad>",
+        "/kaynak_sil <ad>",
     ])
 
 
@@ -310,8 +382,7 @@ def handle_profile_command(text: str) -> str | None:
     if not (raw == "/profil" or raw.startswith("/profil ")):
         for name, handler in (
             ("watch", handle_watch_command),
-            ("feed", handle_feed_command),
-            ("source", handle_source_command),
+                ("source", handle_source_command),
         ):
             try:
                 reply = handler(raw)

@@ -1,11 +1,14 @@
 import json
-import requests
+import re
+from collections import Counter
 from pathlib import Path
+from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
+
+import requests
 
 FEEDS_PATH = Path("rules/feeds.json")
 PROFILES_DIR = Path("profiles")
-PENDING_PATH = Path("user_inputs/source_pending.json")
 
 
 def _load(path, default):
@@ -22,7 +25,34 @@ def _save(path, data):
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def _profiles():
+    return sorted(p.stem for p in PROFILES_DIR.glob("*.json"))
+
+
+def _normalize_url(url: str) -> str:
+    url = (url or "").strip()
+    if not url:
+        return url
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+    return url
+
+
+def _human_error(reason: str) -> str:
+    low = (reason or "").lower()
+    if "nameresolutionerror" in low or "failed to resolve" in low:
+        return "DNS/alan adı çözümlenemedi."
+    if "connecttimeout" in low or "read timed out" in low or "timeout" in low:
+        return "Bağlantı zaman aşımına uğradı."
+    if "http 404" in low:
+        return "HTTP 404: Sayfa/feed bulunamadı."
+    if "http 403" in low:
+        return "HTTP 403: Kaynak erişimi engelliyor."
+    return (reason or "Bilinmeyen hata")[:180]
+
+
 def _test_url(url, kind):
+    url = _normalize_url(url)
     try:
         r = requests.get(
             url,
@@ -50,11 +80,18 @@ def _test_url(url, kind):
         return True, "OK"
 
     except Exception as exc:
-        return False, str(exc)[:180]
+        return False, str(exc)
 
 
-def _profiles():
-    return sorted(p.stem for p in PROFILES_DIR.glob("*.json"))
+def _detect_kind(url: str) -> tuple[bool, str, str]:
+    candidates = ("rss", "listing_html", "official_html")
+    last_reason = ""
+    for kind in candidates:
+        ok, reason = _test_url(url, kind)
+        if ok:
+            return True, kind, reason
+        last_reason = reason
+    return False, "", _human_error(last_reason)
 
 
 def _add_to_profiles(name, profiles):
@@ -116,44 +153,56 @@ def _upsert_feed(feed):
     return found
 
 
+def _source_summary() -> str:
+    feeds = _load(FEEDS_PATH, [])
+    total = len(feeds)
+    active = [f for f in feeds if f.get("enabled", True)]
+    passive = [f for f in feeds if not f.get("enabled", True)]
+    kinds = Counter(str(f.get("kind", "rss")) for f in feeds)
+
+    lines = [
+        "📚 Kaynak özeti",
+        f"Toplam: {total}",
+        f"Aktif: {len(active)}",
+        f"Pasif: {len(passive)}",
+        "",
+        "Tür dağılımı:",
+    ]
+    for kind, count in sorted(kinds.items()):
+        lines.append(f"- {kind}: {count}")
+
+    if passive:
+        lines.append("")
+        lines.append("Pasif kaynaklar:")
+        for f in passive[:20]:
+            lines.append(f"⛔ {f.get('name')}")
+    return "\n".join(lines)
+
+
+def _source_help() -> str:
+    return (
+        "🧭 Kaynak komutları\n\n"
+        "/kaynak\n"
+        "/kaynak_ekle <ad> | <url/domain> | <profil>\n"
+        "/kaynak_test <ad>\n"
+        "/kaynak_sil <ad>\n\n"
+        "Örnek:\n"
+        "/kaynak_ekle Test Haber | example.com/rss.xml | yerel\n"
+        "/kaynak_test IRNA English\n\n"
+        + _source_summary()
+    )
+
+
 def handle_source_command(text: str):
     raw = (text or "").strip()
 
     if raw in ("/kaynak", "/kaynak_yardim"):
-        return (
-            "🧭 Kaynak komutları\n\n"
-            "/kaynak_liste\n"
-            "/kaynak_teklif Ad | URL | rss | haber,tum_profiller\n"
-            "/kaynak_onay Ad\n"
-            "/kaynak_red Ad\n"
-            "/kaynak_sil Ad\n"
-            "/kaynak_test Ad\n"
-            "/kaynak_test_url URL | rss\n\n"
-            "Not: /kaynak_teklif otomatik eklemez; önce test eder, onay bekletir."
-        )
-
-    if raw == "/kaynak_liste":
-        feeds = _load(FEEDS_PATH, [])
-        lines = ["📚 Kaynak listesi:"]
-        for f in feeds:
-            mark = "✅" if f.get("enabled", True) else "⛔"
-            lines.append(f"{mark} {f.get('name')} [{f.get('kind', 'rss')}]")
-        return "\n".join(lines[:120])
-
-    if raw.startswith("/kaynak_test_url"):
-        body = raw.replace("/kaynak_test_url", "", 1).strip()
-        parts = [x.strip() for x in body.split("|")]
-        if not parts or not parts[0]:
-            return "Eksik kullanım: /kaynak_test_url https://site.com/rss | rss"
-        url = parts[0]
-        kind = parts[1] if len(parts) > 1 and parts[1] else "rss"
-        ok, reason = _test_url(url, kind)
-        return f"{'✅' if ok else '❌'} URL test sonucu\nURL: {url}\nTip: {kind}\nSonuç: {reason}"
+        return _source_help()
 
     if raw.startswith("/kaynak_test"):
         name = raw.replace("/kaynak_test", "", 1).strip()
         if not name:
-            return "Kaynak adı eksik. Örn: /kaynak_test Crisis Group RSS"
+            return "Kaynak test kullanımı:\n/kaynak_test IRNA English"
 
         feeds = _load(FEEDS_PATH, [])
         f = next((x for x in feeds if x.get("name", "").lower() == name.lower()), None)
@@ -161,89 +210,59 @@ def handle_source_command(text: str):
             return f"❌ Kaynak bulunamadı: {name}"
 
         ok, reason = _test_url(f.get("url"), f.get("kind", "rss"))
-        return f"{'✅' if ok else '❌'} Kaynak test sonucu\nAd: {f.get('name')}\nURL: {f.get('url')}\nSonuç: {reason}"
+        if ok:
+            return (
+                "✅ Kaynak erişilebilir\n\n"
+                f"Ad: {f.get('name')}\n"
+                f"Tip: {f.get('kind', 'rss')}\n"
+                f"Sonuç: {reason}"
+            )
+        return (
+            "❌ Kaynak erişim hatası\n\n"
+            f"Ad: {f.get('name')}\n"
+            f"Tip: {f.get('kind', 'rss')}\n"
+            f"Sorun: {_human_error(reason)}"
+        )
 
-    if raw.startswith("/kaynak_teklif"):
-        body = raw.replace("/kaynak_teklif", "", 1).strip()
+    if raw.startswith("/kaynak_ekle"):
+        body = raw.replace("/kaynak_ekle", "", 1).strip()
         parts = [x.strip() for x in body.split("|")]
+        if len(parts) < 3:
+            return "Kaynak ekleme kullanımı:\n/kaynak_ekle Ad | URL/domain | profil"
 
-        if len(parts) < 4:
-            return "Eksik kullanım:\n/kaynak_teklif Ad | URL | rss | haber,tum_profiller"
+        name, url, profile_raw = parts[:3]
+        profiles = [x.strip() for x in re.split(r"[, ]+", profile_raw) if x.strip()]
+        url = _normalize_url(url)
 
-        name, url, kind, profile_raw = parts[:4]
-        profiles = [x.strip() for x in profile_raw.split(",") if x.strip()]
-
-        if kind not in ("rss", "rss_social", "listing_html", "official_html"):
-            return "❌ Geçersiz tip: rss, rss_social, listing_html, official_html"
-
-        ok, reason = _test_url(url, kind)
+        ok, kind, reason = _detect_kind(url)
         if not ok:
-            return f"❌ Kaynak teklif edilmedi\nAd: {name}\nSebep: {reason}"
+            return f"❌ Kaynak eklenemedi\nAd: {name}\nSebep: {reason}"
 
-        pending = _load(PENDING_PATH, {})
-        pending[name] = {
+        feed = {
             "name": name,
             "url": url,
             "kind": kind,
-            "profiles": profiles,
             "enabled": True,
             "priority": 5,
-            "notes": "Telegram onayıyla eklendi."
+            "notes": "Telegram kaynak_ekle ile eklendi.",
         }
-        _save(PENDING_PATH, pending)
-
-        return (
-            "🆕 Kaynak adayı hazır\n\n"
-            f"Ad: {name}\n"
-            f"URL: {url}\n"
-            f"Tip: {kind}\n"
-            f"Profiller: {', '.join(profiles)}\n"
-            f"Test: {reason}\n\n"
-            f"Onay: /kaynak_onay {name}\n"
-            f"Red: /kaynak_red {name}"
-        )
-
-    if raw.startswith("/kaynak_onay"):
-        name = raw.replace("/kaynak_onay", "", 1).strip()
-        pending = _load(PENDING_PATH, {})
-
-        key = next((k for k in pending if k.lower() == name.lower()), None)
-        if not key:
-            return f"❌ Bekleyen kaynak bulunamadı: {name}"
-
-        feed = pending.pop(key)
-        profiles = feed.pop("profiles", [])
-
-        ok, reason = _test_url(feed["url"], feed["kind"])
-        if not ok:
-            _save(PENDING_PATH, pending)
-            return f"❌ Kaynak onaylanmadı\nAd: {feed['name']}\nSebep: {reason}"
 
         updated = _upsert_feed(feed)
-        added_profiles = _add_to_profiles(feed["name"], profiles)
-        _save(PENDING_PATH, pending)
+        added_profiles = _add_to_profiles(name, profiles)
 
         return (
-            f"✅ Kaynak {'güncellendi' if updated else 'eklendi'}\n"
-            f"Ad: {feed['name']}\n"
+            f"✅ Kaynak {'güncellendi' if updated else 'eklendi'}\n\n"
+            f"Ad: {name}\n"
+            f"URL: {url}\n"
+            f"Algılanan tip: {kind}\n"
             f"Test: {reason}\n"
             f"Profiller: {', '.join(added_profiles) if added_profiles else 'profil eklenmedi'}"
         )
 
-    if raw.startswith("/kaynak_red"):
-        name = raw.replace("/kaynak_red", "", 1).strip()
-        pending = _load(PENDING_PATH, {})
-        key = next((k for k in pending if k.lower() == name.lower()), None)
-        if not key:
-            return f"❌ Bekleyen kaynak bulunamadı: {name}"
-        pending.pop(key, None)
-        _save(PENDING_PATH, pending)
-        return f"❌ Kaynak adayı reddedildi: {name}"
-
     if raw.startswith("/kaynak_sil"):
         name = raw.replace("/kaynak_sil", "", 1).strip()
         if not name:
-            return "Silinecek kaynak adı eksik."
+            return "Kaynak silme kullanımı:\n/kaynak_sil Iran President"
 
         feeds = _load(FEEDS_PATH, [])
         before = len(feeds)
