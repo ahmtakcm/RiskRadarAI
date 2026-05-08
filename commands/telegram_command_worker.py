@@ -167,9 +167,13 @@ def _process_update(update: dict) -> bool:
         if not line:
             continue
         try:
-            handler_name, reply = _handle_text(line)
+            command_name = line.split(maxsplit=1)[0].lower()
+            if command_name == "/digest_now" and auth_reason not in {"admin_private", "allowed_group_admin"}:
+                handler_name, reply = "admin_guard", "Bu komut sadece admin taraf?ndan ?al??t?r?labilir."
+            else:
+                handler_name, reply = _handle_text(line)
             logger.info(
-                "Telegram handler seçildi | update_id=%s | handler=%s | reply_len=%s",
+                "Telegram handler se?ildi | update_id=%s | handler=%s | reply_len=%s",
                 uid,
                 handler_name,
                 len(reply or ""),

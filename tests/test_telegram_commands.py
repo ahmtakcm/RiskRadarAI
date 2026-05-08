@@ -14,6 +14,7 @@ class TelegramCommandRoutingTests(unittest.TestCase):
             '/health': 'health ok',
             '/source_health': 'source health ok',
             '/kaynak_saglik': 'kaynak saglik ok',
+            '/digest_now': 'digest ok',
         }
         for command, expected in cases.items():
             with self.subTest(command=command), patch.object(pc, 'handle_audit_command', lambda text, expected=expected: expected):
@@ -82,8 +83,13 @@ class TelegramCommandRoutingTests(unittest.TestCase):
             self.assertEqual(calls[0][2], "ekonomi")
 
             calls.clear()
-            manual.handle_manual_scan_command("/ara hürmüz")
-            self.assertEqual(calls[0][1], "hürmüz")
+            manual.handle_manual_scan_command("/ara osint h?rm?z")
+            self.assertEqual(calls[0][0], "osint_only")
+            self.assertEqual(calls[0][1], "h?rm?z")
+
+            calls.clear()
+            manual.handle_manual_scan_command("/ara h?rm?z")
+            self.assertEqual(calls[0][1], "h?rm?z")
 
     def test_tara_duration_parses_24s_as_24_hours(self):
         import commands.manual_scan_commands as manual
@@ -135,6 +141,25 @@ class TelegramCommandWorkerTests(unittest.TestCase):
             self.assertFalse(worker.poll_once())
             self.assertEqual(worker._load_offset(), 201)
             self.assertEqual(sent, [])
+
+    def test_digest_now_is_admin_only_in_group(self):
+        import commands.telegram_command_worker as worker
+
+        class FakeTelegram:
+            def get_updates(self, offset=None):
+                return {'ok': True, 'result': [{'update_id': 300, 'message': {'chat': {'id': '42'}, 'from': {'id': '7'}, 'text': '/digest_now'}}]}
+
+        sent = []
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(worker, 'STATE_PATH', Path(tmp) / 'telegram_command_state.json'), \
+             patch.object(worker, 'telegram_client', FakeTelegram()), \
+             patch.object(worker.settings, 'chat_id', '42'), \
+             patch.dict('os.environ', {'TELEGRAM_ADMIN_USER_IDS': '99'}), \
+             patch.object(worker, 'handle_profile_command', lambda text: 'digest text'), \
+             patch.object(worker, '_send_to_chat', lambda chat_id, text: sent.append((chat_id, text))):
+            self.assertTrue(worker.poll_once())
+            self.assertEqual(worker._load_offset(), 301)
+            self.assertIn('sadece admin', sent[0][1])
 
 
 if __name__ == '__main__':

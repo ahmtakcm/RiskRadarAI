@@ -468,6 +468,91 @@
           "pdf"
         ]
       ]
+    },
+    "osint": {
+      "primary_terms": [
+        "hormuz",
+        "strait of hormuz",
+        "iran",
+        "centcom",
+        "tanker",
+        "blockade",
+        "gulf of oman",
+        "persian gulf",
+        "missile",
+        "attack",
+        "strike",
+        "warship",
+        "oil",
+        "navy",
+        "naval",
+        "crude",
+        "sanction",
+        "sanctions"
+      ],
+      "secondary_terms": [
+        "osint",
+        "drone",
+        "explosion",
+        "air defense",
+        "military",
+        "convoy",
+        "maritime",
+        "evacuation",
+        "shipping",
+        "vessel",
+        "destroyer"
+      ],
+      "high_risk_patterns": [
+        [
+          "strait of hormuz",
+          "iran"
+        ],
+        [
+          "hormuz",
+          "tanker"
+        ],
+        [
+          "hormuz",
+          "blockade"
+        ],
+        [
+          "gulf of oman",
+          "tanker"
+        ],
+        [
+          "centcom",
+          "iran"
+        ],
+        [
+          "iran",
+          "missile"
+        ],
+        [
+          "iran",
+          "strike"
+        ],
+        [
+          "warship",
+          "iran"
+        ],
+        [
+          "naval",
+          "tanker"
+        ],
+        [
+          "oil",
+          "tanker"
+        ],
+        [
+          "crude",
+          "hormuz"
+        ],
+        [
+          "sanctions",
+          "iran"
+        ]
+      ]
     }
   }
 }

@@ -120,8 +120,9 @@ def handle_manual_scan_command(text: str) -> str | None:
         modes = ['official_only'] if cmd == '/ara' else ['official_only', 'social_only', 'osint_only', 'analysis_only']
         candidates = []
         state = {}
+        settings_override = _settings_with_window(24)[0] if cmd == '/ara' else None
         for mode in modes:
-            candidates.extend(scan_news(state, mode=mode, manual_query=query, max_feeds=mode_limits.get(mode)))
+            candidates.extend(scan_news(state, mode=mode, manual_query=query, max_feeds=mode_limits.get(mode), settings_override=settings_override))
         candidates.sort(key=lambda x: (x.get('pattern_hits', 0), x.get('score', 0)), reverse=True)
         return _format_results(query, candidates)
 
@@ -132,8 +133,13 @@ def handle_manual_scan_command(text: str) -> str | None:
         query = rest
         candidates = []
         state = {}
-        # scoped /ara: only shared-official baseline (matches across active topics already scoped)
-        candidates.extend(scan_news(state, mode='official_only', manual_query=query, max_feeds=14, active_config=scoped_config))
+        scoped_search_modes = {
+            'osint': ('osint_only', 8),
+            'analiz': ('analysis_only', 8),
+        }
+        search_mode, limit = scoped_search_modes.get(profile_id, ('official_only', 14))
+        settings_override = _settings_with_window(24)[0]
+        candidates.extend(scan_news(state, mode=search_mode, manual_query=query, max_feeds=limit, active_config=scoped_config, settings_override=settings_override))
         candidates.sort(key=lambda x: (x.get('pattern_hits', 0), x.get('score', 0)), reverse=True)
         if not candidates:
             hint = "Not: Sorgu bu profil kapsamı dışında olabilir. /profile_policy ile anahtar kelimeleri kontrol et."

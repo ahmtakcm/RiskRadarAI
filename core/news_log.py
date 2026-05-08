@@ -82,7 +82,8 @@ def collect_digest_candidates(log_items: Iterable[dict], now: datetime) -> list[
             continue
         if item.get('alert_sent') is True:
             continue
-        if not str(item.get('translated_text', '') or '').strip():
+        meaningful = ' '.join(str(item.get(k, '') or '').strip() for k in ('translated_text', 'title', 'text', 'url'))
+        if not meaningful.strip():
             continue
         if item.get('delivery_mode') not in {'digest', 'none'}:
             continue
@@ -94,7 +95,6 @@ def collect_digest_candidates(log_items: Iterable[dict], now: datetime) -> list[
 
 DIGEST_WINDOW_MINUTES = 10
 
-DIGEST_WINDOW_MINUTES = 10
 
 def should_run_digest(state: dict, now: datetime) -> bool:
     local_now = now.astimezone(ISTANBUL_TZ)

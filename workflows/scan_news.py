@@ -5,6 +5,7 @@ from source_selectors.keyword_selector import select_keywords
 from source_selectors.profile_policy import evaluate_item_across_active_profiles, profile_keywords
 from filters.relevance import is_relevant_news
 from filters.scoring import get_risk_score
+from filters.query_aliases import expand_query_terms
 from filters.freshness import evaluate_item_freshness
 from filters.content_type import should_drop_from_alerting, classify_content_type
 from filters.official_sources import annotate_official_context
@@ -89,14 +90,9 @@ def scan_news(
     keywords = select_keywords(active_config)
     if manual_query:
         manual_text = str(manual_query).strip().lower()
-        alias_map = {'hürmüz': 'hormuz', 'hurmuz': 'hormuz', 'hormuz': 'hormuz'}
-        query_terms = [x.strip().lower() for x in manual_text.split() if len(x.strip()) >= 3]
-        for term in list(query_terms) + [manual_text]:
-            alias = alias_map.get(term)
-            if alias and alias not in query_terms:
-                query_terms.append(alias)
+        query_terms = expand_query_terms(manual_text)
         keywords = dict(keywords)
-        keywords['primary_terms'] = list(keywords.get('primary_terms', [])) + query_terms + [manual_text]
+        keywords['primary_terms'] = list(keywords.get('primary_terms', [])) + query_terms
     social_rule_name = active_config['profile'].get('social_rule_set', 'strict_geopolitics')
     social_rule = active_config['social_rules'].get(social_rule_name, {})
     min_score = 0 if manual_query else int(active_config['profile'].get('min_score', 9))
@@ -145,6 +141,7 @@ def scan_news(
                         if raw_item.get(key) is not None:
                             item[key] = raw_item.get(key)
 
+                item['scan_mode'] = mode
                 freshness = evaluate_item_freshness(item, mode, runtime_settings)
                 item.update(freshness)
                 if freshness.get('is_stale'):
@@ -181,12 +178,8 @@ def scan_news(
 
                 if manual_query:
                     text_blob = f"{item.get('title', '')} {item.get('description', '')}".lower()
-                    q = str(manual_query).strip().lower()
-                    q_parts = [part for part in q.split() if len(part) >= 3]
-                    aliases = {'hürmüz': 'hormuz', 'hurmuz': 'hormuz'}
-                    q_parts += [aliases[part] for part in list(q_parts) if part in aliases]
-                    q_alias = aliases.get(q, q)
-                    if q and q not in text_blob and q_alias not in text_blob and not any(part in text_blob for part in q_parts):
+                    q_terms = expand_query_terms(str(manual_query).strip().lower())
+                    if q_terms and not any(term in text_blob for term in q_terms):
                         continue
 
                 h = text_hash(item['title'] + '|' + item['link'] + '|' + item['source_name'])
@@ -217,7 +210,6 @@ def scan_news(
                 elif item.get('is_official_source') and not item.get('is_official_routine') and (item.get('official_keyword_hits') or item.get('official_entity_hits')):
                     score = max(score, 18)
 
-                item['scan_mode'] = mode
                 topic_tokens = sorted(build_topic_tokens(item, tracked_terms + item.get('official_keyword_hits', []) + item.get('official_entity_hits', [])))
                 candidates.append({
                     'hash': h,

@@ -37,14 +37,14 @@ def _confirmation_text(label: str) -> str:
         'official_parallel': 'Resmî paralel',
         'media_verified': 'Güçlü medya',
         'analysis_inferred': 'Analiz/çıkarım',
-        'osint_unconfirmed': 'OSINT / resmî teyit yok',
+        'osint_unconfirmed': 'OSINT / teyitsiz sinyal',
     }
     return mapping.get(label, 'Analiz/çıkarım')
 
 
 def _verification_line(origin_label: str, confirmation_class: str, verified: bool) -> str:
     if str(origin_label or '').upper() == 'OSINT' and not verified:
-        return 'Teyit: OSINT / resmî teyit yok'
+        return 'Teyit: OSINT / teyitsiz sinyal'
     return f'Teyit Sınıfı: {_confirmation_text(confirmation_class)}'
 
 

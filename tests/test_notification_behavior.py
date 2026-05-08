@@ -186,7 +186,7 @@ class NotificationBehaviorTests(unittest.TestCase):
             origin_label='OSINT',
             verified=False,
         )
-        self.assertIn('Teyit: OSINT / resmî teyit yok', text)
+        self.assertIn('Teyit: OSINT / teyitsiz sinyal', text)
 
     def test_manual_scan_command_uses_scan_without_alerting(self):
         import commands.manual_scan_commands as manual

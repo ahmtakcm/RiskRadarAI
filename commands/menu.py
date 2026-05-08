@@ -1,117 +1,70 @@
-COMMAND_HELP_LINES = [
-    "Komutlar:",
-    "",
-    "Sağlık:",
-    "/health",
-    "/source_health",
-    "/kaynak_saglik",
-    "",
-    "Audit:",
-    "/audit",
-    "/audit_sources",
-    "/audit_policy",
-    "",
-    "Profil:",
-    "/profiles",
-    "/profile_status",
-    "/policy",
-    "/profile_policy",
-    "/profile_on <profil>",
-    "/profile_off <profil>",
-    "/alarm_esik <profil> <puan>",
-    "",
-    "Arama:",
-    "/ara <sorgu>",
-    "/tara <sorgu>",
-    "",
-    "Watch:",
-    "/watch",
-    "/watch_ekle <kelime>",
-    "/watch_sil <kelime>",
-    "",
-    "Kaynak:",
-    "/kaynak",
-    "/kaynak_yardim",
-    "/kaynak_ekle <ad> | <url/domain> | <profil>",
-    "/kaynak_test <ad>",
-    "/kaynak_sil <ad>",
-    "",
-    "Kontrol:",
-    "/feed_kontrol",
-    "",
-    "Menü:",
-    "/menu",
-    "/komutlar",
-]
+MENU_TEXT = """RiskRadarAI men?
 
+? /health   - Sistem/kaynak sa?l?k ?zeti
+?? /audit    - Bildirim politikas? denetimi
+?? /profiles - Profil listesi/durumu
+?? /sources  - Kaynak y?netimi
+?? /watch    - ?zlenen kelimeler
+?? /ara      - Resm?/profil arama
+?? /tara     - Manuel t?m kaynak tarama
+?? /digest_now - Sessiz digest ?imdi
+"""
+
+ALIAS_COMMAND_MAP = {
+    "/start": "/menu",
+    "/help": "/menu",
+    "/menu": "/menu",
+
+    "/profiles": "/profiles",
+    "/profile": "/profiles",
+
+    "/audit": "/audit",
+    "/audit_json": "/audit_json",
+
+    "/sources": "/sources",
+    "/source": "/sources",
+
+    "/watch": "/watch",
+
+    "/scan": "/tara",
+    "/ara": "/ara",
+    "/tara": "/tara",
+
+    "/health": "/health",
+    "/health_json": "/health_json",
+    "/source_health": "/source_health",
+    "/kaynak_saglik": "/kaynak_saglik",
+    "/digest_now": "/digest_now",
+}
 
 BUTTON_COMMAND_MAP = {
     "✅ Sağlık": "/health",
     "🧾 Audit": "/audit",
     "📚 Profiller": "/profiles",
-    "📡 Kaynaklar": "/kaynak",
+    "📡 Kaynaklar": "/sources",
     "👁 Watch": "/watch",
-    "🔎 Tara": "/tara",
-    "📋 Menü": "/menu",
+    "🔎 Tara": "/scan",
 }
-
-
-ALIAS_COMMAND_MAP = {
-    "/komutlar": "/menu",
-    "komutlar": "/menu",
-    "/yardim": "/menu",
-    "/yardım": "/menu",
-    "yardim": "/menu",
-    "yardım": "/menu",
-    "/profile_policy": "/policy",
-    "/profil_policy": "/policy",
-    "/profil_durum": "/profile_status",
-    "/profil_liste": "/profiles",
-    "/kaynak_saglik": "/source_health",
-    "/kaynak_sağlık": "/source_health",
-    "/source_health": "/source_health",
-    "/kaynak_yardim": "/kaynak",
-    "/kaynak_yardım": "/kaynak",
-}
-
-
-def command_help() -> str:
-    return "\n".join(COMMAND_HELP_LINES)
-
-
-def menu_text() -> str:
-    return (
-        "RiskRadarAI menü\n\n"
-        "✅ Sağlık: sistem/kaynak sağlık özeti\n"
-        "🧾 Audit: bildirim politikası denetimi\n"
-        "📚 Profiller: profil listesi\n"
-        "📡 Kaynaklar: kaynak yönetimi\n"
-        "👁 Watch: izlenen kelimeler\n"
-        "🔎 Tara: manuel tarama"
-    )
 
 
 def normalize_command_text(text: str) -> str:
-    raw = str(text or "").strip()
-    if raw in BUTTON_COMMAND_MAP:
-        return BUTTON_COMMAND_MAP[raw]
-    if raw in ALIAS_COMMAND_MAP:
-        return ALIAS_COMMAND_MAP[raw]
+    if not text:
+        return ""
+    stripped = text.strip()
+    parts = stripped.split(maxsplit=1)
+    cmd = parts[0].lower()
+    rest = parts[1] if len(parts) > 1 else ""
+    mapped = ALIAS_COMMAND_MAP.get(cmd, cmd)
+    return f"{mapped} {rest}".strip()
 
-    lowered = raw.lower()
-    if "sağlık" in lowered or "saglik" in lowered:
-        return "/health"
-    if "audit" in lowered:
-        return "/audit"
-    if "profil" in lowered:
-        return "/profiles"
-    if "kaynak" in lowered:
-        return "/kaynak"
-    if "watch" in lowered:
-        return "/watch"
-    if "tara" in lowered:
-        return "/tara"
-    if "menü" in lowered or "menu" in lowered or "komut" in lowered:
-        return "/menu"
 
-    return raw
+def menu_text() -> str:
+    return MENU_TEXT
+
+
+def render_menu() -> str:
+    return MENU_TEXT
+
+
+def command_help() -> str:
+    return MENU_TEXT

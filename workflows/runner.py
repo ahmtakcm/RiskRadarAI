@@ -23,12 +23,16 @@ logger = get_logger('runner')
 
 
 def _digest_story_key(item: dict) -> str:
-    url = str(item.get('url', '') or '').strip().lower()
+    url = str(item.get('url', '') or item.get('link', '') or '').strip().lower()
     if url:
         return url
     title = str(item.get('title', '') or '').strip().lower()
     source = str(item.get('source_name', '') or '').strip().lower()
     return f'{source}|{title}'
+
+
+def _digest_slot(now: datetime) -> str:
+    return now.astimezone(ISTANBUL_TZ).strftime('%Y-%m-%d %H:00')
 
 
 def _digest_is_weak(paragraph: str) -> bool:
@@ -37,10 +41,10 @@ def _digest_is_weak(paragraph: str) -> bool:
         return True
     low = text.lower()
     bad_bits = [
-        'abd tarafı dahil',
-        'iran bağlantılı gelişme',
-        'detay için bağlantıyı aç',
-        'jeopolitik gelişme',
+        'abd taraf? dahil',
+        'iran ba?lant?l? geli?me',
+        'detay i?in ba?lant?y? a?',
+        'jeopolitik geli?me',
     ]
     if sum(1 for bit in bad_bits if bit in low) >= 2:
         return True
@@ -49,7 +53,18 @@ def _digest_is_weak(paragraph: str) -> bool:
     return False
 
 
-def _build_fallback_digest(items: list[dict]) -> str:
+def _item_digest_text(item: dict) -> str:
+    summary = str(item.get('translated_text', '') or '').strip()
+    if summary and is_usable_summary(summary, {'title': item.get('title', '')}):
+        return summary.rstrip('. ')
+    title = str(item.get('title', '') or '').strip()
+    text = str(item.get('text', '') or item.get('description', '') or '').strip()
+    if title:
+        return title.rstrip('. ')
+    return text[:220].rstrip('. ')
+
+
+def _usable_digest_candidates(items: list[dict]) -> list[dict]:
     unique = []
     seen = set()
     for item in items:
@@ -57,53 +72,122 @@ def _build_fallback_digest(items: list[dict]) -> str:
         if key in seen:
             continue
         seen.add(key)
-        summary = str(item.get('translated_text', '') or '').strip()
-        if not is_usable_summary(summary, {'title': item.get('title', '')}):
+        if not _item_digest_text(item):
             continue
         unique.append(item)
+    return unique
 
+
+def _build_fallback_digest(items: list[dict]) -> str:
+    unique = _usable_digest_candidates(items)
     if not unique:
-        return 'Son 12 saatte anlamlı ve yeterli özet kalitesine sahip sessiz aday birikmedi.'
+        return ''
 
     bullets = []
     for item in unique[:6]:
         source = str(item.get('source_name', '') or 'Kaynak').strip()
-        summary = str(item.get('translated_text', '') or '').strip().rstrip('. ')
-        bullets.append(f'• {source}: {summary}.')
+        summary = _item_digest_text(item)
+        url = str(item.get('url', '') or item.get('link', '') or '').strip()
+        line = f'? {source}: {summary}.'
+        if url:
+            line += f' {url}'
+        bullets.append(line)
 
-    intro = 'Son 12 saatte öne çıkan ve bildirim eşiğini aşmayan başlıklar:'
+    intro = 'Son 12 saatte ?ne ??kan ve bildirim e?i?ini a?mayan ba?l?klar:'
     return '\n'.join([intro, *bullets])[:3500]
 
 
-def _maybe_send_digest(state: dict):
-    now = datetime.now(timezone.utc)
-    if not should_run_digest(state, now):
-        return
+def build_digest_result(state: dict, *, now: datetime | None = None, force: bool = False, send: bool = False) -> dict:
+    now = now or datetime.now(timezone.utc)
+    current_slot = _digest_slot(now)
+    last_slot = state.get('last_digest_slot')
+    due = force or should_run_digest(state, now)
+    base = {
+        'status': 'digest_not_due',
+        'candidate_count': 0,
+        'usable_candidate_count': 0,
+        'last_digest_slot': last_slot,
+        'current_slot': current_slot,
+        'sent': False,
+        'message': '',
+    }
+
+    if not due:
+        logger.info('digest_not_due | last_digest_slot=%s | current_slot=%s', last_slot, current_slot)
+        base['message'] = f'Digest zaman? de?il. Son slot: {last_slot or "yok"} | ge?erli slot: {current_slot}'
+        return base
 
     candidates = collect_digest_candidates(state.get('news_log', []), now)
-    if not candidates:
-        logger.info('Digest slotu geldi ama uygun sessiz aday yok; mesaj gönderilmedi.')
-        mark_digest_run(state, now)
-        settings.state_store.save_runtime_state(state)
-        return
+    usable = _usable_digest_candidates(candidates)
+    base.update(candidate_count=len(candidates), usable_candidate_count=len(usable))
 
-    paragraph = ai_client.build_digest_paragraph(candidates)
+    if not candidates:
+        logger.info('no_candidates | candidate_count=0 | usable_candidate_count=0 | last_digest_slot=%s | current_slot=%s', last_slot, current_slot)
+        base['status'] = 'no_candidates'
+        base['message'] = 'Digest aday? yok; g?nderim yap?lmad?.'
+        if not force:
+            mark_digest_run(state, now)
+            settings.state_store.save_runtime_state(state)
+        return base
+
+    if not usable:
+        logger.info('no_usable_candidates | candidate_count=%s | usable_candidate_count=0 | last_digest_slot=%s | current_slot=%s', len(candidates), last_slot, current_slot)
+        base['status'] = 'no_usable_candidates'
+        base['message'] = 'Digest aday? var ama kullan?labilir ba?l?k/?zet/link yok; slot ba?ar?l? say?lmad?.'
+        return base
+
+    paragraph = ''
+    try:
+        paragraph = ai_client.build_digest_paragraph(usable)
+    except Exception as exc:
+        logger.warning('weak_or_empty_paragraph | reason=ai_exception | error=%s | candidate_count=%s | usable_candidate_count=%s | last_digest_slot=%s | current_slot=%s', exc, len(candidates), len(usable), last_slot, current_slot)
+
     if not paragraph or _digest_is_weak(paragraph):
-        paragraph = _build_fallback_digest(candidates)
+        logger.info('weak_or_empty_paragraph | candidate_count=%s | usable_candidate_count=%s | last_digest_slot=%s | current_slot=%s', len(candidates), len(usable), last_slot, current_slot)
+        paragraph = _build_fallback_digest(usable)
+        if paragraph:
+            logger.info('fallback_used | candidate_count=%s | usable_candidate_count=%s | last_digest_slot=%s | current_slot=%s', len(candidates), len(usable), last_slot, current_slot)
 
     if not paragraph or not str(paragraph).strip():
-        logger.info('Digest paragrafı üretilemedi; mesaj gönderilmedi.')
-        mark_digest_run(state, now)
-        settings.state_store.save_runtime_state(state)
-        return
+        logger.info('no_usable_candidates | reason=empty_fallback | candidate_count=%s | usable_candidate_count=%s | last_digest_slot=%s | current_slot=%s', len(candidates), len(usable), last_slot, current_slot)
+        base['status'] = 'no_usable_candidates'
+        base['message'] = 'Digest paragraf? ?retilemedi; slot ba?ar?l? say?lmad?.'
+        return base
+
+    message = build_digest_message(now.astimezone(ISTANBUL_TZ), paragraph=paragraph)
+    base['message'] = message
+
+    if not send:
+        base['status'] = 'ready'
+        return base
 
     try:
-        telegram_client.send_message(build_digest_message(now.astimezone(ISTANBUL_TZ), paragraph=paragraph))
+        telegram_client.send_message(message)
         mark_digest_run(state, now)
         settings.state_store.save_runtime_state(state)
-        logger.info('Sessiz digest gönderildi: %s | aday=%s', now.isoformat(), len(candidates))
+        logger.info('sent | candidate_count=%s | usable_candidate_count=%s | last_digest_slot=%s | current_slot=%s', len(candidates), len(usable), last_slot, current_slot)
+        base['status'] = 'sent'
+        base['sent'] = True
+        base['last_digest_slot'] = state.get('last_digest_slot')
+        return base
     except Exception as exc:
-        logger.warning('Digest gönderilemedi: %s', exc)
+        logger.warning('send_failed | error=%s | candidate_count=%s | usable_candidate_count=%s | last_digest_slot=%s | current_slot=%s', exc, len(candidates), len(usable), last_slot, current_slot)
+        base['status'] = 'send_failed'
+        base['message'] = f'Digest g?nderilemedi: {exc}'
+        return base
+
+
+def build_digest_now_reply(state: dict | None = None) -> str:
+    state = state if state is not None else settings.state_store.load_runtime_state()
+    result = build_digest_result(state, force=True, send=False)
+    status = result.get('status')
+    if status == 'ready':
+        return result.get('message') or 'Digest ?retildi ama mesaj bo?.'
+    return f"Digest ?al??mad?: {status}\n{result.get('message', '')}".strip()
+
+
+def _maybe_send_digest(state: dict):
+    build_digest_result(state, force=False, send=True)
 
 
 

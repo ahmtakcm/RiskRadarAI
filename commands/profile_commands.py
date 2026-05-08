@@ -308,6 +308,17 @@ def handle_profiles_command(text: str) -> str | None:
     return None
 
 
+def handle_digest_command(text: str) -> str | None:
+    raw = (text or "").strip().lower()
+    if raw != "/digest_now":
+        return None
+    try:
+        from workflows.runner import build_digest_now_reply
+        return build_digest_now_reply()
+    except Exception as exc:
+        return f"Digest ?al??t?r?lamad?: {exc}"
+
+
 def _command_help() -> str:
     return command_help()
 
@@ -329,6 +340,7 @@ def handle_profile_command(text: str) -> str | None:
     for name, handler in (
         ("audit", handle_audit_command),
         ("manual_scan", handle_manual_scan_command),
+        ("digest", handle_digest_command),
         ("profiles", handle_profiles_command),
     ):
         try:
@@ -395,8 +407,12 @@ def handle_profile_command(text: str) -> str | None:
             "/watch_ekle Mersin\n"
             "/watch_sil Mersin\n\n"
             "Manuel arama:\n"
-            "/ara hormuz\n"
+            "/ara ekonomi faiz\n"
+            "/ara osint h?rm?z\n"
+            "/tara osint 24s\n"
             "/tara hormuz\n\n"
+            "Digest:\n"
+            "/digest_now\n\n"
             "Feed kontrol:\n"
             "/feed_kontrol\n\n"
             "Gelişmiş:\n"
