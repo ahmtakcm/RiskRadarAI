@@ -277,7 +277,9 @@ def _summary_is_weak(summary: str, item: dict | None = None) -> bool:
         return True
     if _is_title_like(text, item):
         return True
-    if not any(ch in text for ch in 'çğıöşüÇĞİÖŞÜ') and len(re.findall(r'[A-Za-z]', text)) > 20:
+    # Türkçe metin her zaman Türkçe karakter içermek zorunda değildir.
+    # Sadece Latin harfi çok diye özeti zayıf saymak false-positive üretir.
+    if _looks_english_heavy(text):
         return True
     return False
 
