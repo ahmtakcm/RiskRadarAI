@@ -301,6 +301,96 @@ class TelegramCommandWorkerTests(unittest.TestCase):
             self.assertEqual(worker._load_offset(), 301)
             self.assertIn('sadece admin', sent[0][1])
 
+    def test_admin_only_command_rejected_in_group_with_bot_username(self):
+        """Admin-only /digest_now@BotUsername rejected in group for non-admin."""
+        import commands.telegram_command_worker as worker
+
+        class FakeTelegram:
+            def get_updates(self, offset=None):
+                return {'ok': True, 'result': [{'update_id': 400, 'message': {'chat': {'id': '42'}, 'from': {'id': '7'}, 'text': '/digest_now@ChatGbt33_bot'}}]}
+
+        sent = []
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(worker, 'STATE_PATH', Path(tmp) / 'telegram_command_state.json'), \
+             patch.object(worker, 'telegram_client', FakeTelegram()), \
+             patch.object(worker.settings, 'chat_id', '42'), \
+             patch.dict('os.environ', {'TELEGRAM_ADMIN_USER_IDS': '99'}), \
+             patch.object(worker, 'handle_profile_command', lambda text: 'digest text'), \
+             patch.object(worker, '_send_to_chat', lambda chat_id, text: sent.append((chat_id, text))):
+            self.assertTrue(worker.poll_once())
+            self.assertEqual(worker._load_offset(), 401)
+            self.assertIn('sadece admin', sent[0][1])
+
+    def test_admin_only_command_allowed_in_admin_private(self):
+        """Admin-only /digest_now allowed when admin in private chat."""
+        import commands.telegram_command_worker as worker
+
+        class FakeTelegram:
+            def get_updates(self, offset=None):
+                return {'ok': True, 'result': [{'update_id': 500, 'message': {'chat': {'id': '99', 'type': 'private'}, 'from': {'id': '1'}, 'text': '/digest_now'}}]}
+
+        sent = []
+        with tempfile.TemporaryDirectory() as tmp, \
+             patch.object(worker, 'STATE_PATH', Path(tmp) / 'telegram_command_state.json'), \
+             patch.object(worker, 'telegram_client', FakeTelegram()), \
+             patch.dict('os.environ', {'TELEGRAM_ADMIN_USER_IDS': '1'}), \
+             patch.object(worker, 'handle_profile_command', lambda text: 'digest_ok'), \
+             patch.object(worker, '_send_to_chat', lambda chat_id, text: sent.append((chat_id, text))):
+            self.assertTrue(worker.poll_once())
+            self.assertEqual(worker._load_offset(), 501)
+            self.assertEqual(sent[0][1], 'digest_ok')
+
+
+class NormalizationAndDisplayTests(unittest.TestCase):
+    """Tests for @BotUsername normalization, UTF-8, and profile display."""
+
+    def test_bot_username_suffix_normalization(self):
+        """/menu@ChatGbt33_bot normalizes to /menu and returns menu text."""
+        import commands.profile_commands as pc
+        reply = pc.handle_profile_command("/menu@ChatGbt33_bot")
+        self.assertIsNotNone(reply)
+        self.assertIn("RiskRadarAI", reply)
+        self.assertNotIn("Bilinmeyen", reply)
+
+    def test_bot_username_suffix_profiles_normalizes(self):
+        """/profiles@ChatGbt33_bot normalizes to /profiles."""
+        import commands.profile_commands as pc
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / "profile_state.json"
+            with patch.object(pc, "STATE_PATH", state):
+                reply = pc.handle_profile_command("/profiles@ChatGbt33_bot")
+                self.assertIsNotNone(reply)
+                self.assertIn("Profil", reply)
+                self.assertNotIn("Bilinmeyen", reply)
+
+    def test_digest_error_message_utf8(self):
+        """Digest error message contains valid Turkish UTF-8, not mojibake."""
+        import commands.profile_commands as pc
+        import workflows.runner
+        with patch.object(workflows.runner, 'build_digest_now_reply', side_effect=Exception("timeout")):
+            reply = pc.handle_digest_command("/digest_now")
+            self.assertIsNotNone(reply)
+            self.assertIn("çalıştırılamadı", reply)
+            self.assertNotIn("?", reply)
+
+    def test_profiles_shows_all_active_when_master_on(self):
+        """/profiles shows all profiles active when tum_profiller is the only active profile."""
+        import commands.profile_commands as pc
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            state = Path(tmp) / "profile_state.json"
+            state.write_text('{"active_profiles": ["tum_profiller"], "disabled_profiles": []}', encoding="utf-8")
+            with patch.object(pc, "STATE_PATH", state):
+                reply = pc.handle_profile_command("/profiles")
+                self.assertIsNotNone(reply)
+                # tum_profiller should be active
+                self.assertIn("✅ 🧭 Tüm profiller", reply)
+                # Other individual profiles should also show as active
+                self.assertIn("✅ 🏛 Resmî", reply)
+                self.assertIn("✅ 🌍 Dünya", reply)
+                self.assertIn("✅ 📈 Ekonomi", reply)
+
 
 if __name__ == '__main__':
     unittest.main()

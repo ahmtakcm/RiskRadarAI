@@ -54,7 +54,8 @@ def normalize_command_text(text: str) -> str:
     parts = stripped.split(maxsplit=1)
     cmd = parts[0].lower()
     rest = parts[1] if len(parts) > 1 else ""
-    mapped = ALIAS_COMMAND_MAP.get(cmd, cmd)
+    clean_cmd = cmd.split("@")[0]
+    mapped = ALIAS_COMMAND_MAP.get(clean_cmd, clean_cmd)
     return f"{mapped} {rest}".strip()
 
 

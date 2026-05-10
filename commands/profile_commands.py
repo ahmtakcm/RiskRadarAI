@@ -5,7 +5,13 @@ from collections import Counter
 
 from config.paths import PROFILES_DIR, USER_INPUTS_DIR
 from commands.audit_commands import handle_audit_command
-from commands.menu import ALIAS_COMMAND_MAP, BUTTON_COMMAND_MAP, command_help, legacy_command_message, menu_text
+from commands.menu import (
+    ALIAS_COMMAND_MAP,
+    BUTTON_COMMAND_MAP,
+    command_help,
+    legacy_command_message,
+    menu_text,
+)
 from commands.manual_scan_commands import handle_manual_scan_command
 from commands.source_commands import handle_source_command
 from source_selectors.profile_loader import load_config_for_profile
@@ -83,7 +89,9 @@ def _format_all_policies() -> str:
         min_score = override.get("min_score", policy.get("min_score", "-"))
         notify = policy.get("notify_policy", "-")
         unverified = "açık" if policy.get("allow_unverified", True) else "kapalı"
-        confirm = "evet" if policy.get("require_official_confirmation", False) else "hayır"
+        confirm = (
+            "evet" if policy.get("require_official_confirmation", False) else "hayır"
+        )
         extra = " runtime" if override else ""
         lines.append(f"{_profile_label(profile_id)}")
         lines.append(f"- policy: {notify}")
@@ -112,12 +120,16 @@ def _format_runtime_status() -> str:
         key = canonical_profile_name(p)
         cfg = load_config_for_profile(p, active_profile_names=[p])
         policy = (cfg.get("profile_policies", {}) or {}).get(key, {}) or {}
-        value = (overrides.get(key, {}) or {}).get("min_score", policy.get("min_score", "-"))
+        value = (overrides.get(key, {}) or {}).get(
+            "min_score", policy.get("min_score", "-")
+        )
         lines.append(f"- {_profile_label(p)}: {value}")
 
     lines.append("")
     lines.append(f"Watch kelime: {_watch_count()}")
-    lines.append(f"Kaynak: {active_sources} aktif / {passive_sources} pasif / {total} toplam")
+    lines.append(
+        f"Kaynak: {active_sources} aktif / {passive_sources} pasif / {total} toplam"
+    )
     return "\n".join(lines)
 
 
@@ -132,7 +144,9 @@ def _load_json(path: Path, default):
 
 def _save_json(path: Path, data):
     path.parent.mkdir(exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
 
 
 def available_profiles():
@@ -148,13 +162,18 @@ def _load_profile_state_unsafe():
     profiles = available_profiles()
     state = _load_json(STATE_PATH, {})
 
-    state.setdefault("active_profiles", ["tum_profiller"] if "tum_profiller" in profiles else profiles[:1])
+    state.setdefault(
+        "active_profiles",
+        ["tum_profiller"] if "tum_profiller" in profiles else profiles[:1],
+    )
     state.setdefault("disabled_profiles", [])
     state["available_profiles"] = profiles
     state["manual_override"] = True
 
     state["active_profiles"] = [p for p in state["active_profiles"] if p in profiles]
-    state["disabled_profiles"] = [p for p in state["disabled_profiles"] if p in profiles]
+    state["disabled_profiles"] = [
+        p for p in state["disabled_profiles"] if p in profiles
+    ]
 
     if not state["active_profiles"] and "tum_profiller" in profiles:
         state["active_profiles"] = ["tum_profiller"]
@@ -253,16 +272,27 @@ def handle_profiles_command(text: str) -> str | None:
     parts = raw.split()
     cmd = parts[0].lower()
 
-    if cmd in ("/profiles", "/profile_status", "/profile_sources", "/profile_on", "/profile_off", "/alarm_esik"):
+    if cmd in (
+        "/profiles",
+        "/profile_status",
+        "/profile_sources",
+        "/profile_on",
+        "/profile_off",
+        "/alarm_esik",
+    ):
         profiles = _known_profiles_available()
         state = load_profile_state()
         active = set(state.get("active_profiles", []))
 
         if cmd == "/profiles":
             lines = ["📚 Profiller:"]
+            is_master_active = "tum_profiller" in active
             for p in profiles:
                 suffix = " (master)" if p == "tum_profiller" else ""
-                lines.append(f"{'✅' if p in active else '⬜'} {_profile_label(p)}{suffix}")
+                is_active = p in active or (is_master_active and p != "tum_profiller")
+                lines.append(
+                    f"{'✅' if is_active else '⬜'} {_profile_label(p)}{suffix}"
+                )
             return "\n".join(lines)
 
         if cmd == "/profile_status":
@@ -292,7 +322,9 @@ def handle_profiles_command(text: str) -> str | None:
                 if not active_set:
                     return "❌ Bu profil kapatılamaz. En az bir profil aktif kalmalı.\nÖnce başka bir profil aç: /profile_on ekonomi"
             state["active_profiles"] = sorted(active_set)
-            state["disabled_profiles"] = [p for p in profiles if p not in state["active_profiles"]]
+            state["disabled_profiles"] = [
+                p for p in profiles if p not in state["active_profiles"]
+            ]
             save_profile_state(state)
             return f"{'✅' if cmd == '/profile_on' else '⛔'} Profil {'açıldı' if cmd == '/profile_on' else 'kapatıldı'}: {_profile_label(target)}"
 
@@ -336,9 +368,10 @@ def handle_digest_command(text: str) -> str | None:
         return None
     try:
         from workflows.runner import build_digest_now_reply
+
         return build_digest_now_reply()
     except Exception as exc:
-        return f"Digest ?al??t?r?lamad?: {exc}"
+        return f"Digest çalıştırılamadı: {exc}"
 
 
 def _command_help() -> str:
@@ -347,6 +380,9 @@ def _command_help() -> str:
 
 def handle_profile_command(text: str) -> str | None:
     raw = (text or "").strip()
+
+    # Strip @BotUsername suffix so /menu@BotName resolves to /menu
+    raw = raw.split("@")[0] if "@" in raw else raw
 
     exact_aliases = {}
     exact_aliases.update(BUTTON_COMMAND_MAP)
@@ -377,16 +413,14 @@ def handle_profile_command(text: str) -> str | None:
         if reply:
             return reply
 
-    if raw.startswith('/'):
+    if raw.startswith("/"):
         return "Bilinmeyen komut.\n" + _command_help()
     return None
 
 
-
-
-
 def main(argv: list[str] | None = None) -> int:
     import sys
+
     args = sys.argv[1:] if argv is None else argv
     text = " ".join(args).strip()
     print(handle_profile_command(text) or "")
