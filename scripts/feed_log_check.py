@@ -12,8 +12,7 @@ HEALTH_SCRIPT = Path("scripts/feed_health_check.py")
 
 
 def send_telegram(text: str):
-    url = f"https://api.telegram.org/bot{settings.bot_token}/sendMessage"
-    requests.post(url, data={"chat_id": settings.chat_id, "text": text}, timeout=20)
+    telegram_client.send_message(text)
 
 
 def main():

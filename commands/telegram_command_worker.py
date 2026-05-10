@@ -3,15 +3,13 @@ import json
 import os
 import threading
 import time
-import requests
-
 from commands.profile_commands import handle_profile_command
 from commands.menu import normalize_command_text
 from telegram_ui.keyboard import build_reply_keyboard
 from config.paths import USER_INPUTS_DIR
 from config.settings import settings
 from core.logger import get_logger
-from clients.telegram_client import telegram_client
+from clients.telegram_client import TelegramChatMigrated, telegram_client
 
 logger = get_logger("telegram_command_worker")
 
@@ -101,27 +99,26 @@ def _split_message(text: str, limit: int = 3800) -> list[str]:
 
 
 def _send_to_chat(chat_id, text: str):
-    url = f"https://api.telegram.org/bot{settings.bot_token}/sendMessage"
-    statuses = []
     chunks = _split_message(text)
+    last_status = None
     for idx, chunk in enumerate(chunks, start=1):
-        payload = {
-            "chat_id": chat_id,
-            "text": chunk,
-            "reply_markup": build_reply_keyboard(),
-        }
-        r = requests.post(url, json=payload, timeout=20)
-        statuses.append(r.status_code)
-        logger.info(
-            "Telegram komut cevap HTTP: %s | chunk=%s/%s | len=%s",
-            r.status_code,
-            idx,
-            len(chunks),
-            len(chunk or ""),
-        )
-        if r.status_code != 200:
-            logger.warning("Telegram komut cevabı gönderilemedi: %s | %s", r.status_code, r.text[:300])
-    return statuses[-1] if statuses else None
+        try:
+            response = telegram_client.send_message(chunk, chat_id=chat_id)
+            last_status = getattr(response, "status_code", None)
+            logger.info(
+                "Telegram komut cevap HTTP: %s | chunk=%s/%s | len=%s",
+                last_status,
+                idx,
+                len(chunks),
+                len(chunk or ""),
+            )
+        except TelegramChatMigrated:
+            logger.exception("Telegram komut cevabı gönderilemedi: chat_migrated")
+            raise
+        except Exception as exc:
+            logger.warning("Telegram komut cevabı gönderilemedi: %s", exc)
+            raise
+    return last_status
 
 
 def _handle_text(text: str) -> tuple[str, str | None]:
@@ -185,7 +182,7 @@ def _process_update(update: dict) -> bool:
             replies.append(f"Komut çalıştırılamadı: {exc}")
 
     if not replies and str(text).strip():
-        replies.append("Komut işlenemedi. /profil")
+        replies.append("Komut işlenemedi. /menu")
 
     if replies:
         payload = "\n\n".join(x for x in replies if x)

@@ -144,6 +144,8 @@ def scan_news(
                 item['scan_mode'] = mode
                 freshness = evaluate_item_freshness(item, mode, runtime_settings)
                 item.update(freshness)
+                if freshness.get('stale_overridden'):
+                    logger.info('Notification stale override | source=%s | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))
                 if freshness.get('is_stale'):
                     logger.info('Notification drop | source=%s | reason=stale | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))
                     stale_count += 1
@@ -196,8 +198,12 @@ def scan_news(
                     logger.info('Notification drop | source=%s | reason=routine_suppressed | mode=%s', feed.get('name'), mode)
                     continue
 
+                pre_score, _, _, pre_pattern_hits = get_risk_score(item, keywords)
+                item['score'] = pre_score
+                item['pattern_hits'] = pre_pattern_hits
+
                 if not force_keep and not manual_query and not is_relevant_news(item, keywords, social_rule, min_score):
-                    logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | score=%s', feed.get('name'), mode, item.get('score', ''))
+                    logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | score=%s | pattern_hits=%s', feed.get('name'), mode, item.get('score', ''), item.get('pattern_hits', ''))
                     continue
 
                 if mode == 'official_only' and item.get('matched_profile'):
@@ -205,6 +211,8 @@ def scan_news(
                     score, _, _, pattern_hits = get_risk_score(item, profile_keywords(active_config, policy))
                 else:
                     score, _, _, pattern_hits = get_risk_score(item, keywords)
+                item['score'] = score
+                item['pattern_hits'] = pattern_hits
                 if force_keep:
                     score = max(score, 25)
                 elif item.get('is_official_source') and not item.get('is_official_routine') and (item.get('official_keyword_hits') or item.get('official_entity_hits')):

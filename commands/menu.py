@@ -1,66 +1,56 @@
-﻿MENU_TEXT = """RiskRadarAI menü
+MENU_TEXT = """RiskRadarAI komut menüsü
 
-✅ /health       - Sistem/kaynak sağlık özeti
-🧾 /audit        - Bildirim politikası denetimi
-📚 /profiles     - Profil listesi/durumu
-📡 /sources      - Kaynak yönetimi
-👁 /watch        - İzlenen kelimeler
-🔎 /ara          - Resmî/profil arama
-🛰 /tara         - Manuel tüm kaynak tarama
-🧩 /policy       - Profil bildirim politikaları
-⚙️ /alarm_esik   - Profil alarm eşiği ayarla
-📰 /digest_now   - Sessiz digest şimdi
-
-Örnekler:
-- /profiles
-- /profile_on ekonomi
-- /profile_off osint
-- /alarm_esik ekonomi 30
-- /ara ekonomi faiz
-- /tara osint 24s
+/health - Sistem ve kaynak sağlık özeti
+/audit - Bildirim politikası denetimi
+/source_health - Kaynak sorun özeti
+/profiles - Profil listesi
+/profile_status - Aktif profil ve eşik özeti
+/profile_sources <profil> - Profil kaynak özeti
+/profile_on <profil> - Profil aç
+/profile_off <profil> - Profil kapat
+/ara <profil/konu> - Hızlı arama
+/tara <profil/konu> [süre] - Manuel tarama
 """
+
+LEGACY_COMMAND_REDIRECTS = {
+    "/profil": "/profiles",
+    "/profil_tum": "/profiles",
+    "/profil_on": "/profile_on",
+    "/profil_off": "/profile_off",
+    "/policy": "/audit",
+    "/modes": "/profiles",
+}
 
 ALIAS_COMMAND_MAP = {
     "/start": "/menu",
     "/help": "/menu",
     "/menu": "/menu",
-
     "/profiles": "/profiles",
-    "/profile": "/profiles",
     "/profile_status": "/profile_status",
+    "/profile_sources": "/profile_sources",
     "/profile_on": "/profile_on",
     "/profile_off": "/profile_off",
-
-    "/policy": "/policy",
-    "/alarm_esik": "/alarm_esik",
-
     "/audit": "/audit",
-    "/audit_json": "/audit_json",
-
-    "/sources": "/sources",
-    "/source": "/sources",
-
-    "/watch": "/watch",
-
-    "/scan": "/tara",
+    "/health": "/health",
+    "/source_health": "/source_health",
     "/ara": "/ara",
     "/tara": "/tara",
-
-    "/health": "/health",
-    "/health_json": "/health_json",
-    "/source_health": "/source_health",
-    "/kaynak_saglik": "/kaynak_saglik",
-    "/digest_now": "/digest_now",
 }
 
 BUTTON_COMMAND_MAP = {
     "✅ Sağlık": "/health",
     "🧾 Audit": "/audit",
     "📚 Profiller": "/profiles",
-    "📡 Kaynaklar": "/sources",
-    "👁 Watch": "/watch",
-    "🔎 Tara": "/scan",
+    "🔎 Ara": "/ara",
+    "🔎 Tara": "/tara",
 }
+
+
+def legacy_command_message(command: str) -> str | None:
+    mapped = LEGACY_COMMAND_REDIRECTS.get(str(command or "").strip().split()[0].lower())
+    if not mapped:
+        return None
+    return f"⚠️ Bu komut kaldırıldı. Yeni komut: {mapped}\n\n{MENU_TEXT}"
 
 
 def normalize_command_text(text: str) -> str:

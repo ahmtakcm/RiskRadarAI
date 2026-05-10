@@ -13,11 +13,7 @@ from workflows.process_candidates import process_candidates
 from workflows.scan_calendar import scan_calendar_events
 from workflows.process_calendar_events import process_calendar_events
 from workflows.daily_macro_update import run_daily_update
-from commands.profile_commands import handle_profile_command
 from commands.telegram_command_worker import start_telegram_command_worker
-from config.paths import USER_INPUTS_DIR
-import json
-import requests
 
 logger = get_logger('runner')
 
@@ -190,67 +186,6 @@ def _maybe_send_digest(state: dict):
     build_digest_result(state, force=False, send=True)
 
 
-
-def _command_state_path():
-    return USER_INPUTS_DIR / "telegram_command_state.json"
-
-
-def _load_command_offset() -> int | None:
-    path = _command_state_path()
-    if not path.exists():
-        return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8")).get("offset")
-    except Exception:
-        return None
-
-
-def _save_command_offset(offset: int):
-    path = _command_state_path()
-    path.parent.mkdir(exist_ok=True)
-    path.write_text(json.dumps({"offset": offset}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
-def _poll_telegram_commands():
-    handled = False
-    try:
-        offset = _load_command_offset()
-        logger.info('Telegram komut kontrolü çalıştı | offset=%s', offset)
-        data = telegram_client.get_updates(offset=offset)
-        if not data.get("ok"):
-            return
-
-        max_update_id = None
-        for upd in data.get("result", []):
-            uid = upd.get("update_id")
-            if uid is not None:
-                max_update_id = uid if max_update_id is None else max(max_update_id, uid)
-
-            msg = upd.get("message") or {}
-            chat = msg.get("chat") or {}
-            text = msg.get("text") or ""
-
-            if str(chat.get("id")) != str(settings.chat_id):
-                continue
-
-            logger.info('Telegram mesaj alındı | chat=%s | text=%s', chat.get('id'), text)
-            reply = handle_profile_command(text)
-            if reply:
-                logger.info('Telegram profil cevabı gönderiliyor')
-                logger.info('Telegram profil cevabı metni: %s', reply[:300])
-                url = f"https://api.telegram.org/bot{settings.bot_token}/sendMessage"
-                resp = requests.post(url, data={"chat_id": chat.get("id"), "text": reply}, timeout=20)
-                logger.info("Telegram profil cevap HTTP: %s | %s", resp.status_code, resp.text[:200])
-                handled = True
-
-        if max_update_id is not None:
-            _save_command_offset(max_update_id + 1)
-
-        return handled
-
-    except Exception as exc:
-        logger.warning("Telegram komut kontrolü başarısız: %s", exc)
-        return False
 
 def run_forever(state: dict):
     start_telegram_command_worker()

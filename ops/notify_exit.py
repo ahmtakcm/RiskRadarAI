@@ -3,48 +3,16 @@ from __future__ import annotations
 import datetime as dt
 import os
 import sys
-import urllib.parse
-import urllib.request
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BASE_DIR))
 
-
-def _load_dotenv(path: Path) -> dict[str, str]:
-    data: dict[str, str] = {}
-    if not path.exists():
-        return data
-    for raw in path.read_text(encoding="utf-8", errors="ignore").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        value = value.strip().strip('"').strip("'")
-        data[key.strip()] = value
-    return data
+from clients.telegram_client import mask_token_text, telegram_client
 
 
 def _send_telegram(text: str) -> None:
-    env = _load_dotenv(BASE_DIR / ".env")
-    token = os.getenv("BOT_TOKEN") or env.get("BOT_TOKEN") or ""
-    chat_id = os.getenv("CHAT_ID") or env.get("CHAT_ID") or ""
-    if not token or not chat_id:
-        return
-
-    payload = urllib.parse.urlencode(
-        {
-            "chat_id": chat_id,
-            "text": text,
-            "disable_web_page_preview": "true",
-        }
-    ).encode("utf-8")
-    req = urllib.request.Request(
-        f"https://api.telegram.org/bot{token}/sendMessage",
-        data=payload,
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        resp.read()
+    telegram_client.send_message(text)
 
 
 def main() -> int:
@@ -70,7 +38,7 @@ def main() -> int:
     try:
         _send_telegram(text)
     except Exception as exc:
-        print(f"notify_exit failed: {exc}", file=sys.stderr)
+        print(f"notify_exit failed: {mask_token_text(exc)}", file=sys.stderr)
         return 1
     return 0
 

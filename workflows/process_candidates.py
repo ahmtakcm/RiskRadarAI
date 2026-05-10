@@ -28,8 +28,8 @@ def _notification_context(item: dict, origin_label: str | None = None) -> dict:
 def _log_notification_decision(action: str, item: dict, *, reason: str | None = None, origin_label: str | None = None, alert_key: str | None = None):
     ctx = _notification_context(item, origin_label=origin_label)
     logger.info(
-        'Notification %s | source=%s | policy=%s | lane=%s | reason=%s | direct=%s | requires_ai=%s | requires_confirmation=%s | digest_only=%s | relay=%s | key=%s',
-        action, item.get('source_name', ''), ctx.get('notify_policy'), ctx.get('notification_lane'), reason or '',
+        'Notification %s | source=%s | policy=%s | lane=%s | reason=%s | score=%s | direct=%s | requires_ai=%s | requires_confirmation=%s | digest_only=%s | relay=%s | key=%s',
+        action, item.get('source_name', ''), ctx.get('notify_policy'), ctx.get('notification_lane'), reason or '', item.get('score', ''),
         ctx.get('can_notify_direct'), ctx.get('requires_ai_should_notify'), ctx.get('requires_official_confirmation'),
         ctx.get('can_be_digest_only'), ctx.get('relay_label'), alert_key or '',
     )
@@ -77,6 +77,35 @@ def _ensure_article_text(item: dict):
     text = fetch_article_text(link, source_kind=source_kind)
     if text:
         item['article_text'] = text
+
+def _minimal_fallback_summary(item: dict) -> str:
+    raw = str(item.get('description') or item.get('article_text') or item.get('summary') or '').strip()
+    raw = ' '.join(raw.split())
+    if len(raw) > 420:
+        raw = raw[:420].rstrip() + ' ...'
+    if raw:
+        return raw
+    title = str(item.get('title') or '').strip()
+    source = str(item.get('source_name') or 'Kaynak').strip()
+    link = str(item.get('link') or '').strip()
+    bits = [f'{source}: {title}' if title else source]
+    if link:
+        bits.append(link)
+    return '\n'.join(bits).strip()
+
+
+def _ensure_usable_summary(item: dict, analysis: dict, origin_label: str) -> bool:
+    if choose_best_summary(item, analysis.get('gemini') or analysis):
+        return True
+    fallback = _minimal_fallback_summary(item)
+    if not fallback:
+        return False
+    analysis['summary_tr'] = fallback
+    analysis.setdefault('category', 'mixed')
+    analysis.setdefault('header', f'📢 {origin_label} alarmı')
+    analysis.setdefault('reason_short', 'AI özeti üretilemedi; ham açıklama fallback olarak kullanıldı.')
+    return True
+
 
 
 def _log_news_event(state: dict, item: dict, candidate: dict, analysis: dict | None = None, *, alert_sent: bool, delivery_mode: str, drop_reason: str | None = None, meta: dict | None = None):
@@ -230,6 +259,7 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
         if sent_count >= settings.max_news_alerts_per_scan:
             break
         item = candidate['item']
+        item['score'] = candidate.get('score', item.get('score', ''))
         if not _is_strict_official_item(item):
             continue
         _ensure_article_text(item)
@@ -242,7 +272,7 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
             _log_news_event(state, item, candidate, analysis, alert_sent=False, delivery_mode='none', drop_reason='routine_suppressed', meta={'origin': 'official', 'verified': True})
             _log_notification_decision('drop', item, reason='routine_suppressed', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
-        if not choose_best_summary(item, analysis.get('gemini') or analysis):
+        if not _ensure_usable_summary(item, analysis, 'Resmî/Kurumsal'):
             _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
         text = build_signal_message(item, candidate['score'], analysis, origin_label='Resmî/Kurumsal', verified=False)
@@ -272,6 +302,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
     for candidate in candidates:
         limit_reached = sent_count >= settings.max_news_alerts_per_scan
         item = candidate['item']
+        item['score'] = candidate.get('score', item.get('score', ''))
         if origin_label == 'Sosyal':
             item['_send_unverified_social'] = send_unverified
         elif origin_label == 'OSINT':
@@ -281,7 +312,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
         if analysis.get('category') == 'ignore':
             _log_notification_decision('drop', item, reason='not_relevant', origin_label=origin_label)
             continue
-        if not choose_best_summary(item, analysis.get('gemini') or analysis):
+        if not _ensure_usable_summary(item, analysis, origin_label):
             _log_notification_decision('drop', item, reason='no_usable_summary', origin_label=origin_label)
             continue
         verified_match, overlap, match_note = _find_best_official_match(candidate, official_candidates, state, verification_rules)
@@ -366,10 +397,11 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
     for candidate in candidates:
         limit_reached = sent_count >= settings.max_news_alerts_per_scan
         item = candidate['item']
+        item['score'] = candidate.get('score', item.get('score', ''))
         _ensure_article_text(item)
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
 
-        if not choose_best_summary(item, analysis.get('gemini') or analysis):
+        if not _ensure_usable_summary(item, analysis, 'Analiz'):
             _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Analiz')
             continue
 

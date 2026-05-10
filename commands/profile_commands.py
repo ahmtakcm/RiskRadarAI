@@ -4,7 +4,7 @@ from collections import Counter
 
 from config.paths import PROFILES_DIR, USER_INPUTS_DIR
 from commands.audit_commands import handle_audit_command
-from commands.menu import ALIAS_COMMAND_MAP, BUTTON_COMMAND_MAP, command_help, menu_text
+from commands.menu import ALIAS_COMMAND_MAP, BUTTON_COMMAND_MAP, command_help, legacy_command_message, menu_text
 from commands.manual_scan_commands import handle_manual_scan_command
 from commands.source_commands import handle_source_command
 from source_selectors.profile_loader import load_config_for_profile
@@ -239,7 +239,7 @@ def handle_profiles_command(text: str) -> str | None:
     parts = raw.split()
     cmd = parts[0].lower()
 
-    if cmd in ("/profiles", "/profile_status", "/profile_on", "/profile_off", "/policy", "/alarm_esik"):
+    if cmd in ("/profiles", "/profile_status", "/profile_sources", "/profile_on", "/profile_off", "/alarm_esik"):
         profiles = _known_profiles_available()
         state = load_profile_state()
         active = set(state.get("active_profiles", []))
@@ -253,6 +253,14 @@ def handle_profiles_command(text: str) -> str | None:
 
         if cmd == "/profile_status":
             return _format_runtime_status()
+
+        if cmd == "/profile_sources":
+            if len(parts) < 2:
+                return f"Kullanım: /profile_sources ekonomi\nProfiller: {_profile_examples()}"
+            target = canonical_profile_name(parts[1])
+            if target not in profiles:
+                return _profile_not_found(target)
+            return _format_profile_sources(target)
 
         if cmd in ("/profile_on", "/profile_off"):
             if len(parts) < 2:
@@ -337,6 +345,10 @@ def handle_profile_command(text: str) -> str | None:
     if not raw:
         return None
 
+    legacy_msg = legacy_command_message(raw)
+    if legacy_msg:
+        return legacy_msg
+
     for name, handler in (
         ("audit", handle_audit_command),
         ("manual_scan", handle_manual_scan_command),
@@ -350,134 +362,9 @@ def handle_profile_command(text: str) -> str | None:
         if reply:
             return reply
 
-    aliases = {
-        "/profil_liste": "/profil liste",
-        "/profil_durum": "/profil durum",
-        "/profil_tum": "/profil aktif tum_profiller",
-        "/profil_resmi": "/profil aktif resmi_aciklamalar",
-        "/profil_haber": "/profil aktif dunya",
-        "/profil_ekonomi": "/profil aktif ekonomi",
-        "/profil_osint": "/profil aktif osint",
-        "/profil_saglik": "/profil aktif saglik",
-        "/profil_dunya": "/profil aktif dunya",
-        "/profil_turkiye": "/profil aktif turkiye",
-        "/profil_yerel": "/profil aktif yerel",
-        "/profil_analiz": "/profil aktif analiz",
-    }
-
-    raw = aliases.get(raw, raw)
-
-    if not (raw == "/profil" or raw.startswith("/profil ")):
-        for name, handler in (
-            ("watch", handle_watch_command),
-            ("feed", handle_feed_command),
-            ("source", handle_source_command),
-        ):
-            try:
-                reply = handler(raw)
-            except Exception as exc:
-                return f"Komut çalıştırılamadı ({name}): {exc}"
-            if reply:
-                return reply
-        if raw.startswith('/'):
-            return "Bilinmeyen komut.\n" + _command_help()
-        return None
-
-    parts = raw.split()
-    state = load_profile_state()
-    profiles = available_profiles()
-
-    if len(parts) == 1 or parts[1] in ("yardim", "help"):
-        return """🧩 Profil komutları
-
-Modern komutlar:
-- /profiles - Profil listesi/durumu
-- /profile_status - Aktif profil ve runtime durumu
-- /profile_on ekonomi - Profil aç
-- /profile_off osint - Profil kapat
-- /policy - Profil bildirim politikalarını göster
-- /alarm_esik ekonomi 30 - Profil alarm eşiğini ayarla
-
-Manuel arama/tarama:
-- /ara ekonomi faiz
-- /ara osint hürmüz
-- /tara osint 24s
-- /tara hormuz
-
-Diğer komutlar:
-- /watch - İzlenen kelimeler
-- /sources - Kaynak yönetimi
-- /audit - Bildirim politikası denetimi
-- /health - Sistem/kaynak sağlık özeti
-- /digest_now - Sessiz digest şimdi
-
-Not: Eski /profil_* komutları geriye dönük uyumluluk için çalışmaya devam eder.
-"""
-
-    cmd = parts[1].lower()
-
-    if cmd in ("liste", "list"):
-        active = set(state.get("active_profiles", []))
-        lines = ["📚 Profil listesi:"]
-        for p in profiles:
-            mark = "✅" if p in active else "⬜"
-            lines.append(f"{mark} {p}")
-        return "\n".join(lines)
-
-    if cmd in ("durum", "status", "aktifler"):
-        active = state.get("active_profiles", [])
-        if not active:
-            return "📌 Aktif profil yok."
-        return "📌 Aktif profiller:\n" + "\n".join(f"✅ {p}" for p in active)
-
-    if cmd == "aktif":
-        if len(parts) < 3:
-            return "Aktif yapılacak profil eksik. Örn: /profil aktif tum_profiller"
-        target = parts[2]
-        if target not in profiles:
-            return f"❌ Profil yok: {target}\n/profil_liste"
-        state["active_profiles"] = [target]
-        state["disabled_profiles"] = [p for p in profiles if p != target]
-        save_profile_state(state)
-        return f"✅ Tek aktif profil ayarlandı: {target}"
-
-    if cmd in ("ac", "aç", "enable"):
-        if len(parts) < 3:
-            return "Açılacak profil eksik. Örn: /profil ac ekonomi"
-        target = parts[2]
-        if target not in profiles:
-            return f"❌ Profil yok: {target}\n/profil_liste"
-
-        active = set(state.get("active_profiles", []))
-        active.add(target)
-
-        if "tum_profiller" in active and target != "tum_profiller":
-            active.discard("tum_profiller")
-
-        state["active_profiles"] = sorted(active)
-        state["disabled_profiles"] = [p for p in profiles if p not in state["active_profiles"]]
-        save_profile_state(state)
-        return f"✅ Profil açıldı: {target}"
-
-    if cmd in ("kapat", "disable"):
-        if len(parts) < 3:
-            return "Kapatılacak profil eksik. Örn: /profil kapat haber"
-        target = parts[2]
-        if target not in profiles:
-            return f"❌ Profil yok: {target}\n/profil_liste"
-
-        active = set(state.get("active_profiles", []))
-        active.discard(target)
-
-        if not active:
-            return "❌ En az bir profil aktif kalmalı."
-
-        state["active_profiles"] = sorted(active)
-        state["disabled_profiles"] = [p for p in profiles if p not in state["active_profiles"]]
-        save_profile_state(state)
-        return f"⛔ Profil kapatıldı: {target}"
-
-    return "Bilinmeyen profil komutu. /profil"
+    if raw.startswith('/'):
+        return "Bilinmeyen komut.\n" + _command_help()
+    return None
 
 
 def _load_watch():

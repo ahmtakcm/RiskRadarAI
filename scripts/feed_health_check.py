@@ -8,6 +8,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from config.settings import settings
+from clients.telegram_client import telegram_client
 
 FEEDS_PATH = Path("rules/feeds.json")
 OUT_PATH = Path("storage/feed_health_report.json")
@@ -47,8 +48,7 @@ KNOWN_FIXES = {
 
 
 def send_telegram(text: str):
-    url = f"https://api.telegram.org/bot{settings.bot_token}/sendMessage"
-    requests.post(url, data={"chat_id": settings.chat_id, "text": text}, timeout=20)
+    telegram_client.send_message(text)
 
 
 def load_json(path, default):
