@@ -64,3 +64,6 @@ Before merge:
 - command scopes must be validated
 - runtime persistence impact reviewed
 - Telegram admin/public boundaries verified
+
+## Branch Workflow
+- feature branch -> PR -> CI -> merge
