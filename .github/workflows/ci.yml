@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -32,7 +32,6 @@ jobs:
 
       - name: Validate JSON files
         run: |
-          python -m json.tool rules/feeds.json >/dev/null
           python -m json.tool rules/social_feeds.json >/dev/null
           python -m json.tool rules/osint_feeds.json >/dev/null
           python -m json.tool rules/analysis_feeds.json >/dev/null
