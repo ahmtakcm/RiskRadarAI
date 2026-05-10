@@ -5,6 +5,90 @@ from unittest.mock import patch
 import json
 
 
+class RegistryTests(unittest.TestCase):
+    """Tests for commands/registry.py — the single source of truth."""
+
+    def _import_registry(self):
+        import commands.registry as reg
+        return reg
+
+    def test_registry_no_duplicate_commands(self):
+        reg = self._import_registry()
+        names = [c.command for c in reg.REGISTRY]
+        self.assertEqual(len(names), len(set(names)))
+
+    def test_registry_no_duplicate_aliases(self):
+        reg = self._import_registry()
+        seen: set[str] = set()
+        for cmd in reg.REGISTRY:
+            for alias in cmd.aliases:
+                self.assertNotIn(
+                    alias, seen,
+                    f"Duplicate alias '{alias}' in command '{cmd.command}'"
+                )
+                seen.add(alias)
+
+    def test_registry_no_duplicate_legacy_redirects(self):
+        reg = self._import_registry()
+        seen: set[str] = set()
+        for cmd in reg.REGISTRY:
+            for legacy in cmd.legacy_redirects:
+                self.assertNotIn(
+                    legacy, seen,
+                    f"Duplicate legacy redirect '{legacy}' in command '{cmd.command}'"
+                )
+                seen.add(legacy)
+
+    def test_alias_map_covers_all_aliases(self):
+        reg = self._import_registry()
+        for cmd in reg.REGISTRY:
+            for alias in cmd.aliases:
+                self.assertIn(alias, reg.ALIAS_MAP,
+                              f"Alias '{alias}' not in ALIAS_MAP")
+                self.assertEqual(reg.ALIAS_MAP[alias], cmd.command)
+
+    def test_legacy_redirect_map_covers_all_legacy_entries(self):
+        reg = self._import_registry()
+        for cmd in reg.REGISTRY:
+            for legacy in cmd.legacy_redirects:
+                self.assertIn(legacy, reg.LEGACY_REDIRECT_MAP,
+                              f"Legacy '{legacy}' not in LEGACY_REDIRECT_MAP")
+                self.assertEqual(reg.LEGACY_REDIRECT_MAP[legacy], cmd.command)
+
+    def test_admin_commands_not_in_public_payload(self):
+        reg = self._import_registry()
+        payload = reg.public_payload()
+        payload_names = {c["command"] for c in payload}
+        for cmd in reg.REGISTRY:
+            if cmd.admin_only:
+                self.assertNotIn(cmd.command, payload_names,
+                                 f"Admin command '{cmd.command}' in public payload")
+
+    def test_admin_payload_includes_all_commands(self):
+        reg = self._import_registry()
+        payload = reg.admin_payload()
+        payload_names = {c["command"] for c in payload}
+        for cmd in reg.REGISTRY:
+            self.assertIn(cmd.command, payload_names,
+                          f"Command '{cmd.command}' missing from admin payload")
+
+    def test_admin_commands_not_in_menu_commands(self):
+        reg = self._import_registry()
+        menu_names = {cmd for cmd, _ in reg.MENU_COMMANDS}
+        for cmd in reg.REGISTRY:
+            if cmd.admin_only:
+                self.assertNotIn(f"/{cmd.command}", menu_names,
+                                 f"Admin command '{cmd.command}' in MENU_COMMANDS")
+
+    def test_build_menu_text_includes_all_public_commands(self):
+        reg = self._import_registry()
+        text = reg.build_menu_text()
+        for cmd in reg.REGISTRY:
+            if cmd.visible_in_menu and not cmd.admin_only:
+                self.assertIn(f"/{cmd.command}", text,
+                              f"Command '/{cmd.command}' missing from menu text")
+
+
 class TelegramCommandRoutingTests(unittest.TestCase):
     def test_new_commands_route_through_handle_profile_command(self):
         import commands.profile_commands as pc

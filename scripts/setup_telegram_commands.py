@@ -1,47 +1,101 @@
+"""
+Synchronise Telegram bot command list with the command registry.
+
+Usage:
+    python scripts/setup_telegram_commands.py
+
+What it does:
+    1. Reads TELEGRAM_ADMIN_USER_IDS from environment.
+    2. Calls setMyCommands with default scope → public commands only.
+    3. For each admin user ID, calls setMyCommands with chat scope
+       → public + admin commands.
+
+This script is intended to be run on deploy, not at every boot.
+"""
 import os
-import requests
+import sys
 from pathlib import Path
+
+import requests
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=Path(".env"))
+# Ensure project root is on sys.path so commands.registry can be imported
+_HERE = Path(__file__).resolve().parent
+_PROJECT_ROOT = _HERE.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
 
-token = os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
-if not token:
-    raise SystemExit("BOT_TOKEN bulunamadı")
+load_dotenv(dotenv_path=_PROJECT_ROOT / ".env")
 
-commands = [
-    {"command": "kaynak_test", "description": "Kaynak test et"},
-    {"command": "kaynak_sil", "description": "Kaynak sil"},
-    {"command": "kaynak_ekle", "description": "Yeni kaynak ekle"},
-    {"command": "kaynak_liste", "description": "Kaynakları listele"},
-    {"command": "kaynak", "description": "Kaynak komutları"},
-    {"command": "profil_liste", "description": "Profil listesini göster"},
-    {"command": "profil_durum", "description": "Aktif profilleri göster"},
-    {"command": "profil_tum", "description": "Tüm kaynaklar"},
-    {"command": "profil_resmi", "description": "Kritik resmi açıklamalar"},
-    {"command": "profil_haber", "description": "Global haber akışı"},
-    {"command": "profil_ekonomi", "description": "Ekonomi/merkez bankası"},
-    {"command": "profil_osint", "description": "OSINT ve lider kaynakları"},
-    {"command": "profil_saglik", "description": "Sağlık kaynakları"},
-    {"command": "profiles", "description": "Profil listesini göster"},
-    {"command": "profile_status", "description": "Profil durumunu göster"},
-    {"command": "profile_on", "description": "Profil aç: profile_on <id>"},
-    {"command": "profile_off", "description": "Profil kapat: profile_off <id>"},
-    {"command": "profile_policy", "description": "Profil policy: profile_policy <id>"},
-    {"command": "profile_sources", "description": "Profil kaynakları: profile_sources <id>"},
-    {"command": "alarm_esik", "description": "Alarm eşiği: alarm_esik <id> <sayı>"},
-    {"command": "ara", "description": "Manuel arama: ara <profil?> <sorgu>"},
-    {"command": "tara", "description": "Manuel tarama: tara <profil?> <24s|24h|sorgu>"},
-    {"command": "profil", "description": "Yardım"},
-    {"command": "audit", "description": "Bildirim audit"},
-    {"command": "health", "description": "Sağlık durumu"},
-    {"command": "source_health", "description": "Kaynak sağlık raporu"},
-]
+from commands.registry import admin_payload, public_payload
 
-r = requests.post(
-    f"https://api.telegram.org/bot{token}/setMyCommands",
-    json={"commands": commands},
-    timeout=20,
-)
-print("STATUS:", r.status_code)
-print("BODY:", r.text)
+BOT_TOKEN = os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise SystemExit("BOT_TOKEN bulunamadı. Set BOT_TOKEN or TELEGRAM_BOT_TOKEN in .env")
+
+API_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
+
+
+def _set_commands(payload: list[dict], scope: dict | None = None) -> dict:
+    """Call setMyCommands with given payload and optional scope.
+
+    Returns the JSON response dict.
+    """
+    body: dict = {"commands": payload}
+    if scope is not None:
+        body["scope"] = scope
+
+    r = requests.post(
+        f"{API_URL}/setMyCommands",
+        json=body,
+        timeout=20,
+    )
+    data = r.json()
+    print(f"[setMyCommands] scope={scope.get('type') if scope else 'default'} | "
+          f"status={r.status_code} | ok={data.get('ok')} | "
+          f"cmd_count={len(payload)}")
+    return data
+
+
+def main() -> int:
+    errors = 0
+
+    # --- Step 1: Set default scope (all chats) with public commands only ---
+    print("--- Setting default scope: public commands ---")
+    result = _set_commands(public_payload())
+    if not result.get("ok"):
+        print(f"  ERROR: {result.get('description', 'unknown')}")
+        errors += 1
+
+    # --- Step 2: Set per-admin chat scope with all commands ---
+    admin_ids_raw = os.getenv("TELEGRAM_ADMIN_USER_IDS", "")
+    admin_ids = [x.strip() for x in admin_ids_raw.split(",") if x.strip()]
+
+    if not admin_ids:
+        print("--- No TELEGRAM_ADMIN_USER_IDS set; skipping admin chat scope ---")
+    else:
+        full_payload = admin_payload()
+        print(f"--- Setting admin chat scopes for {len(admin_ids)} admin(s) ---")
+        for aid in admin_ids:
+            try:
+                chat_id = int(aid)
+            except ValueError:
+                print(f"  ERROR: invalid admin user ID: {aid!r}")
+                errors += 1
+                continue
+
+            result = _set_commands(full_payload, scope={"type": "chat", "chat_id": chat_id})
+            if not result.get("ok"):
+                print(f"  ERROR for chat_id={chat_id}: {result.get('description', 'unknown')}")
+                errors += 1
+
+    if errors:
+        print(f"\nCompleted with {errors} error(s).")
+        return 1
+
+    print("\nAll command scopes synced successfully.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

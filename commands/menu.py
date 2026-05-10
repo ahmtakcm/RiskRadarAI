@@ -1,53 +1,31 @@
-MENU_TEXT = """RiskRadarAI komut menüsü
+from commands.registry import (
+    REGISTRY,
+    build_alias_map,
+    build_legacy_redirect_map,
+    build_menu_text,
+)
 
-/health - Sistem ve kaynak sağlık özeti
-/audit - Bildirim politikası denetimi
-/source_health - Kaynak sorun özeti
-/profiles - Profil listesi
-/profile_status - Aktif profil ve eşik özeti
-/profile_sources <profil> - Profil kaynak özeti
-/profile_on <profil> - Profil aç
-/profile_off <profil> - Profil kapat
-/ara <profil/konu> - Hızlı arama
-/tara <profil/konu> [süre] - Manuel tarama
-"""
+# ──────────────────────────────────────────────
+# Generated maps — driven by commands/registry.py
+# ──────────────────────────────────────────────
 
-LEGACY_COMMAND_REDIRECTS = {
-    "/profil": "/profiles",
-    "/profil_tum": "/profiles",
-    "/profil_on": "/profile_on",
-    "/profil_off": "/profile_off",
-    "/profil_resmi": "/profiles",
-    "/profil_haber": "/profiles",
-    "/profil_ekonomi": "/profiles",
-    "/profil_osint": "/profiles",
-    "/profil_saglik": "/profiles",
-    "/kaynak_test_url": "/kaynak_test",
-    "/policy": "/audit",
-    "/modes": "/profiles",
+# ALIAS_COMMAND_MAP: alias (with /) → canonical command (with /)
+ALIAS_COMMAND_MAP: dict[str, str] = {
+    f"/{k}": f"/{v}" for k, v in build_alias_map().items()
+}
+# Also include self-mappings for canonical commands
+for cmd_entry in REGISTRY:
+    name = f"/{cmd_entry.command}"
+    if name not in ALIAS_COMMAND_MAP:
+        ALIAS_COMMAND_MAP[name] = name
+
+# LEGACY_COMMAND_REDIRECTS: legacy command (with /) → canonical command (with /)
+LEGACY_COMMAND_REDIRECTS: dict[str, str] = {
+    f"/{k}": f"/{v}" for k, v in build_legacy_redirect_map().items()
 }
 
-ALIAS_COMMAND_MAP = {
-    "/start": "/menu",
-    "/help": "/menu",
-    "/menu": "/menu",
-    "/komutlar": "/menu",
-    "/yardim": "/menu",
-    "/profiles": "/profiles",
-    "/profil_liste": "/profiles",
-    "/profile_status": "/profile_status",
-    "/profil_durum": "/profile_status",
-    "/profile_sources": "/profile_sources",
-    "/profile_on": "/profile_on",
-    "/profile_off": "/profile_off",
-    "/audit": "/audit",
-    "/health": "/health",
-    "/source_health": "/source_health",
-    "/ara": "/ara",
-    "/tara": "/tara",
-}
-
-BUTTON_COMMAND_MAP = {
+# BUTTON_COMMAND_MAP: Turkish keyboard button → canonical command (with /)
+BUTTON_COMMAND_MAP: dict[str, str] = {
     "✅ Sağlık": "/health",
     "🧾 Audit": "/audit",
     "📚 Profiller": "/profiles",
@@ -57,6 +35,9 @@ BUTTON_COMMAND_MAP = {
     "🔎 Tara": "/tara",
     "📋 Menü": "/menu",
 }
+
+# MENU_TEXT: generated from registry
+MENU_TEXT = build_menu_text()
 
 
 def legacy_command_message(command: str) -> str | None:
