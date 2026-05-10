@@ -1,4 +1,5 @@
 # RiskRadarAI
+https://deepwiki.com/ahmtakcm/RiskRadarAI
 
 Resmî + sosyal + OSINT kaynaklarından risk sinyali toplayan, **çift doğrulama** mantığıyla güven seviyesini etiketleyen modüler Telegram alarm botu.
 
