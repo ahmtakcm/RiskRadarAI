@@ -82,13 +82,13 @@ def _notification_audit_summary(output: str, *, as_json: bool) -> str:
                 data = json.loads(report.read_text(encoding="utf-8"))
                 counts = data.get("counts", {})
                 return (
-                    "?? Notification audit JSON ?retildi\n"
+                    "🧾 Notification audit JSON üretildi\n"
                     f"Dosya: reports/notification_audit.json\n"
                     f"Toplam: {counts.get('total', 'bilinmiyor')} | official={counts.get('official_only', 0)} social={counts.get('social_only', 0)} osint={counts.get('osint_only', 0)} analysis={counts.get('analysis_only', 0)}"
                 )
             except Exception:
                 pass
-        return "?? Notification audit JSON ?retildi: reports/notification_audit.json"
+        return "🧾 Notification audit JSON üretildi: reports/notification_audit.json"
 
     lines = [line.rstrip() for line in output.splitlines() if line.strip()]
     header = next((line for line in lines if line.startswith("active_profile=")), "")
@@ -100,8 +100,8 @@ def _notification_audit_summary(output: str, *, as_json: bool) -> str:
             if len(parts) >= 5:
                 lane = parts[4]
                 lane_counts[lane] = lane_counts.get(lane, 0) + 1
-    lane_text = "\n".join(f"- {k}: {v}" for k, v in sorted(lane_counts.items())) or "- lane ?zeti ?retilemedi"
-    return f"?? Notification audit\n{header}\n\nLane ?zeti:\n{lane_text}\n\nDetay: /audit_json"
+    lane_text = "\n".join(f"- {k}: {v}" for k, v in sorted(lane_counts.items())) or "- lane özeti üretilemedi"
+    return f"🧾 Notification audit\n{header}\n\nLane özeti:\n{lane_text}\n\nDetay: /audit_json"
 
 
 def handle_audit_command(text: str) -> str | None:

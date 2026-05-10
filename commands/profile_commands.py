@@ -104,7 +104,9 @@ def _format_all_policies() -> str:
 def _format_runtime_status() -> str:
     profiles = _known_profiles_available()
     state = load_profile_state()
-    active = [p for p in profiles if p in set(state.get("active_profiles", []))]
+    raw_active = set(state.get("active_profiles", []))
+    is_master_active = "tum_profiller" in raw_active
+    active = [p for p in profiles if p in raw_active or (is_master_active and p != "tum_profiller")]
     total, active_sources, passive_sources = _feed_totals()
     overrides = _load_policy_overrides().get("profiles", {}) or {}
 
@@ -279,6 +281,7 @@ def handle_profiles_command(text: str) -> str | None:
         "/profile_on",
         "/profile_off",
         "/alarm_esik",
+        "/policy",
     ):
         profiles = _known_profiles_available()
         state = load_profile_state()

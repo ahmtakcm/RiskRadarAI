@@ -166,7 +166,7 @@ def _process_update(update: dict) -> bool:
             continue
         try:
             command_name = line.split(maxsplit=1)[0].lower().lstrip("/").split("@")[0]
-            if command_name in ADMIN_COMMANDS and auth_reason not in {"admin_private", "allowed_group_admin"}:
+            if command_name in ADMIN_COMMANDS and auth_reason != "admin_private":
                 handler_name, reply = "admin_guard", "Bu komut sadece admin tarafından çalıştırılabilir."
             else:
                 handler_name, reply = _handle_text(line)
