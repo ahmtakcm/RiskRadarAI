@@ -1,0 +1,30 @@
+# RiskRadarAI CODEOWNERS
+
+# Default owner
+* @ahmtakcm
+
+# Core runtime and orchestration
+/app/ @ahmtakcm
+/core/ @ahmtakcm
+/workflows/ @ahmtakcm
+/services/ @ahmtakcm
+
+# Telegram command and UI layer
+/commands/ @ahmtakcm
+/telegram_ui/ @ahmtakcm
+
+# Data sources and parsing
+/fetchers/ @ahmtakcm
+/parsers/ @ahmtakcm
+/rules/ @ahmtakcm
+/profiles/ @ahmtakcm
+
+# Operations and deployment
+/ops/ @ahmtakcm
+/.github/ @ahmtakcm
+/.devcontainer/ @ahmtakcm
+
+# Documentation
+/docs/ @ahmtakcm
+/README.md @ahmtakcm
+/CLINE.md @ahmtakcm
