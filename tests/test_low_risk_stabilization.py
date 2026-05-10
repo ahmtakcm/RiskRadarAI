@@ -276,5 +276,121 @@ class TestBackwardCompatibility(unittest.TestCase):
                 self.assertIn("Profil", result)
 
 
+class TestNewsLogConcurrentAccess(unittest.TestCase):
+    """Thread safety of news_log append/update after _NEWS_LOG_LOCK."""
+
+    def test_news_log_append_concurrent(self):
+        """Concurrent append_news_log does not lose entries."""
+        from core.news_log import append_news_log
+        state = {"news_log": []}
+        errors = []
+
+        def worker(prefix):
+            for i in range(50):
+                try:
+                    append_news_log(state, {"id": f"{prefix}_{i}", "title": f"title_{i}"})
+                except Exception as e:
+                    errors.append(e)
+
+        threads = [
+            threading.Thread(target=worker, args=("a",)),
+            threading.Thread(target=worker, args=("b",)),
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(errors, [])
+        ids = {e["id"] for e in state["news_log"]}
+        self.assertEqual(len(ids), 100, f"Got {len(ids)} unique ids, expected 100")
+
+    def test_news_log_update_concurrent(self):
+        """Concurrent update_news_log does not lose updates."""
+        from core.news_log import update_news_log
+        state = {
+            "news_log": [
+                {"id": "1", "title": "old", "alert_sent": False},
+                {"id": "2", "title": "old", "alert_sent": False},
+            ]
+        }
+        errors = []
+
+        def worker_updater():
+            for _ in range(20):
+                try:
+                    update_news_log(state, "1", alert_sent=True)
+                except Exception as e:
+                    errors.append(e)
+
+        threads = [threading.Thread(target=worker_updater) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(errors, [])
+        entry = next(e for e in state["news_log"] if e["id"] == "1")
+        self.assertTrue(entry["alert_sent"])
+
+    def test_news_log_append_update_mixed(self):
+        """Concurrent append and update do not corrupt news_log."""
+        from core.news_log import append_news_log, update_news_log
+        state = {"news_log": []}
+        errors = []
+
+        def writer():
+            for i in range(30):
+                try:
+                    append_news_log(state, {"id": f"new_{i}", "title": f"title_{i}"})
+                except Exception as e:
+                    errors.append(e)
+
+        def updater():
+            for i in range(30):
+                try:
+                    update_news_log(state, str(i), alert_sent=True)
+                except Exception as e:
+                    errors.append(e)
+
+        threads = [threading.Thread(target=writer), threading.Thread(target=updater)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(errors, [])
+        self.assertIsInstance(state["news_log"], list)
+        self.assertTrue(all(isinstance(e, dict) for e in state["news_log"]))
+
+    def test_news_log_limit_preserved_under_concurrency(self):
+        """Append beyond NEWS_LOG_LIMIT trims correctly under concurrent load."""
+        from core.news_log import append_news_log, NEWS_LOG_LIMIT
+        state = {"news_log": []}
+        errors = []
+
+        # Pre-fill to near limit
+        for i in range(NEWS_LOG_LIMIT - 10):
+            append_news_log(state, {"id": f"pre_{i}"})
+
+        def worker(prefix):
+            for i in range(20):
+                try:
+                    append_news_log(state, {"id": f"{prefix}_{i}"})
+                except Exception as e:
+                    errors.append(e)
+
+        threads = [threading.Thread(target=worker, args=("a",)),
+                   threading.Thread(target=worker, args=("b",))]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(errors, [])
+        self.assertLessEqual(len(state["news_log"]), NEWS_LOG_LIMIT)
+        self.assertGreater(len(state["news_log"]), NEWS_LOG_LIMIT - 10)
+
+
 if __name__ == "__main__":
     unittest.main()

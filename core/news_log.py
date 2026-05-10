@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from typing import Iterable
@@ -8,6 +9,8 @@ from core.time_utils import ISTANBUL_TZ, parse_datetime
 
 NEWS_LOG_LIMIT = 4000
 DIGEST_HOURS = {8, 20}
+
+_NEWS_LOG_LOCK = threading.Lock()
 
 
 def _safe_text(value: str, limit: int = 4000) -> str:
@@ -44,26 +47,28 @@ def _source_type(item: dict) -> str:
 
 
 def append_news_log(state: dict, entry: dict):
-    logs = list(state.get('news_log', []))
-    logs.append(entry)
-    state['news_log'] = logs[-NEWS_LOG_LIMIT:]
+    with _NEWS_LOG_LOCK:
+        logs = list(state.get('news_log', []))
+        logs.append(entry)
+        state['news_log'] = logs[-NEWS_LOG_LIMIT:]
 
 
 def update_news_log(state: dict, item_id: str, **updates):
-    logs = list(state.get('news_log', []))
-    for idx in range(len(logs) - 1, -1, -1):
-        if logs[idx].get('id') != item_id:
-            continue
-        merged = dict(logs[idx])
-        merged.update({k: v for k, v in updates.items() if v is not None})
-        logs[idx] = merged
+    with _NEWS_LOG_LOCK:
+        logs = list(state.get('news_log', []))
+        for idx in range(len(logs) - 1, -1, -1):
+            if logs[idx].get('id') != item_id:
+                continue
+            merged = dict(logs[idx])
+            merged.update({k: v for k, v in updates.items() if v is not None})
+            logs[idx] = merged
+            state['news_log'] = logs[-NEWS_LOG_LIMIT:]
+            return
+        # yoksa ekle
+        entry = {'id': item_id}
+        entry.update({k: v for k, v in updates.items() if v is not None})
+        logs.append(entry)
         state['news_log'] = logs[-NEWS_LOG_LIMIT:]
-        return
-    # yoksa ekle
-    entry = {'id': item_id}
-    entry.update({k: v for k, v in updates.items() if v is not None})
-    logs.append(entry)
-    state['news_log'] = logs[-NEWS_LOG_LIMIT:]
 
 
 def collect_digest_candidates(log_items: Iterable[dict], now: datetime) -> list[dict]:

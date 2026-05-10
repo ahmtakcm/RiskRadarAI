@@ -561,6 +561,5 @@ def process_candidates(state: dict, official_candidates: list, social_candidates
     sent_count = _process_analysis_group(state, analysis_candidates, seen_hashes, sent_count, verification_rules)
 
     state['seen_news_hashes'] = list(seen_hashes)[-5000:]
-    state['seen_story_hashes'] = list(set(state.get('seen_story_hashes', [])))[-5000:]
     state['official_signal_history'] = _trim_history(state.get('official_signal_history', []), limit=400)
     state['pending_unofficial_signals'] = _trim_history(state.get('pending_unofficial_signals', []), limit=400)
