@@ -17,6 +17,12 @@ LEGACY_COMMAND_REDIRECTS = {
     "/profil_tum": "/profiles",
     "/profil_on": "/profile_on",
     "/profil_off": "/profile_off",
+    "/profil_resmi": "/profiles",
+    "/profil_haber": "/profiles",
+    "/profil_ekonomi": "/profiles",
+    "/profil_osint": "/profiles",
+    "/profil_saglik": "/profiles",
+    "/kaynak_test_url": "/kaynak_test",
     "/policy": "/audit",
     "/modes": "/profiles",
 }
@@ -25,8 +31,12 @@ ALIAS_COMMAND_MAP = {
     "/start": "/menu",
     "/help": "/menu",
     "/menu": "/menu",
+    "/komutlar": "/menu",
+    "/yardim": "/menu",
     "/profiles": "/profiles",
+    "/profil_liste": "/profiles",
     "/profile_status": "/profile_status",
+    "/profil_durum": "/profile_status",
     "/profile_sources": "/profile_sources",
     "/profile_on": "/profile_on",
     "/profile_off": "/profile_off",
@@ -41,8 +51,11 @@ BUTTON_COMMAND_MAP = {
     "✅ Sağlık": "/health",
     "🧾 Audit": "/audit",
     "📚 Profiller": "/profiles",
+    "📡 Kaynaklar": "/kaynak",
+    "👁 Watch": "/profile_status",
     "🔎 Ara": "/ara",
     "🔎 Tara": "/tara",
+    "📋 Menü": "/menu",
 }
 
 

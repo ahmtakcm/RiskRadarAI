@@ -10,7 +10,6 @@ if not token:
     raise SystemExit("BOT_TOKEN bulunamadı")
 
 commands = [
-    {"command": "kaynak_test_url", "description": "URL test et"},
     {"command": "kaynak_test", "description": "Kaynak test et"},
     {"command": "kaynak_sil", "description": "Kaynak sil"},
     {"command": "kaynak_ekle", "description": "Yeni kaynak ekle"},
@@ -30,17 +29,9 @@ commands = [
     {"command": "profile_off", "description": "Profil kapat: profile_off <id>"},
     {"command": "profile_policy", "description": "Profil policy: profile_policy <id>"},
     {"command": "profile_sources", "description": "Profil kaynakları: profile_sources <id>"},
-    {"command": "alarm_on", "description": "Alarm aç: alarm_on <id>"},
-    {"command": "alarm_off", "description": "Alarm kapat: alarm_off <id>"},
-    {"command": "digest_on", "description": "Digest aç: digest_on <id>"},
-    {"command": "digest_off", "description": "Digest kapat: digest_off <id>"},
     {"command": "alarm_esik", "description": "Alarm eşiği: alarm_esik <id> <sayı>"},
     {"command": "ara", "description": "Manuel arama: ara <profil?> <sorgu>"},
     {"command": "tara", "description": "Manuel tarama: tara <profil?> <24s|24h|sorgu>"},
-    {"command": "watch_liste", "description": "Manuel takip listesi"},
-    {"command": "watch_ekle", "description": "Manuel takip ekle"},
-    {"command": "watch_sil", "description": "Manuel takip sil"},
-    {"command": "feed_kontrol", "description": "Feed log/hata kontrolü"},
     {"command": "profil", "description": "Yardım"},
     {"command": "audit", "description": "Bildirim audit"},
     {"command": "health", "description": "Sağlık durumu"},

@@ -35,6 +35,62 @@ class TelegramCommandRoutingTests(unittest.TestCase):
         self.assertIn('Bilinmeyen komut', reply)
         self.assertIn('/audit', reply)
 
+    def test_komutlar_maps_to_menu(self):
+        """/komutlar routes to menu, not unknown command."""
+        import commands.profile_commands as pc
+        reply = pc.handle_profile_command("/komutlar")
+        self.assertIn("RiskRadarAI", reply)
+        self.assertNotIn("Bilinmeyen", reply)
+
+    def test_yardim_maps_to_menu(self):
+        """/yardim routes to menu."""
+        import commands.profile_commands as pc
+        reply = pc.handle_profile_command("/yardim")
+        self.assertIn("RiskRadarAI", reply)
+
+    def test_keyboard_kaynaklar_routes(self):
+        """Keyboard button 📡 Kaynaklar routes."""
+        import commands.profile_commands as pc
+        reply = pc.handle_profile_command("📡 Kaynaklar")
+        self.assertIsNotNone(reply)
+        self.assertIn("Kaynak", reply)
+
+    def test_keyboard_watch_routes(self):
+        """Keyboard button 👁 Watch routes."""
+        import commands.profile_commands as pc
+        reply = pc.handle_profile_command("👁 Watch")
+        self.assertIsNotNone(reply)
+        self.assertNotIn("Bilinmeyen", reply)
+
+    def test_keyboard_menu_routes(self):
+        """Keyboard button 📋 Menü routes to /menu."""
+        import commands.profile_commands as pc
+        reply = pc.handle_profile_command("📋 Menü")
+        self.assertIn("RiskRadarAI", reply)
+
+    def test_profil_liste_routes_to_profiles(self):
+        """Legacy /profil_liste routes."""
+        import commands.profile_commands as pc
+        reply = pc.handle_profile_command("/profil_liste")
+        self.assertNotIn("Bilinmeyen", reply)
+
+    def test_profil_durum_routes_to_profile_status(self):
+        """Legacy /profil_durum routes."""
+        import commands.profile_commands as pc
+        reply = pc.handle_profile_command("/profil_durum")
+        self.assertNotIn("Bilinmeyen", reply)
+
+    def test_legacy_turkish_profil_commands_redirect(self):
+        """Legacy Turkish profil commands redirect with warning."""
+        import commands.profile_commands as pc
+        for legacy in ["/profil_resmi", "/profil_haber", "/profil_ekonomi",
+                       "/profil_osint", "/profil_saglik"]:
+            with self.subTest(command=legacy):
+                reply = pc.handle_profile_command(legacy)
+                self.assertIsNotNone(reply)
+                self.assertNotIn("Bilinmeyen", reply)
+                self.assertIn("kaldırıldı", reply)
+
     def test_profiles_and_status_commands_return_non_empty(self):
         import commands.profile_commands as pc
         with tempfile.TemporaryDirectory() as tmp:

@@ -22,12 +22,12 @@ COMMANDS = [
     "/profil_liste",
     "/profil_durum",
     "/watch",
-    "/watch_liste",
     "/tara",
     "✅ Sağlık",
     "📚 Profiller",
     "📡 Kaynaklar",
     "👁 Watch",
+    "🔎 Ara",
     "🔎 Tara",
     "📋 Menü",
 ]
