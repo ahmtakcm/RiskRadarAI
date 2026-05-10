@@ -106,6 +106,12 @@ def _notification_audit_summary(output: str, *, as_json: bool) -> str:
 
 def handle_audit_command(text: str) -> str | None:
     raw = (text or "").strip().lower()
+    if raw in {"/audit", "/audit_json"}:
+        ok, output = _run_script("ops/notification_audit.py")
+        if not ok:
+            return "❌ Denetim raporu üretilemedi\n" + output[:1200]
+        return _notification_audit_summary(output, as_json=raw == "/audit_json")
+
     if raw not in {"/health", "/source_health", "/kaynak_saglik"}:
         return None
 

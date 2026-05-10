@@ -1,4 +1,5 @@
 import json
+import threading
 from pathlib import Path
 from collections import Counter
 
@@ -14,6 +15,11 @@ from source_selectors.profile_policy import canonical_profile_name
 STATE_PATH = USER_INPUTS_DIR / "profile_state.json"
 WATCH_PATH = USER_INPUTS_DIR / "manual_watch.json"
 POLICY_OVERRIDE_PATH = USER_INPUTS_DIR / "notification_policy_overrides.json"
+
+# Thread lock for profile state and policy overrides file access.
+# These files are read by source_selectors.profile_loader (main loop)
+# while written by commands.profile_commands (command worker thread).
+_PROFILE_FILE_LOCK = threading.Lock()
 
 # Telegram-visible stable profile IDs
 KNOWN_PROFILE_IDS = [
@@ -134,6 +140,11 @@ def available_profiles():
 
 
 def load_profile_state():
+    with _PROFILE_FILE_LOCK:
+        return _load_profile_state_unsafe()
+
+
+def _load_profile_state_unsafe():
     profiles = available_profiles()
     state = _load_json(STATE_PATH, {})
 
@@ -153,21 +164,24 @@ def load_profile_state():
 
 
 def save_profile_state(state):
-    _save_json(STATE_PATH, state)
+    with _PROFILE_FILE_LOCK:
+        _save_json(STATE_PATH, state)
 
 
 def _load_policy_overrides() -> dict:
-    data = _load_json(POLICY_OVERRIDE_PATH, {})
-    if not isinstance(data, dict):
-        data = {}
-    data.setdefault("profiles", {})
-    if not isinstance(data.get("profiles"), dict):
-        data["profiles"] = {}
-    return data
+    with _PROFILE_FILE_LOCK:
+        data = _load_json(POLICY_OVERRIDE_PATH, {})
+        if not isinstance(data, dict):
+            data = {}
+        data.setdefault("profiles", {})
+        if not isinstance(data.get("profiles"), dict):
+            data["profiles"] = {}
+        return data
 
 
 def _save_policy_overrides(data: dict):
-    _save_json(POLICY_OVERRIDE_PATH, data)
+    with _PROFILE_FILE_LOCK:
+        _save_json(POLICY_OVERRIDE_PATH, data)
 
 
 def _known_profiles_available() -> list[str]:
@@ -350,6 +364,7 @@ def handle_profile_command(text: str) -> str | None:
         return legacy_msg
 
     for name, handler in (
+        ("source", handle_source_command),
         ("audit", handle_audit_command),
         ("manual_scan", handle_manual_scan_command),
         ("digest", handle_digest_command),
@@ -367,64 +382,6 @@ def handle_profile_command(text: str) -> str | None:
     return None
 
 
-def _load_watch():
-    data = _load_json(WATCH_PATH, {})
-    data.setdefault("enabled", True)
-    data.setdefault("keywords", [])
-    data.setdefault("priority", "high")
-    return data
-
-
-def _save_watch(data):
-    _save_json(WATCH_PATH, data)
-
-
-def handle_watch_command(text: str) -> str | None:
-    raw = (text or "").strip()
-
-    if raw.startswith("/watch_liste") or raw == "/watch":
-        data = _load_watch()
-        kws = data.get("keywords", [])
-        if not kws:
-            return "📌 Manuel takip listesi boş."
-        return "📌 Manuel takip kelimeleri:\n" + "\n".join(f"✅ {x}" for x in kws)
-
-    if raw.startswith("/watch_ekle"):
-        value = raw.replace("/watch_ekle", "", 1).strip()
-        if not value:
-            return "Eklenecek kelime eksik. Örn: /watch_ekle Mersin"
-        data = _load_watch()
-        kws = data.setdefault("keywords", [])
-        if value not in kws:
-            kws.append(value)
-        _save_watch(data)
-        return f"✅ Manuel takip eklendi: {value}"
-
-    if raw.startswith("/watch_sil"):
-        value = raw.replace("/watch_sil", "", 1).strip()
-        if not value:
-            return "Silinecek kelime eksik. Örn: /watch_sil Mersin"
-        data = _load_watch()
-        kws = data.setdefault("keywords", [])
-        data["keywords"] = [x for x in kws if x.lower() != value.lower()]
-        _save_watch(data)
-        return f"🗑 Manuel takip silindi: {value}"
-
-    return None
-
-
-def handle_feed_command(text: str) -> str | None:
-    raw = (text or "").strip()
-    if raw == "/feed_kontrol":
-        import subprocess
-        import sys
-        subprocess.Popen(
-            [sys.executable, "scripts/feed_log_check.py"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        return "🔍 Feed log kontrolü başlatıldı..."
-    return None
 
 
 

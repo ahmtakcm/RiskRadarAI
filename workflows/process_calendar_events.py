@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 import json
+import threading
 from pathlib import Path
 
 from clients.telegram_client import telegram_client
@@ -13,6 +14,7 @@ from workflows.macro_high_alert import activate_high_alert
 
 logger = get_logger('process_calendar_events')
 CACHE_PATH = Path("storage/calendar_cache.json")
+_CALENDAR_CACHE_LOCK = threading.Lock()
 
 
 def _parse_iso(value: str) -> datetime:
@@ -20,17 +22,19 @@ def _parse_iso(value: str) -> datetime:
 
 
 def _load_cache() -> dict:
-    if not CACHE_PATH.exists():
-        return {"events": []}
-    try:
-        return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
-    except Exception:
-        return {"events": []}
+    with _CALENDAR_CACHE_LOCK:
+        if not CACHE_PATH.exists():
+            return {"events": []}
+        try:
+            return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return {"events": []}
 
 
 def _save_cache(data: dict):
-    CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    CACHE_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    with _CALENDAR_CACHE_LOCK:
+        CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        CACHE_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def _sent(event: dict, key: str) -> bool:
