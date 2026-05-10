@@ -1,0 +1,26 @@
+# RiskRadarAI Deployment
+
+## Environment
+
+Current deployment target:
+
+- Google Cloud VM
+- Ubuntu
+- systemd managed runtime
+
+---
+
+# Runtime Service
+
+Service name:
+
+riskradarai.service
+
+---
+
+# Common Operations
+
+## Service Status
+
+```bash
+systemctl status riskradarai.service
