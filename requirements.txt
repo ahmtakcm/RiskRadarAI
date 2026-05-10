@@ -1,3 +1,4 @@
 requests>=2.31.0
 python-dotenv>=1.0.1
 google-genai>=1.72.0
+pytest>=9.0.3
