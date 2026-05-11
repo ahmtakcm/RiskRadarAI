@@ -16,26 +16,26 @@ def send_telegram(text: str):
 
 def main():
     if not LOG_PATH.exists():
-        send_telegram("â„¹ï¸ Feed log kontrolÃ¼: app.log henÃ¼z yok.")
+        send_telegram("Ã¢â€Â¹Ã¯Â¸Â Feed log kontrolÃƒÂ¼: app.log henÃƒÂ¼z yok.")
         print("NO_LOG")
         return
 
     lines = LOG_PATH.read_text(errors="ignore").splitlines()
-    errors = [x for x in lines[-300:] if "Haber feed hatasÄ±" in x]
+    errors = [x for x in lines[-300:] if "Haber feed hatasÃ„Â±" in x]
 
     if not errors:
-        send_telegram("âœ… Feed log kontrolÃ¼ temiz. GÃ¼ncel logda feed hatasÄ± yok.")
+        send_telegram("Ã¢Å“â€¦ Feed log kontrolÃƒÂ¼ temiz. GÃƒÂ¼ncel logda feed hatasÃ„Â± yok.")
         print("OK_NO_FEED_ERROR")
         return
 
     msg = [
-        "âš ï¸ Feed log kontrolÃ¼: hata bulundu.",
-        f"Son 300 satÄ±rda hata sayÄ±sÄ±: {len(errors)}",
+        "Ã¢Å¡Â Ã¯Â¸Â Feed log kontrolÃƒÂ¼: hata bulundu.",
+        f"Son 300 satÃ„Â±rda hata sayÃ„Â±sÃ„Â±: {len(errors)}",
         "",
-        "DetaylÄ± saÄŸlÄ±k kontrolÃ¼ baÅŸlatÄ±ldÄ±..."
+        "DetaylÃ„Â± saÃ„Å¸lÃ„Â±k kontrolÃƒÂ¼ baÃ…Å¸latÃ„Â±ldÃ„Â±..."
     ]
     for e in errors[-5:]:
-        msg.append("â€¢ " + e[-220:])
+        msg.append("Ã¢â‚¬Â¢ " + e[-220:])
 
     send_telegram("\n".join(msg))
 
