@@ -6,7 +6,6 @@ import time
 from commands.profile_commands import handle_profile_command
 from commands.menu import normalize_command_text
 from commands.registry import ADMIN_COMMANDS
-from telegram_ui.keyboard import build_reply_keyboard
 from config.paths import USER_INPUTS_DIR
 from config.settings import settings
 from core.logger import get_logger

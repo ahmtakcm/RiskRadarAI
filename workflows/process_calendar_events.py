@@ -5,7 +5,6 @@ from pathlib import Path
 
 from clients.telegram_client import telegram_client
 from clients.http_client import http_client
-from config.settings import settings
 from core.logger import get_logger
 from parsers.generic_html_parser import strip_html
 from workflows.signal_engine import analyze_event, export_macro_signal

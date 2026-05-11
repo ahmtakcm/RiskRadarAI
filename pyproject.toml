@@ -1,0 +1,6 @@
+[tool.ruff]
+target-version = "py313"
+
+[tool.ruff.lint.per-file-ignores]
+"ops/*.py" = ["E402"]
+"scripts/*.py" = ["E402"]

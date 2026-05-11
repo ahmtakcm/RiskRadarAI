@@ -3,9 +3,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 import subprocess
-from datetime import datetime
-from config.settings import settings
-import requests
+
+from clients.telegram_client import telegram_client
 
 LOG_PATH = Path("storage/app.log")
 HEALTH_SCRIPT = Path("scripts/feed_health_check.py")
@@ -17,26 +16,26 @@ def send_telegram(text: str):
 
 def main():
     if not LOG_PATH.exists():
-        send_telegram("ℹ️ Feed log kontrolü: app.log henüz yok.")
+        send_telegram("â„¹ï¸ Feed log kontrolÃ¼: app.log henÃ¼z yok.")
         print("NO_LOG")
         return
 
     lines = LOG_PATH.read_text(errors="ignore").splitlines()
-    errors = [x for x in lines[-300:] if "Haber feed hatası" in x]
+    errors = [x for x in lines[-300:] if "Haber feed hatasÄ±" in x]
 
     if not errors:
-        send_telegram("✅ Feed log kontrolü temiz. Güncel logda feed hatası yok.")
+        send_telegram("âœ… Feed log kontrolÃ¼ temiz. GÃ¼ncel logda feed hatasÄ± yok.")
         print("OK_NO_FEED_ERROR")
         return
 
     msg = [
-        "⚠️ Feed log kontrolü: hata bulundu.",
-        f"Son 300 satırda hata sayısı: {len(errors)}",
+        "âš ï¸ Feed log kontrolÃ¼: hata bulundu.",
+        f"Son 300 satÄ±rda hata sayÄ±sÄ±: {len(errors)}",
         "",
-        "Detaylı sağlık kontrolü başlatıldı..."
+        "DetaylÄ± saÄŸlÄ±k kontrolÃ¼ baÅŸlatÄ±ldÄ±..."
     ]
     for e in errors[-5:]:
-        msg.append("• " + e[-220:])
+        msg.append("â€¢ " + e[-220:])
 
     send_telegram("\n".join(msg))
 

@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from config.paths import STORAGE_DIR
 
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)

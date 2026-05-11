@@ -2,7 +2,6 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
-from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 import requests
