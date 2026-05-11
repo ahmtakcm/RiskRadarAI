@@ -1,4 +1,7 @@
-import json, re, hashlib, sys
+import json
+import re
+import hashlib
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urljoin
@@ -85,7 +88,7 @@ def main():
                 existing.add(iid)
                 added += 1
 
-            except Exception as e:
+            except Exception:
                 continue
 
     INDEX_PATH.write_text(json.dumps(idx, ensure_ascii=False, indent=2))

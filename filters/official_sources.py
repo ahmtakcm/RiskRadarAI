@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from core.matching import tokenize_text
 
 
 def annotate_official_context(item: dict, active_config: dict) -> dict:
@@ -11,7 +10,6 @@ def annotate_official_context(item: dict, active_config: dict) -> dict:
         str(item.get('description', '') or ''),
         str(item.get('article_text', '') or ''),
     ]).lower()
-    tokens = set(tokenize_text(text))
 
     override_terms = [t.lower() for t in rules.get('official_keyword_override_terms', []) if t]
     red_sources = set(rules.get('official_sources_red_alert', []) or [])

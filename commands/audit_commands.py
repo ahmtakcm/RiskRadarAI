@@ -48,7 +48,6 @@ def _source_health_summary(output: str, *, only_issues: bool) -> str:
                         pass
 
         if line.startswith(("official_", "social_", "osint_", "analysis_")):
-            cols = [x for x in line.split("  ") if x.strip()]
             compact = " ".join(line.split())
             if " unknown " in f" {compact} ":
                 unknown += 1

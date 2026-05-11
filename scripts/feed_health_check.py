@@ -7,7 +7,6 @@ import requests
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from config.settings import settings
 from clients.telegram_client import telegram_client
 
 FEEDS_PATH = Path("rules/feeds.json")

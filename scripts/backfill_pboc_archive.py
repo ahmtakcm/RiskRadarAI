@@ -77,11 +77,11 @@ def _extract_links(html):
 
     seen = set()
     out = []
-    for l, u in links:
+    for label, u in links:
         if u in seen:
             continue
         seen.add(u)
-        out.append((l, u))
+        out.append((label, u))
 
     return out
 
@@ -162,3 +162,4 @@ def main(limit=120):
 
 if __name__ == "__main__":
     main()
+

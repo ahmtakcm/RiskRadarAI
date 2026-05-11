@@ -1,7 +1,6 @@
 import json
 import threading
 from pathlib import Path
-from collections import Counter
 
 from config.paths import PROFILES_DIR, USER_INPUTS_DIR
 from commands.audit_commands import handle_audit_command

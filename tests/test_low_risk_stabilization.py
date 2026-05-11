@@ -8,7 +8,6 @@ Tests for low-risk stabilization changes:
 5. Remove watch/feed dead handlers
 """
 import json
-import os
 import tempfile
 import threading
 import time
