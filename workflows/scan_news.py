@@ -19,6 +19,8 @@ from core.matching import build_topic_tokens
 
 logger = get_logger('scan_news')
 
+SOCIAL_STATUS_HOSTS = {'nitter.net', 'twitt.re', 'xcancel.com'}
+
 
 def _normalized_title(title: str) -> str:
     text = re.sub(r'\s+', ' ', str(title or '').strip().lower())
@@ -36,10 +38,10 @@ def _canonical_story_key(item: dict) -> str:
             match = re.search(r'/article-(\d+)', path)
             if match:
                 return f'jpost:article:{match.group(1)}'
-        if host in {'nitter.net', 'twitt.re'}:
+        if host in SOCIAL_STATUS_HOSTS:
             match = re.search(r'/status/(\d+)', path)
             if match:
-                return f'{host}:status:{match.group(1)}'
+                return f'social-status:{match.group(1)}'
         if path:
             return f'{host}:{path}'
     if title:
