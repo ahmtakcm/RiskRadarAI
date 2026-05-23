@@ -106,6 +106,24 @@ class ScanAliasAndScoringTests(unittest.TestCase):
         self.assertIn('world bank', names)
         self.assertIn('u.s. treasury', names)
 
+    def test_generated_fomc_events_keep_full_countdown_strategy(self):
+        from scripts.generate_macro_calendar_events import parse_fomc
+
+        events = parse_fomc()
+
+        self.assertTrue(events)
+        self.assertTrue(all(event['pre_alerts_minutes'] == [1440, 180, 60, 30] for event in events))
+        self.assertTrue(all(event['importance_level'] == 1 for event in events))
+
+    def test_generated_tcmb_events_keep_full_countdown_strategy(self):
+        from scripts.generate_macro_calendar_events import parse_tcmb_calendar
+
+        events = parse_tcmb_calendar()
+
+        self.assertTrue(events)
+        self.assertTrue(all(event['pre_alerts_minutes'] == [1440, 180, 60, 30] for event in events))
+        self.assertTrue(all(event['importance_level'] == 1 for event in events))
+
 
 class DigestReliabilityTests(unittest.TestCase):
     def _state_with_item(self, **overrides):

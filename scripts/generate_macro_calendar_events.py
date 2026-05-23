@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from workflows.macro_event_importance import enrich_macro_event
+
 CALENDAR_CACHE = ROOT / "storage/calendar_cache.json"
 RAW_DIR = ROOT / "storage/macro_archive/raw"
 
@@ -33,7 +35,7 @@ def _slug(s):
     return re.sub(r"[^a-z0-9]+", "_", s).strip("_")[:80]
 
 def _event(eid, title, source, category, dt, url, signals, etype="macro_event"):
-    return {
+    return enrich_macro_event({
         "id": eid,
         "title": title[:180],
         "category": category,
@@ -41,7 +43,6 @@ def _event(eid, title, source, category, dt, url, signals, etype="macro_event"):
         "event_type": etype,
         "datetime": dt.isoformat(),
         "timezone": "UTC",
-        "pre_alerts_minutes": [1440, 180, 60, 30],
         "post_window_minutes": 360,
         "watch_urls": [url] if url else [],
         "publish_signals": signals,
@@ -49,7 +50,7 @@ def _event(eid, title, source, category, dt, url, signals, etype="macro_event"):
         "status": "active",
         "sent_alerts": [],
         "auto_generated": True
-    }
+    })
 
 def parse_fomc():
     out = []
@@ -226,6 +227,8 @@ def parse_bls():
         ("Employment Situation", "Employment Situation / NFP"),
         ("Job Openings and Labor Turnover", "JOLTS"),
         ("Employment Cost Index", "Employment Cost Index"),
+        ("Unemployment", "Unemployment Rate"),
+        ("Real Earnings", "Real Earnings"),
     ]
 
     for needle, label in wanted:
@@ -275,7 +278,16 @@ def parse_bea():
     # Örnek: May 28 8:30 AM N ews GDP (Second Estimate)...
     pattern = r"\b(May|June|July|August|September|October|November|December)\s+(\d{1,2})\s+(\d{1,2}:\d{2}\s+[AP]M)\s+N\s*ews\s+([^\.]{5,180}?)(?=\s+(?:May|June|July|August|September|October|November|December)\s+\d{1,2}\s+\d{1,2}:\d{2}\s+[AP]M\s+N\s*ews|\s+To Be Announced|$)"
 
-    important = ("GDP", "Personal Income and Outlays", "Personal Consumption", "PCE")
+    important = (
+        "GDP",
+        "Gross Domestic Product",
+        "Personal Income and Outlays",
+        "Personal Consumption",
+        "PCE",
+        "International Trade",
+        "Retail",
+        "Corporate Profits",
+    )
 
     for m in re.finditer(pattern, text, flags=re.I):
         month_name, day_s, time_s, title = m.group(1), m.group(2), m.group(3), m.group(4)
