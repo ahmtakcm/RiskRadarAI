@@ -15,6 +15,9 @@ KEYWORDS = {
     "hormuz": ["hormuz", "hürmüz", "strait of hormuz"],
     "iran": ["iran", "tehran", "tahran"],
     "israel": ["israel", "israil", "gaza", "palestine"],
+    "russia": ["russia", "russian", "moscow", "kremlin", "mfa"],
+    "ukraine": ["ukraine", "ukrainian", "kyiv", "donbas"],
+    "starobelsk": ["starobelsk", "starobilsk"],
     "oil": ["oil", "petrol", "brent", "crude", "opec"],
     "defense": ["centcom", "defense", "strike", "missile", "drone", "navy"],
 }
@@ -40,6 +43,15 @@ def cluster_key(item):
 
     if "iran" in hits and "defense" in hits:
         return "iran-defense"
+
+    if "russia" in hits and "starobelsk" in hits:
+        return "russia-ukraine-starobelsk"
+
+    if "ukraine" in hits and "starobelsk" in hits:
+        return "russia-ukraine-starobelsk"
+
+    if "russia" in hits and "ukraine" in hits:
+        return "russia-ukraine"
 
     if "oil" in hits:
         return "oil-energy"
