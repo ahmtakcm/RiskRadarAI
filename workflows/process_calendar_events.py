@@ -10,6 +10,7 @@ from parsers.generic_html_parser import strip_html
 from workflows.signal_engine import analyze_event, export_macro_signal
 from workflows.post_release_analysis import build_post_release_analysis
 from workflows.macro_high_alert import activate_high_alert
+from workflows.macro_event_importance import DEFAULT_PRE_ALERTS, enrich_macro_event
 
 logger = get_logger('process_calendar_events')
 CACHE_PATH = Path("storage/calendar_cache.json")
@@ -101,6 +102,16 @@ def _calendar_message(event: dict, mode: str, minutes_left: int | None = None):
             _scenario_text(event),
         ]
 
+    if event.get("importance_score"):
+        lines.append(f"Onem skoru: {event.get('importance_score')} - {event.get('importance_reason', '')}")
+
+    if event.get("actual") is not None and event.get("forecast") is not None:
+        lines.append(
+            "Veri: "
+            f"actual={event.get('actual')} forecast={event.get('forecast')} "
+            f"sapma_skoru={event.get('surprise_score', 0)}"
+        )
+
     signal = event.get("signal") or {}
     if signal:
         impact = signal.get("impact") or {}
@@ -126,6 +137,28 @@ def _calendar_message(event: dict, mode: str, minutes_left: int | None = None):
     return '\n'.join(lines)
 
 
+def _thresholds_for_event(event: dict) -> list[tuple[str, int]]:
+    labels = {
+        1440: "24h",
+        180: "3h",
+        60: "60m",
+        30: "30m",
+    }
+    raw_minutes = event.get("pre_alerts_minutes")
+    if raw_minutes is None:
+        raw_minutes = DEFAULT_PRE_ALERTS
+
+    thresholds = []
+    for minute in raw_minutes:
+        try:
+            minute_int = int(minute)
+        except (TypeError, ValueError):
+            continue
+        thresholds.append((labels.get(minute_int, f"{minute_int}m"), minute_int))
+
+    return sorted(thresholds, key=lambda item: item[1], reverse=True)
+
+
 def _check_publish_signals(event: dict) -> bool:
     signals = [s.lower() for s in event.get('publish_signals', []) if s]
     if not signals:
@@ -144,6 +177,7 @@ def _check_publish_signals(event: dict) -> bool:
 
 def _handle_event(event: dict, now: datetime) -> bool:
     changed = False
+    enrich_macro_event(event)
 
     try:
         event_time = _parse_iso(event['datetime']).astimezone(timezone.utc)
@@ -177,12 +211,7 @@ def _handle_event(event: dict, now: datetime) -> bool:
     if delta_minutes > 1440:
         return changed
 
-    thresholds = [
-        ("24h", 1440),
-        ("3h", 180),
-        ("60m", 60),
-        ("30m", 30),
-    ]
+    thresholds = _thresholds_for_event(event)
 
     if delta_minutes >= 0:
         for key, threshold in thresholds:

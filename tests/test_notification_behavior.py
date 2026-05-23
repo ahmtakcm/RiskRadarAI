@@ -234,6 +234,152 @@ class NotificationBehaviorTests(unittest.TestCase):
         self.assertFalse(changed)
         self.assertEqual(sent.messages, [])
 
+    def test_calendar_default_thresholds_preserve_existing_long_term_events(self):
+        import workflows.process_calendar_events as cal
+
+        event = {
+            'id': 'fomc-default',
+            'title': 'FOMC Meeting June 16-17 2026',
+            'source_name': 'Federal Reserve FOMC',
+            'category': 'rate_decision',
+            'event_type': 'scheduled_decision',
+        }
+
+        self.assertEqual(
+            cal._thresholds_for_event(event),
+            [('24h', 1440), ('3h', 180), ('60m', 60), ('30m', 30)],
+        )
+
+    def test_calendar_high_macro_data_can_skip_last_minute_countdown(self):
+        import workflows.process_calendar_events as cal
+        sent = FakeTelegram()
+        now = datetime.now(timezone.utc)
+        event = {
+            'id': 'gdp-high',
+            'title': 'BEA GDP second estimate',
+            'source_name': 'BEA',
+            'category': 'macro_data',
+            'event_type': 'macro_data_release',
+            'datetime': (now + timedelta(minutes=20)).isoformat(),
+            'post_window_minutes': 120,
+            'watch_urls': [],
+            'publish_signals': ['gdp'],
+            'sent_alerts': ['24h', '3h'],
+        }
+
+        with patch.object(cal, 'telegram_client', sent), \
+             patch.object(cal, 'analyze_event', lambda event: {}), \
+             patch.object(cal, 'export_macro_signal', lambda signal, event: None), \
+             patch.object(cal, 'activate_high_alert', lambda event, mode, hours: None):
+            changed = cal._handle_event(event, now)
+
+        self.assertFalse(changed)
+        self.assertEqual(sent.messages, [])
+
+    def test_calendar_critical_macro_data_keeps_full_countdown(self):
+        from workflows.macro_event_importance import classify_macro_event
+
+        metadata = classify_macro_event({
+            'title': 'BLS CPI Consumer Price Index',
+            'source_name': 'BLS',
+            'category': 'macro_data',
+            'event_type': 'macro_data_release',
+        })
+
+        self.assertEqual(metadata['importance_level'], 1)
+        self.assertEqual(metadata['recommended_pre_alerts_minutes'], [1440, 180, 60, 30])
+
+    def test_calendar_personnel_change_is_critical_macro_event(self):
+        from workflows.macro_event_importance import classify_macro_event
+
+        metadata = classify_macro_event({
+            'title': 'Federal Reserve Chair nomination announced',
+            'source_name': 'Federal Reserve',
+            'category': 'central_bank',
+            'event_type': 'personnel',
+        })
+
+        self.assertEqual(metadata['importance_level'], 1)
+        self.assertGreaterEqual(metadata['importance_score'], 90)
+
+    def test_calendar_large_macro_surprise_becomes_critical(self):
+        from workflows.macro_event_importance import enrich_macro_event
+
+        event = enrich_macro_event({
+            'title': 'BLS CPI Consumer Price Index',
+            'source_name': 'BLS',
+            'category': 'macro_data',
+            'event_type': 'macro_data_release',
+            'actual': '3.7',
+            'forecast': '3.4',
+        })
+
+        self.assertEqual(event['importance_level'], 1)
+        self.assertGreaterEqual(event['importance_score'], 95)
+        self.assertGreaterEqual(event['surprise_score'], 75)
+
+    def test_calendar_small_macro_surprise_stays_low_noise(self):
+        from workflows.macro_event_importance import enrich_macro_event
+
+        event = enrich_macro_event({
+            'title': 'Regional retail indicator',
+            'source_name': 'Example Source',
+            'category': 'macro_data',
+            'event_type': 'macro_data_release',
+            'actual': '3.41',
+            'forecast': '3.40',
+        })
+
+        self.assertEqual(event['importance_level'], 3)
+        self.assertLess(event['surprise_score'], 30)
+        self.assertEqual(event['pre_alerts_minutes'], [])
+
+    def test_calendar_cached_watch_event_upgrades_on_late_surprise(self):
+        from workflows.macro_event_importance import enrich_macro_event
+
+        event = {
+            'title': 'BLS CPI Consumer Price Index',
+            'source_name': 'BLS',
+            'category': 'macro_data',
+            'event_type': 'macro_data_release',
+            'importance_level': 3,
+            'importance_score': 50,
+            'importance_reason': 'izleme düzeyi makro olay',
+            'notification_strategy': 'digest_or_published',
+            'pre_alerts_minutes': [],
+            'surprise_score': 0,
+            'actual': '3.7',
+            'forecast': '3.4',
+        }
+
+        enriched = enrich_macro_event(event)
+
+        self.assertEqual(enriched['importance_level'], 1)
+        self.assertGreaterEqual(enriched['importance_score'], 95)
+        self.assertEqual(enriched['pre_alerts_minutes'], [1440, 180, 60, 30])
+        self.assertGreaterEqual(enriched['surprise_score'], 75)
+
+    def test_calendar_message_includes_importance_and_surprise_context(self):
+        import workflows.process_calendar_events as cal
+
+        event = {
+            'title': 'BLS CPI Consumer Price Index',
+            'source_name': 'BLS',
+            'category': 'macro_data',
+            'datetime': '2026-06-10T12:30:00+00:00',
+            'importance_score': 95,
+            'importance_reason': 'kritik makro sapma',
+            'actual': '3.7',
+            'forecast': '3.4',
+            'surprise_score': 88,
+        }
+
+        text = cal._calendar_message(event, 'published')
+
+        self.assertIn('Onem skoru: 95', text)
+        self.assertIn('actual=3.7 forecast=3.4', text)
+        self.assertIn('sapma_skoru=88', text)
+
 
 if __name__ == '__main__':
     unittest.main()

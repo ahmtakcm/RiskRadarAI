@@ -20,8 +20,11 @@ REPORT_PATH = Path("storage/macro_sources_report.json")
 KEYWORDS = [
     "interest rate", "monetary policy", "policy rate", "rate decision",
     "inflation", "cpi", "employment", "nonfarm", "gdp", "retail sales",
-    "speech", "remarks", "minutes", "statement", "press conference",
-    "opec", "production", "oil", "energy", "enflasyon", "faiz", "ppk"
+    "pce", "pmi", "unemployment", "housing", "building permits",
+    "industrial production", "speech", "remarks", "minutes", "statement",
+    "press conference", "chair", "governor", "nomination", "sanctions",
+    "systemic risk", "financial stability", "opec", "production", "oil",
+    "energy", "enflasyon", "faiz", "ppk"
 ]
 
 def _safe_id(value: str) -> str:
