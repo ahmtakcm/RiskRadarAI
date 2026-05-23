@@ -45,6 +45,33 @@ class TelegramSafetyTests(unittest.TestCase):
         self.assertNotIn('quoted social embed', cleaned)
         self.assertNotIn('x.png', cleaned)
 
+    def test_clean_telegram_text_removes_escaped_html_noise(self):
+        from enrichers.text_hygiene import clean_telegram_text
+
+        raw = (
+            '&lt;p&gt;Fed update&lt;/p&gt;'
+            '&lt;img src="x.png"&gt;'
+            '&lt;a href="https://example.com/fed"&gt;Read&lt;/a&gt;'
+        )
+
+        cleaned = clean_telegram_text(raw)
+
+        self.assertIn('Fed update', cleaned)
+        self.assertIn('Read (https://example.com/fed)', cleaned)
+        self.assertNotIn('<img', cleaned)
+        self.assertNotIn('&lt;img', cleaned)
+        self.assertNotIn('<a href', cleaned)
+
+    def test_simple_tr_rewrite_does_not_replace_inside_words(self):
+        from enrichers.text_hygiene import simple_tr_rewrite
+
+        text = simple_tr_rewrite('The warning says war risk is rising near U.S. officials.')
+
+        self.assertIn('warning', text)
+        self.assertNotIn('savaşning', text)
+        self.assertIn('savaş risk', text)
+        self.assertIn('U.S.', text)
+
     def test_signal_message_sanitizes_summary_html(self):
         from services.assistant_output import build_signal_message
 

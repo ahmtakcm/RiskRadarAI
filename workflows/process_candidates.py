@@ -102,8 +102,8 @@ def _ensure_usable_summary(item: dict, analysis: dict, origin_label: str) -> boo
         return False
     analysis['summary_tr'] = fallback
     analysis.setdefault('category', 'mixed')
+    analysis.pop('reason_short', None)
     analysis.setdefault('header', f'📢 {origin_label} alarmı')
-    analysis.setdefault('reason_short', 'AI özeti üretilemedi; ham açıklama fallback olarak kullanıldı.')
     return True
 
 
@@ -492,6 +492,11 @@ def _send_cluster_alerts(state: dict, buckets: list[tuple[str, list]], seen_hash
             continue
 
         if not should_send_cluster(cluster, items):
+            for item in items:
+                h = item.get('_candidate_hash')
+                if h:
+                    sent_hashes.add(h)
+                    seen_hashes.add(h)
             continue
 
         text = build_alert(cluster, items)

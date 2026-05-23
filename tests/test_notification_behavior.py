@@ -199,6 +199,47 @@ class NotificationBehaviorTests(unittest.TestCase):
         self.assertIn('Federal Reserve FOMC', reply)
         self.assertEqual(calls, [('official_only', 'fomc')])
 
+    def test_fallback_summary_does_not_show_technical_reason(self):
+        import workflows.process_candidates as pc
+
+        item = {
+            'title': 'Short',
+            'description': 'Russia MFA reported details about Starobelsk and regional security developments with enough detail for fallback.',
+            'source_name': 'Russia MFA',
+        }
+        analysis = {}
+
+        self.assertTrue(pc._ensure_usable_summary(item, analysis, 'Resmi'))
+        self.assertIn('summary_tr', analysis)
+        self.assertNotIn('reason_short', analysis)
+
+    def test_starobelsk_cluster_cooldown_suppresses_individual_duplicates(self):
+        import workflows.process_candidates as pc
+
+        candidates = [
+            candidate(
+                'Russia MFA',
+                title='Russia MFA comments on Starobelsk security incident',
+                description='Starobelsk regional security incident update.',
+                link='https://example.com/one',
+            ),
+            candidate(
+                'News Wire',
+                title='Starobelsk incident draws Russian MFA response',
+                description='Russian MFA statement references Starobelsk.',
+                link='https://example.com/two',
+            ),
+        ]
+        seen = set()
+
+        with patch.object(pc, 'should_send_cluster', lambda cluster, items: False), \
+             patch.object(pc.telegram_client, 'send_message', lambda text: None):
+            sent_count, sent_hashes = pc._send_cluster_alerts({}, [('Haber', candidates)], seen, 0)
+
+        self.assertEqual(sent_count, 0)
+        self.assertEqual(sent_hashes, {candidates[0]['hash'], candidates[1]['hash']})
+        self.assertEqual(seen, sent_hashes)
+
     def test_calendar_sent_alerts_prevents_duplicate_notifications(self):
         import workflows.process_calendar_events as cal
         sent = FakeTelegram()

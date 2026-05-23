@@ -6,10 +6,11 @@ import re
 from typing import Optional
 
 _A_TAG_RE = re.compile(
-    r"<a\b[^>]*\bhref=[\"']([^\"']+)[\"'][^>]*>(.*?)</a>",
+    r"<a\b[^>]*\bhref\s*=\s*(?:[\"']([^\"']+)[\"']|([^>\s]+))[^>]*>(.*?)</a>",
     re.IGNORECASE | re.DOTALL,
 )
 _HTML_TAG_RE = re.compile(r"<[^>]+>")
+_SCRIPT_STYLE_RE = re.compile(r"<(?:script|style|iframe)\b[^>]*>.*?</(?:script|style|iframe)>", re.IGNORECASE | re.DOTALL)
 _WS_RE = re.compile(r"\s+")
 _LINE_WS_RE = re.compile(r"[ \t]+")
 _IMG_RE = re.compile(r"<img\b[^>]*>", re.IGNORECASE)
@@ -32,17 +33,19 @@ _INCOMPLETE_ENDINGS = (
 def clean_html_text(text: Optional[str]) -> str:
     if not text:
         return ""
-    s = str(text)
+    s = html.unescape(html.unescape(str(text)))
+    s = _SCRIPT_STYLE_RE.sub(" ", s)
     s = _IMG_RE.sub(" ", s)
     s = _BR_RE.sub(" ", s)
     s = _HTML_TAG_RE.sub(" ", s)
     s = html.unescape(html.unescape(s))
+    s = _HTML_TAG_RE.sub(" ", s)
     return _WS_RE.sub(" ", s).strip()
 
 
 def _readable_anchor(match: re.Match) -> str:
-    url = html.unescape(match.group(1)).strip()
-    label = clean_html_text(match.group(2))
+    url = html.unescape(match.group(1) or match.group(2) or "").strip()
+    label = clean_html_text(match.group(3))
     if not url:
         return label
     if not label or label == url:
@@ -54,7 +57,9 @@ def clean_telegram_text(text: Optional[str]) -> str:
     """Return user-visible plain text that is safe to place in Telegram messages."""
     if not text:
         return ""
-    s = str(text)
+    s = html.unescape(html.unescape(str(text)))
+    s = _BLOCKQUOTE_RE.sub(" ", s)
+    s = _SCRIPT_STYLE_RE.sub(" ", s)
     s = _BLOCKQUOTE_RE.sub(" ", s)
     s = _IMG_RE.sub(" ", s)
     s = _HR_RE.sub("\n", s)
@@ -63,6 +68,11 @@ def clean_telegram_text(text: Optional[str]) -> str:
     s = _A_TAG_RE.sub(_readable_anchor, s)
     s = _HTML_TAG_RE.sub(" ", s)
     s = html.unescape(html.unescape(s))
+    s = _SCRIPT_STYLE_RE.sub(" ", s)
+    s = _BLOCKQUOTE_RE.sub(" ", s)
+    s = _IMG_RE.sub(" ", s)
+    s = _A_TAG_RE.sub(_readable_anchor, s)
+    s = _HTML_TAG_RE.sub(" ", s)
     lines = [_LINE_WS_RE.sub(" ", line).strip() for line in s.splitlines()]
     lines = [line for line in lines if line]
     return "\n".join(lines).strip()
@@ -120,8 +130,6 @@ def simple_tr_rewrite(text: str) -> str:
 
     replacements = [
         ("United States", "ABD"),
-        ("U.S.", "ABD"),
-        ("US", "ABD"),
         ("Iranian", "İranlı"),
         ("Iran", "İran"),
         ("Strait of Hormuz", "Hürmüz Boğazı"),
@@ -142,7 +150,8 @@ def simple_tr_rewrite(text: str) -> str:
 
     out = text
     for en, tr in replacements:
-        out = out.replace(en, tr)
+        pattern = re.compile(rf"(?<![\w.-]){re.escape(en)}(?![\w.-])", re.IGNORECASE)
+        out = pattern.sub(tr, out)
     return out
 
 def improve_summary_text(
