@@ -217,6 +217,15 @@
       "priority": "low"
     },
     {
+      "id": "us_treasury_press",
+      "source_name": "U.S. Treasury",
+      "category": "fiscal_policy",
+      "url": "https://home.treasury.gov/news/press-releases",
+      "type": "html_archive",
+      "enabled": true,
+      "priority": "high"
+    },
+    {
       "id": "oecd_news",
       "source_name": "OECD",
       "category": "global_macro",

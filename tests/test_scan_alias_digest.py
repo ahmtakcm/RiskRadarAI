@@ -1,5 +1,7 @@
 import unittest
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import patch
 
 
@@ -44,6 +46,65 @@ class ScanAliasAndScoringTests(unittest.TestCase):
         self.assertTrue(reply)
         self.assertTrue(calls)
         self.assertEqual(calls[0][1], 'h?rm?z')
+
+    def test_social_status_story_key_is_mirror_independent(self):
+        from workflows.scan_news import _canonical_story_key
+
+        first = _canonical_story_key({
+            'title': 'Fed decision',
+            'link': 'https://xcancel.com/federalreserve/status/123456789',
+        })
+        second = _canonical_story_key({
+            'title': 'Fed decision',
+            'link': 'https://twitt.re/federalreserve/status/123456789',
+        })
+
+        self.assertEqual(first, 'social-status:123456789')
+        self.assertEqual(second, first)
+
+    def test_single_official_red_alert_does_not_auto_score_100(self):
+        from filters.ai_agent import analyze_signal
+
+        result = analyze_signal({
+            'title': 'CENTCOM missile strike causes Hormuz oil shipping disruption',
+            'description': 'Attack, sanctions, closure and maritime traffic risk remain elevated.',
+            'is_official_source': True,
+            'official_red_alert_source': True,
+            'official_keyword_hits': ['hormuz', 'strike', 'sanctions', 'closure'],
+        })
+
+        self.assertEqual(result['confirmation_class'], 'official_confirmed')
+        self.assertLess(result['alarm_score'], 100)
+        self.assertIn('resmi kritik kaynak', result['score_reasons'])
+
+    def test_multiple_sources_can_raise_official_red_alert_to_100(self):
+        from filters.ai_agent import analyze_signal
+
+        result = analyze_signal({
+            'title': 'CENTCOM missile strike causes Hormuz oil shipping disruption',
+            'description': 'Attack, sanctions, closure and maritime traffic risk remain elevated.',
+            'is_official_source': True,
+            'official_red_alert_source': True,
+            'official_keyword_hits': ['hormuz', 'strike', 'sanctions', 'closure'],
+            'source_count': 2,
+        })
+
+        self.assertEqual(result['alarm_score'], 100)
+        self.assertIn('2 bagimsiz kaynak', result['score_reasons'])
+
+    def test_global_macro_source_coverage_includes_core_institutions(self):
+        data = json.loads(Path('rules/calendar_sources.json').read_text(encoding='utf-8'))
+        names = {str(src.get('source_name', '')).lower() for src in data.get('sources', []) if src.get('enabled')}
+        ids = {str(src.get('id', '')).lower() for src in data.get('sources', []) if src.get('enabled')}
+
+        self.assertIn('federal reserve', names)
+        self.assertIn('fed_fomc', ids)
+        self.assertIn('ecb monetary policy', names)
+        self.assertIn('bank of england', names)
+        self.assertIn('bank of japan', names)
+        self.assertIn('imf', names)
+        self.assertIn('world bank', names)
+        self.assertIn('u.s. treasury', names)
 
 
 class DigestReliabilityTests(unittest.TestCase):

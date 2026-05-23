@@ -67,6 +67,50 @@ def _header_for(confirmation_class: str, pre_class: str) -> str:
     return '🚨 ALARM'
 
 
+def _source_count(item: dict) -> int:
+    for key in ('source_count', 'independent_source_count'):
+        try:
+            value = int(item.get(key) or 0)
+        except Exception:
+            value = 0
+        if value > 0:
+            return value
+    return 1
+
+
+def _score_reasons(
+    confirmation_class: str,
+    source_count: int,
+    security_hits: set[str],
+    market_hits: set[str],
+    priority_hits: set[str],
+    official_hits: set[str],
+    routine_hits: set[str],
+) -> list[str]:
+    reasons = []
+    if confirmation_class == 'official_confirmed':
+        reasons.append('resmi kritik kaynak')
+    elif confirmation_class == 'official_parallel':
+        reasons.append('resmi kaynak paralel sinyal')
+    elif confirmation_class == 'media_verified':
+        reasons.append('guvenilir medya sinyali')
+    else:
+        reasons.append('analiz sinyali')
+    if source_count >= 2:
+        reasons.append(f'{source_count} bagimsiz kaynak')
+    if priority_hits:
+        reasons.append('oncelikli anahtar kelime')
+    if security_hits:
+        reasons.append('guvenlik etkisi')
+    if market_hits:
+        reasons.append('piyasa etkisi')
+    if official_hits:
+        reasons.append('resmi ifade/kurum eslesmesi')
+    if routine_hits:
+        reasons.append('rutin icerik indirimi')
+    return reasons[:6]
+
+
 def analyze_signal(item: dict, verification_rules: dict | None = None) -> dict:
     verification_rules = verification_rules or {}
     text = ' '.join([
@@ -94,6 +138,7 @@ def analyze_signal(item: dict, verification_rules: dict | None = None) -> dict:
     is_official_routine = bool(item.get('is_official_routine'))
 
     source_kind = str(item.get('source_kind', '') or '').lower()
+    source_count = _source_count(item)
 
     high_signal = bool(
         priority_hits
@@ -154,6 +199,8 @@ def analyze_signal(item: dict, verification_rules: dict | None = None) -> dict:
         score -= 4
 
     alarm_score = _clamp_score(score, pre_class)
+    if confirmation_class == 'official_confirmed' and source_count < 2:
+        alarm_score = min(alarm_score, 92)
     level_label = _level_label(alarm_score)
     confidence = max(0.10, min(0.99, alarm_score / 100.0))
 
@@ -187,6 +234,16 @@ def analyze_signal(item: dict, verification_rules: dict | None = None) -> dict:
         'should_notify': should_notify,
         'confidence': confidence,
         'alarm_score': alarm_score,
+        'source_count': source_count,
+        'score_reasons': _score_reasons(
+            confirmation_class,
+            source_count,
+            security_hits,
+            market_hits,
+            priority_hits,
+            official_hits,
+            routine_hits,
+        ),
         'level_label': level_label,
         'market_impact': market_impact,
         'security_impact': security_impact,

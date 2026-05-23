@@ -1,15 +1,45 @@
 from config.settings import settings
 from core.time_utils import format_local_time
+from enrichers.text_hygiene import (
+    clean_telegram_text,
+    improve_summary_text,
+    is_probably_english,
+    turkish_fallback_summary,
+)
 from filters.ai_parse import build_fallback_summary
+
+
+def _clean_user_summary(item: dict, value: str) -> str:
+    cleaned = clean_telegram_text(value)
+    if not cleaned:
+        return ""
+    if not is_probably_english(cleaned):
+        return cleaned
+    return improve_summary_text(
+        cleaned,
+        title=item.get('title'),
+        source=item.get('source_name'),
+        topic=item.get('matched_profile') or item.get('scan_mode'),
+    )
 
 
 def _summary_from_analysis(item: dict, analysis: dict) -> str:
     if analysis.get('summary_tr'):
-        return str(analysis['summary_tr']).strip()
+        summary = _clean_user_summary(item, analysis['summary_tr'])
+        if summary:
+            return summary
     gem = analysis.get('gemini') or {}
     if gem.get('summary_tr'):
-        return str(gem['summary_tr']).strip()
-    return build_fallback_summary(item)
+        summary = _clean_user_summary(item, gem['summary_tr'])
+        if summary:
+            return summary
+    summary = _clean_user_summary(item, build_fallback_summary(item))
+    if summary:
+        return summary
+    return turkish_fallback_summary(
+        title=item.get('title'),
+        source=item.get('source_name'),
+    )
 
 
 def _time_lines(item: dict) -> list[str]:
@@ -48,6 +78,17 @@ def _verification_line(origin_label: str, confirmation_class: str, verified: boo
     return f'Teyit Sınıfı: {_confirmation_text(confirmation_class)}'
 
 
+def _risk_reason_lines(analysis: dict) -> list[str]:
+    reason = clean_telegram_text(analysis.get('reason_short'))
+    if reason:
+        return [f'Risk Gerekcesi: {reason}']
+    reasons = [clean_telegram_text(x) for x in analysis.get('score_reasons', []) or []]
+    reasons = [x for x in reasons if x]
+    if reasons:
+        return ['Risk Gerekcesi: ' + ', '.join(reasons[:4])]
+    return []
+
+
 def build_signal_message(item: dict, score: int, analysis: dict, origin_label: str, verified: bool = False, official_match: dict | None = None, overlap: set[str] | None = None):
     header = analysis.get('header', '🧭 İZLEME')
     if verified:
@@ -66,10 +107,9 @@ def build_signal_message(item: dict, score: int, analysis: dict, origin_label: s
         _verification_line(origin_label, confirmation_class, verified),
         f'Alarm Düzeyi: {level_label}',
         f'Alarm Puanı: {alarm_score}/100',
-        '',
-        'Özet:',
-        summary,
     ]
+    lines += _risk_reason_lines(analysis)
+    lines += ['', 'Özet:', summary]
 
     lines += _time_lines(item)
 
@@ -81,8 +121,9 @@ def build_signal_message(item: dict, score: int, analysis: dict, origin_label: s
         if overlap:
             lines += [f"Ortak sinyaller: {', '.join(sorted(overlap))}"]
 
-    if item.get('link'):
-        lines += ['', f"Kaynak/Referans: {item['link']}"]
+    link = clean_telegram_text(item.get('link'))
+    if link:
+        lines += ['', f"Kaynak/Referans: {link}"]
 
     return '\n'.join(lines)
 
@@ -100,15 +141,15 @@ def build_analysis_message(item: dict, score: int, analysis: dict):
         f'Teyit Sınıfı: {_confirmation_text(confirmation_class)}',
         f'Alarm Düzeyi: {level_label}',
         f'Alarm Puanı: {alarm_score}/100',
-        '',
-        'Özet:',
-        summary
     ]
+    lines += _risk_reason_lines(analysis)
+    lines += ['', 'Özet:', summary]
 
     lines += _time_lines(item)
 
-    if item.get('link'):
-        lines += ['', f"Kaynak/Referans: {item['link']}"]
+    link = clean_telegram_text(item.get('link'))
+    if link:
+        lines += ['', f"Kaynak/Referans: {link}"]
     return '\n'.join(lines)
 
 
