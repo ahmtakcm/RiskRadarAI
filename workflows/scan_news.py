@@ -16,6 +16,7 @@ import re
 from core.hashing import text_hash
 from core.logger import get_logger
 from core.matching import build_topic_tokens
+from core.news_log import build_log_entry, upsert_news_log_entry
 
 logger = get_logger('scan_news')
 
@@ -56,6 +57,44 @@ def _canonical_story_key(item: dict) -> str:
     if title:
         return f'title:{title[:180]}'
     return text_hash(str(item))
+
+
+def _has_digest_text(item: dict) -> bool:
+    return bool(
+        str(item.get('title', '') or '').strip()
+        or str(item.get('description', '') or '').strip()
+        or str(item.get('link', '') or '').strip()
+    )
+
+
+def _record_digest_only_drop(state: dict, item: dict, story_key: str, reason: str, runtime_settings):
+    age = item.get('age_minutes')
+    try:
+        age_int = int(age)
+    except (TypeError, ValueError):
+        return False
+
+    max_age = int(getattr(runtime_settings, 'digest_max_age_minutes', 720))
+    if age_int > max_age or not _has_digest_text(item):
+        return False
+
+    entry = build_log_entry(
+        item,
+        f'DIGEST_{story_key}',
+        alert_sent=False,
+        drop_reason=reason,
+        translated_text=str(item.get('description', '') or '').strip(),
+        delivery_mode='digest',
+        meta={
+            'origin': item.get('scan_mode', ''),
+            'digest_only_reason': reason,
+            'story_key': story_key,
+            'age_minutes': age_int,
+            'digest_max_age_minutes': max_age,
+        },
+    )
+    upsert_news_log_entry(state, entry)
+    return True
 
 
 
@@ -112,6 +151,7 @@ def scan_news(
     seen_hashes = set(state.get('seen_news_hashes', []))
     seen_story_hashes = set(state.get('seen_story_hashes', []))
     scan_story_hashes = set()
+    scan_digest_story_hashes = set()
     candidates = []
     parsed_item_count = 0
     duplicate_drop_count = 0
@@ -171,6 +211,8 @@ def scan_news(
                             item[key] = raw_item.get(key)
 
                 item['scan_mode'] = mode
+                h = text_hash(item['title'] + '|' + item['link'] + '|' + item['source_name'])
+                story_key = _canonical_story_key(item)
                 freshness = evaluate_item_freshness(item, mode, runtime_settings)
                 item.update(freshness)
                 if freshness.get('stale_overridden'):
@@ -184,6 +226,14 @@ def scan_news(
                     stale_min_age = age if stale_min_age is None else min(stale_min_age, age)
                     if not stale_sample:
                         stale_sample = item.get('title', '')[:90]
+                    if (
+                        h not in seen_hashes
+                        and story_key not in seen_story_hashes
+                        and story_key not in scan_digest_story_hashes
+                    ):
+                        if _record_digest_only_drop(state, item, story_key, 'stale', runtime_settings):
+                            _inc(skip_counts, 'digest_only_stale_recorded')
+                        scan_digest_story_hashes.add(story_key)
                     continue
 
                 item['content_class'] = classify_content_type(item)
@@ -217,8 +267,6 @@ def scan_news(
                         _inc(skip_counts, 'manual_query_mismatch')
                         continue
 
-                h = text_hash(item['title'] + '|' + item['link'] + '|' + item['source_name'])
-                story_key = _canonical_story_key(item)
                 if h in seen_hashes or story_key in seen_story_hashes or story_key in scan_story_hashes:
                     duplicate_drop_count += 1
                     continue

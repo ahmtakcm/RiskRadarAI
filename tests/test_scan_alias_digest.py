@@ -1,7 +1,8 @@
 import unittest
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 
@@ -317,6 +318,95 @@ class DigestReliabilityTests(unittest.TestCase):
         self.assertEqual(result['status'], 'sent')
         self.assertTrue(sent)
         self.assertEqual(state.get('last_digest_slot'), '2026-05-08 08:00')
+
+    def test_stale_recent_scan_item_enters_digest_pool_without_candidate(self):
+        import workflows.scan_news as scan
+
+        state = {'news_log': []}
+        active_config = {
+            'profile': {'social_rule_set': 'strict_geopolitics', 'min_score': 9},
+            'social_rules': {'strict_geopolitics': {}},
+            'verification_rules': {},
+            'official_entities': {},
+        }
+        runtime_settings = SimpleNamespace(
+            drop_stale_items=True,
+            social_max_age_minutes=120,
+            osint_max_age_minutes=240,
+            official_max_age_minutes=360,
+            news_max_age_minutes=720,
+            analysis_max_age_minutes=20160,
+            digest_max_age_minutes=720,
+        )
+        pub_date = (datetime.now(timezone.utc) - timedelta(minutes=180)).isoformat()
+        item = {
+            'title': 'Fed liquidity facility update',
+            'link': 'https://xcancel.com/federalreserve/status/987654321',
+            'pub_date': pub_date,
+            'description': 'Federal Reserve liquidity facility mention from social mirror.',
+            'source_name': 'Fed mirror',
+            'source_kind': 'rss_social',
+        }
+
+        with patch.object(scan, 'select_feeds', lambda cfg, mode='all': [{'name': 'Fed mirror'}]), \
+             patch.object(scan, 'select_keywords', lambda cfg: {'primary_terms': [], 'secondary_terms': [], 'high_risk_patterns': []}), \
+             patch.object(scan, 'fetch_feed_items', lambda feed: [item]):
+            candidates = scan.scan_news(
+                state,
+                mode='social_only',
+                active_config=active_config,
+                settings_override=runtime_settings,
+            )
+
+        self.assertEqual(candidates, [])
+        self.assertEqual(len(state['news_log']), 1)
+        entry = state['news_log'][0]
+        self.assertEqual(entry['id'], 'DIGEST_social-status:987654321')
+        self.assertEqual(entry['delivery_mode'], 'digest')
+        self.assertEqual(entry['drop_reason'], 'stale')
+        self.assertFalse(entry['alert_sent'])
+
+    def test_very_old_stale_scan_item_stays_out_of_digest_pool(self):
+        import workflows.scan_news as scan
+
+        state = {'news_log': []}
+        active_config = {
+            'profile': {'social_rule_set': 'strict_geopolitics', 'min_score': 9},
+            'social_rules': {'strict_geopolitics': {}},
+            'verification_rules': {},
+            'official_entities': {},
+        }
+        runtime_settings = SimpleNamespace(
+            drop_stale_items=True,
+            social_max_age_minutes=120,
+            osint_max_age_minutes=240,
+            official_max_age_minutes=360,
+            news_max_age_minutes=720,
+            analysis_max_age_minutes=20160,
+            digest_max_age_minutes=720,
+        )
+        pub_date = (datetime.now(timezone.utc) - timedelta(minutes=900)).isoformat()
+        item = {
+            'title': 'Old social mirror item',
+            'link': 'https://xcancel.com/example/status/111',
+            'pub_date': pub_date,
+            'description': 'Old backlog item.',
+            'source_name': 'Example mirror',
+            'source_kind': 'rss_social',
+        }
+
+        with patch.object(scan, 'select_feeds', lambda cfg, mode='all': [{'name': 'Example mirror'}]), \
+             patch.object(scan, 'select_keywords', lambda cfg: {'primary_terms': [], 'secondary_terms': [], 'high_risk_patterns': []}), \
+             patch.object(scan, 'fetch_feed_items', lambda feed: [item]):
+            candidates = scan.scan_news(
+                state,
+                mode='social_only',
+                active_config=active_config,
+                settings_override=runtime_settings,
+            )
+
+        self.assertEqual(candidates, [])
+        self.assertEqual(state['news_log'], [])
 
 
 if __name__ == '__main__':
