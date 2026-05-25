@@ -24,6 +24,13 @@ _BAD_SUMMARY_PREFIXES = (
     "follow us", "subscribe", "advertisement",
 )
 
+_URL_TOKEN_RE = re.compile(r"\b(?:https?://|www\.)\S+|\b\S+\.(?:jpg|jpeg|png|gif|webp)(?:\?\S*)?", re.IGNORECASE)
+_IMAGE_URL_TOKEN_RE = re.compile(r"\b(?:https?://|www\.)\S+\.(?:jpg|jpeg|png|gif|webp)(?:\?\S*)?", re.IGNORECASE)
+_HTML_NOISE_WORD_RE = re.compile(
+    r"\b(?:img|src|style|twimg|pbs|jpg|jpeg|png|gif|webp|blockquote|width|height|px)\b",
+    re.IGNORECASE,
+)
+
 _INCOMPLETE_ENDINGS = (
     " focuses", " focused", " includes", " including",
     " says", " said", " amid", " after", " before",
@@ -40,6 +47,8 @@ def clean_html_text(text: Optional[str]) -> str:
     s = _HTML_TAG_RE.sub(" ", s)
     s = html.unescape(html.unescape(s))
     s = _HTML_TAG_RE.sub(" ", s)
+    s = _URL_TOKEN_RE.sub(" ", s)
+    s = _HTML_NOISE_WORD_RE.sub(" ", s)
     return _WS_RE.sub(" ", s).strip()
 
 
@@ -73,6 +82,8 @@ def clean_telegram_text(text: Optional[str]) -> str:
     s = _IMG_RE.sub(" ", s)
     s = _A_TAG_RE.sub(_readable_anchor, s)
     s = _HTML_TAG_RE.sub(" ", s)
+    s = _IMAGE_URL_TOKEN_RE.sub(" ", s)
+    s = _HTML_NOISE_WORD_RE.sub(" ", s)
     lines = [_LINE_WS_RE.sub(" ", line).strip() for line in s.splitlines()]
     lines = [line for line in lines if line]
     return "\n".join(lines).strip()
@@ -125,34 +136,7 @@ def turkish_fallback_summary(
     return "Gelişmeye ilişkin haber akışında yeni bir kayıt tespit edildi."
 
 def simple_tr_rewrite(text: str) -> str:
-    if not text:
-        return ""
-
-    replacements = [
-        ("United States", "ABD"),
-        ("Iranian", "İranlı"),
-        ("Iran", "İran"),
-        ("Strait of Hormuz", "Hürmüz Boğazı"),
-        ("Hormuz", "Hürmüz"),
-        ("naval blockade", "deniz ablukası"),
-        ("blockade", "abluka"),
-        ("shadow fleet", "gölge filo"),
-        ("fake flags", "sahte bayraklar"),
-        ("dark ships", "takip sistemlerini kapatan gemiler"),
-        ("ceasefire", "ateşkes"),
-        ("Defense Ministry", "Savunma Bakanlığı"),
-        ("lawmakers", "milletvekilleri"),
-        ("attacks", "saldırılar"),
-        ("killed", "öldürüldü"),
-        ("war", "savaş"),
-        ("conflict", "çatışma"),
-    ]
-
-    out = text
-    for en, tr in replacements:
-        pattern = re.compile(rf"(?<![\w.-]){re.escape(en)}(?![\w.-])", re.IGNORECASE)
-        out = pattern.sub(tr, out)
-    return out
+    return text or ""
 
 def improve_summary_text(
     summary: Optional[str],
@@ -167,9 +151,6 @@ def improve_summary_text(
         return turkish_fallback_summary(title=title, source=source, topic=topic)
 
     if force_turkish_fallback_for_english and is_probably_english(cleaned):
-        rewritten = simple_tr_rewrite(cleaned)
-        if rewritten and not is_probably_english(rewritten):
-            return rewritten
         return turkish_fallback_summary(title=title, source=source, topic=topic)
 
     return cleaned

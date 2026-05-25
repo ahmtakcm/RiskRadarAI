@@ -3,12 +3,16 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Iterable
 
+from enrichers.text_hygiene import clean_html_text
+
 STOPWORDS = {
     'the', 'and', 'for', 'with', 'from', 'that', 'this', 'into', 'over', 'under', 'about',
     'official', 'statement', 'news', 'update', 'press', 'release', 'releases', 'briefing',
     'minister', 'president', 'government', 'announces', 'announced', 'says', 'will', 'after',
     'amid', 'world', 'global', 'international', 'today', 'new', 'report', 'reports', 'event',
-    'iran', 'russia', 'ukraine', 'israel', 'gaza', 'turkiye', 'turkish', 'middle', 'east'
+    'iran', 'russia', 'ukraine', 'israel', 'gaza', 'turkiye', 'turkish', 'middle', 'east',
+    'img', 'src', 'style', 'twimg', 'pbs', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'px',
+    'http', 'https', 'www', 'com', 'status', 'blockquote'
 }
 
 
@@ -37,6 +41,7 @@ def parse_time_to_ts(value: str) -> float | None:
 
 
 def tokenize_text(text: str) -> set[str]:
+    text = clean_html_text(text)
     words = re.findall(r"[a-zA-Z0-9çğıöşüÇĞİÖŞÜ-]{3,}", (text or '').lower())
     tokens = set()
     for word in words:
@@ -50,7 +55,7 @@ def tokenize_text(text: str) -> set[str]:
 
 
 def build_topic_tokens(item: dict, tracked_terms: Iterable[str] | None = None) -> set[str]:
-    text = ' '.join([item.get('title', ''), item.get('description', '')])
+    text = clean_html_text(' '.join([item.get('title', ''), item.get('description', '')]))
     tokens = tokenize_text(text)
     if tracked_terms:
         lower_text = text.lower()

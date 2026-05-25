@@ -10,6 +10,7 @@ from parsers.presidency_app_parser import parse_truth_social_archive
 from parsers.centcom_parser import parse_centcom_listing
 from parsers.tr_mfa_parser import parse_listing as parse_tr_mfa_listing
 from parsers.iran_mfa_new_parser import parse_listing as parse_iran_mfa_new_listing
+from urllib.parse import urlsplit
 
 FEED_META_KEYS = (
     "official_class",
@@ -35,6 +36,42 @@ FEED_META_KEYS = (
     "keywords_exclude",
     "topic_tags",
 )
+
+SOCIAL_STATUS_HOSTS = {"xcancel.com", "rss.xcancel.com", "twitt.re", "nitter.net", "x.com", "twitter.com"}
+
+
+def _social_account_from_url(url: str) -> str:
+    try:
+        parsed = urlsplit(str(url or ""))
+    except Exception:
+        return ""
+    host = parsed.netloc.lower().replace("www.", "")
+    if host not in SOCIAL_STATUS_HOSTS:
+        return ""
+    parts = [p for p in parsed.path.split("/") if p]
+    if not parts:
+        return ""
+    account = parts[0].strip()
+    if account.lower() in {"i", "intent"}:
+        return ""
+    return account
+
+
+def _apply_social_source_attribution(item: dict, feed: dict):
+    feed_account = str(feed.get("account") or _social_account_from_url(feed.get("url", ""))).strip().lower()
+    link_account = _social_account_from_url(item.get("link", ""))
+    if not feed_account or not link_account or feed_account == link_account.lower():
+        return
+
+    item["source_name"] = f"{link_account} X"
+    item["source_attribution_mismatch"] = True
+    item["expected_source_account"] = feed_account
+    item["actual_source_account"] = link_account
+    item["official_class"] = ""
+    item["official_country"] = ""
+    item["official_red_alert"] = False
+    item["applies_to_all_profiles"] = False
+    item["relay_label"] = "source_owner_mismatch"
 
 def _pub_date_sort_key(pub_date: str) -> float:
     raw = str(pub_date or '').strip()
@@ -137,6 +174,8 @@ def fetch_feed_items(feed: dict):
         for key in FEED_META_KEYS:
             if key not in item and key in feed:
                 item[key] = feed.get(key)
+        if kind == "rss_social":
+            _apply_social_source_attribution(item, feed)
 
     items = sorted(
         items,

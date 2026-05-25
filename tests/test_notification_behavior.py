@@ -100,6 +100,28 @@ class NotificationBehaviorTests(unittest.TestCase):
         tg, _ = self.run_process(osint=[osint], ai=FakeAI(should_notify=True))
         self.assertEqual(len(tg.messages), 1)
 
+    def test_same_social_status_alerts_once_across_social_and_osint(self):
+        social = candidate(
+            'WhiteHouse X',
+            kind='rss_social',
+            scan_mode='social_only',
+            link='https://xcancel.com/WhiteHouse/status/123',
+        )
+        osint = candidate(
+            'WhiteHouse OSINT Mirror',
+            kind='rss_social',
+            scan_mode='osint_only',
+            link='https://rss.xcancel.com/WhiteHouse/status/123#m',
+        )
+        social['hash'] = 'hash-social'
+        osint['hash'] = 'hash-osint'
+        social['story_key'] = 'social-status:123'
+        osint['story_key'] = 'social-status:123'
+
+        tg, _ = self.run_process(social=[social], osint=[osint], ai=FakeAI(should_notify=True))
+
+        self.assertEqual(len(tg.messages), 1)
+
     def test_analysis_sends_only_with_should_notify_or_priority_hits(self):
         analysis = candidate('Crisis Group', kind='listing_html', scan_mode='analysis_only')
         tg, state = self.run_process(analysis=[analysis], ai=FakeAI(should_notify=False, priority_hits=[]))
@@ -239,6 +261,25 @@ class NotificationBehaviorTests(unittest.TestCase):
         self.assertEqual(sent_count, 0)
         self.assertEqual(sent_hashes, {candidates[0]['hash'], candidates[1]['hash']})
         self.assertEqual(seen, sent_hashes)
+
+    def test_starobelsk_individual_alerts_share_event_cooldown_key(self):
+        import workflows.process_candidates as pc
+
+        first = candidate(
+            'Russia MFA',
+            title='Russia MFA comments on Starobelsk security incident',
+            description='Starobelsk regional security incident update.',
+            link='https://example.com/one',
+        )
+        second = candidate(
+            'News Wire',
+            title='Another report on Starobelsk regional security incident',
+            description='Russia and Ukraine references around Starobelsk.',
+            link='https://example.com/two',
+        )
+
+        self.assertEqual(pc._alert_identity(first), 'event:russia-ukraine-starobelsk')
+        self.assertEqual(pc._alert_identity(second), 'event:russia-ukraine-starobelsk')
 
     def test_calendar_sent_alerts_prevents_duplicate_notifications(self):
         import workflows.process_calendar_events as cal

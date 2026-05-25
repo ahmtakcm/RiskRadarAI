@@ -9,7 +9,7 @@ from services.assistant_output import build_signal_message, build_analysis_messa
 from fetchers.html_fetcher import fetch_article_text
 from filters.ai_parse import choose_best_summary
 from core.news_log import build_log_entry, append_news_log
-from core.event_merger import group_items, should_send_cluster, build_alert
+from core.event_merger import group_items, should_send_cluster, build_alert, cluster_key
 from core.notification_policy import item_policy_context
 
 logger = get_logger('process_candidates')
@@ -61,6 +61,24 @@ def _remember_story(state: dict, candidate: dict):
     if story_key:
         story_hashes.add(story_key)
     state['seen_story_hashes'] = list(story_hashes)[-5000:]
+
+
+def _alert_identity(candidate: dict) -> str:
+    story_key = str(candidate.get('story_key') or '').strip()
+    if story_key.startswith('social-status:'):
+        return story_key
+
+    item = candidate.get('item', {}) or {}
+    event_key = cluster_key({
+        'title': item.get('title', ''),
+        'summary': item.get('description') or item.get('summary') or '',
+        'content': item.get('article_text') or item.get('content') or '',
+        'source_name': item.get('source_name', ''),
+    })
+    if event_key in {'russia-ukraine-starobelsk', 'russia-ukraine-bila-tserkva'}:
+        return f'event:{event_key}'
+
+    return candidate.get('hash', '')
 
 
 def _cleanup_pending(state: dict):
@@ -263,7 +281,7 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
         if not _is_strict_official_item(item):
             continue
         _ensure_article_text(item)
-        alert_key = f"NEWS_{candidate['hash']}"
+        alert_key = f"NEWS_{_alert_identity(candidate)}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
             _log_notification_decision('drop', item, reason='cooldown', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
@@ -360,8 +378,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
             _log_notification_decision('digest_only', item, reason='scan_limit_reached', origin_label=origin_label)
             continue
 
-        suffix = 'VERIFIED' if verified else 'UNVERIFIED'
-        alert_key = f"{origin_label.upper()}_{suffix}_{candidate['hash']}"
+        alert_key = f"NEWS_{_alert_identity(candidate)}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
             _log_notification_decision('drop', item, reason='cooldown', origin_label=origin_label, alert_key=alert_key)
             continue
@@ -433,7 +450,7 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
             _log_notification_decision('digest_only', item, reason='scan_limit_reached', origin_label='Analiz')
             continue
 
-        alert_key = f"ANALYSIS_{candidate['hash']}"
+        alert_key = f"ANALYSIS_{_alert_identity(candidate)}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
             _log_notification_decision('drop', item, reason='cooldown', origin_label='Analiz', alert_key=alert_key)
             continue

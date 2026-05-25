@@ -18,6 +18,7 @@ KEYWORDS = {
     "russia": ["russia", "russian", "moscow", "kremlin", "mfa"],
     "ukraine": ["ukraine", "ukrainian", "kyiv", "donbas"],
     "starobelsk": ["starobelsk", "starobilsk"],
+    "bila-tserkva": ["bila tserkva", "bila-tserkva", "bilatserkva", "white church"],
     "oil": ["oil", "petrol", "brent", "crude", "opec"],
     "defense": ["centcom", "defense", "strike", "missile", "drone", "navy"],
 }
@@ -49,6 +50,9 @@ def cluster_key(item):
 
     if "ukraine" in hits and "starobelsk" in hits:
         return "russia-ukraine-starobelsk"
+
+    if "bila-tserkva" in hits:
+        return "russia-ukraine-bila-tserkva"
 
     if "russia" in hits and "ukraine" in hits:
         return "russia-ukraine"
