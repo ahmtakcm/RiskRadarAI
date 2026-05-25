@@ -52,6 +52,7 @@ class Settings:
     official_max_age_minutes: int
     news_max_age_minutes: int
     analysis_max_age_minutes: int
+    digest_max_age_minutes: int
     show_source_time: bool
     social_fail_threshold: int
     social_cooldown_minutes: int
@@ -139,6 +140,7 @@ settings = Settings(
     official_max_age_minutes=int(os.getenv('OFFICIAL_MAX_AGE_MINUTES', defaults.DEFAULT_OFFICIAL_MAX_AGE_MINUTES)),
     news_max_age_minutes=int(os.getenv('NEWS_MAX_AGE_MINUTES', defaults.DEFAULT_NEWS_MAX_AGE_MINUTES)),
     analysis_max_age_minutes=int(os.getenv('ANALYSIS_MAX_AGE_MINUTES', defaults.DEFAULT_ANALYSIS_MAX_AGE_MINUTES)),
+    digest_max_age_minutes=int(os.getenv('DIGEST_MAX_AGE_MINUTES', defaults.DEFAULT_DIGEST_MAX_AGE_MINUTES)),
     show_source_time=_to_bool('SHOW_SOURCE_TIME', defaults.DEFAULT_SHOW_SOURCE_TIME),
     social_fail_threshold=int(os.getenv('SOCIAL_FAIL_THRESHOLD', '3')),
     social_cooldown_minutes=int(os.getenv('SOCIAL_COOLDOWN_MINUTES', '60')),

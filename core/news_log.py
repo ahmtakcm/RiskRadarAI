@@ -53,6 +53,25 @@ def append_news_log(state: dict, entry: dict):
         state['news_log'] = logs[-NEWS_LOG_LIMIT:]
 
 
+def upsert_news_log_entry(state: dict, entry: dict):
+    item_id = str(entry.get('id', '') or '')
+    if not item_id:
+        append_news_log(state, entry)
+        return
+    with _NEWS_LOG_LOCK:
+        logs = list(state.get('news_log', []))
+        for idx in range(len(logs) - 1, -1, -1):
+            if logs[idx].get('id') != item_id:
+                continue
+            merged = dict(logs[idx])
+            merged.update(entry)
+            logs[idx] = merged
+            state['news_log'] = logs[-NEWS_LOG_LIMIT:]
+            return
+        logs.append(entry)
+        state['news_log'] = logs[-NEWS_LOG_LIMIT:]
+
+
 def update_news_log(state: dict, item_id: str, **updates):
     with _NEWS_LOG_LOCK:
         logs = list(state.get('news_log', []))
