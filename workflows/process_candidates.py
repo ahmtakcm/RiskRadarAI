@@ -15,6 +15,34 @@ from core.notification_policy import item_policy_context
 logger = get_logger('process_candidates')
 
 
+def _inc_metric(metrics: dict[str, int] | None, key: str, amount: int = 1):
+    if metrics is not None:
+        metrics[key] = metrics.get(key, 0) + amount
+
+
+def _log_process_metrics(metrics: dict[str, int]):
+    logger.info(
+        'candidate_count | stage=process_candidates | official=%s | social=%s | osint=%s | analysis=%s | total=%s',
+        metrics.get('official_candidate_count', 0),
+        metrics.get('social_candidate_count', 0),
+        metrics.get('osint_candidate_count', 0),
+        metrics.get('analysis_candidate_count', 0),
+        metrics.get('candidate_count', 0),
+    )
+    logger.info('alert_sent_count | count=%s', metrics.get('alert_sent_count', 0))
+    logger.info('digest_candidate_count | count=%s', metrics.get('digest_candidate_count', 0))
+    logger.info('cooldown_drop_count | count=%s', metrics.get('cooldown_drop_count', 0))
+    logger.info('low_score_digest_count | count=%s', metrics.get('low_score_digest_count', 0))
+    skip_reasons = {
+        key.removeprefix('skip_reason_'): value
+        for key, value in metrics.items()
+        if key.startswith('skip_reason_') and value
+    }
+    for reason, count in sorted(skip_reasons.items()):
+        logger.info('skip_reason_count | stage=process_candidates | reason=%s | count=%s', reason, count)
+    logger.info('skip_reason_count | stage=process_candidates | count=%s', sum(skip_reasons.values()))
+
+
 def _notification_context(item: dict, origin_label: str | None = None) -> dict:
     return item_policy_context(
         item,
@@ -126,7 +154,7 @@ def _ensure_usable_summary(item: dict, analysis: dict, origin_label: str) -> boo
 
 
 
-def _log_news_event(state: dict, item: dict, candidate: dict, analysis: dict | None = None, *, alert_sent: bool, delivery_mode: str, drop_reason: str | None = None, meta: dict | None = None):
+def _log_news_event(state: dict, item: dict, candidate: dict, analysis: dict | None = None, *, alert_sent: bool, delivery_mode: str, drop_reason: str | None = None, meta: dict | None = None, metrics: dict[str, int] | None = None):
     analysis = analysis or {}
     summary = choose_best_summary(item, analysis.get('gemini') or analysis) or str(analysis.get('summary_tr', '') or '').strip()
     if not summary:
@@ -147,6 +175,14 @@ def _log_news_event(state: dict, item: dict, candidate: dict, analysis: dict | N
         meta=merged_meta,
     )
     append_news_log(state, entry)
+    if alert_sent:
+        _inc_metric(metrics, 'alert_sent_count')
+    if delivery_mode == 'digest':
+        _inc_metric(metrics, 'digest_candidate_count')
+    if drop_reason:
+        _inc_metric(metrics, f'skip_reason_{drop_reason}')
+    if drop_reason == 'below_alert_threshold':
+        _inc_metric(metrics, 'low_score_digest_count')
 
 def _register_official_signal(state: dict, item: dict, candidate: dict):
     history = state.get('official_signal_history', [])
@@ -236,7 +272,7 @@ def _find_best_official_match(candidate: dict, official_candidates: list, state:
     return best_match, best_overlap, best_note
 
 
-def _process_official_confirmations(state: dict, official_candidates: list, verification_rules: dict):
+def _process_official_confirmations(state: dict, official_candidates: list, verification_rules: dict, metrics: dict[str, int] | None = None):
     for official_candidate in official_candidates:
         official_item = official_candidate['item']
         official_tokens = set(official_candidate.get('topic_tokens', []))
@@ -263,16 +299,19 @@ def _process_official_confirmations(state: dict, official_candidates: list, veri
                 try:
                     telegram_client.send_message(build_official_confirmation_message(signal, official_item, overlap, note))
                     mark_alert_sent(state, confirm_key)
+                    _inc_metric(metrics, 'alert_sent_count')
                     logger.info('Gayriresmî sinyal için resmî teyit gönderildi: %s', confirm_key)
                 except Exception as exc:
                     logger.warning('Telegram resmî teyit alarm hatası: %s', exc)
                     remaining_pending.append(signal)
             else:
+                _inc_metric(metrics, 'cooldown_drop_count')
+                _inc_metric(metrics, 'skip_reason_cooldown')
                 remaining_pending.append(signal)
         state['pending_unofficial_signals'] = _trim_history(remaining_pending)
 
 
-def _process_official_candidates(state: dict, official_candidates: list, seen_hashes: set[str], sent_count: int):
+def _process_official_candidates(state: dict, official_candidates: list, seen_hashes: set[str], sent_count: int, metrics: dict[str, int] | None = None):
     for candidate in official_candidates:
         if sent_count >= settings.max_news_alerts_per_scan:
             break
@@ -283,14 +322,17 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
         _ensure_article_text(item)
         alert_key = f"NEWS_{_alert_identity(candidate)}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            _inc_metric(metrics, 'cooldown_drop_count')
+            _inc_metric(metrics, 'skip_reason_cooldown')
             _log_notification_decision('drop', item, reason='cooldown', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
         analysis = ai_client.analyze_item(item, {}, verified=True)
         if item.get('is_official_routine') or analysis.get('category') == 'ignore':
-            _log_news_event(state, item, candidate, analysis, alert_sent=False, delivery_mode='none', drop_reason='routine_suppressed', meta={'origin': 'official', 'verified': True})
+            _log_news_event(state, item, candidate, analysis, alert_sent=False, delivery_mode='none', drop_reason='routine_suppressed', meta={'origin': 'official', 'verified': True}, metrics=metrics)
             _log_notification_decision('drop', item, reason='routine_suppressed', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
         if not _ensure_usable_summary(item, analysis, 'Resmî/Kurumsal'):
+            _inc_metric(metrics, 'skip_reason_no_usable_summary')
             _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
         text = build_signal_message(item, candidate['score'], analysis, origin_label='Resmî/Kurumsal', verified=False)
@@ -308,6 +350,7 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
                 alert_sent=True,
                 delivery_mode='alert',
                 meta={'origin': 'official', 'verified': True},
+                metrics=metrics,
             )
             sent_count += 1
             _log_notification_decision('sent', item, origin_label='Resmî/Kurumsal', alert_key=alert_key)
@@ -316,7 +359,7 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
             logger.warning('Telegram resmî haber alarm hatası: %s', exc)
     return sent_count
 
-def _process_unofficial_group(state: dict, candidates: list, official_candidates: list, seen_hashes: set[str], sent_count: int, origin_label: str, send_unverified: bool, verification_rules: dict):
+def _process_unofficial_group(state: dict, candidates: list, official_candidates: list, seen_hashes: set[str], sent_count: int, origin_label: str, send_unverified: bool, verification_rules: dict, metrics: dict[str, int] | None = None):
     for candidate in candidates:
         limit_reached = sent_count >= settings.max_news_alerts_per_scan
         item = candidate['item']
@@ -328,9 +371,11 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
         _ensure_article_text(item)
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
         if analysis.get('category') == 'ignore':
+            _inc_metric(metrics, 'skip_reason_not_relevant')
             _log_notification_decision('drop', item, reason='not_relevant', origin_label=origin_label)
             continue
         if not _ensure_usable_summary(item, analysis, origin_label):
+            _inc_metric(metrics, 'skip_reason_no_usable_summary')
             _log_notification_decision('drop', item, reason='no_usable_summary', origin_label=origin_label)
             continue
         verified_match, overlap, match_note = _find_best_official_match(candidate, official_candidates, state, verification_rules)
@@ -346,6 +391,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
                 delivery_mode='digest',
                 drop_reason='unverified_hold',
                 meta={'origin': origin_label.lower(), 'verified': False},
+                metrics=metrics,
             )
             _log_notification_decision('digest_only', item, reason='unverified_hold', origin_label=origin_label)
             continue
@@ -360,6 +406,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
                 delivery_mode='digest',
                 drop_reason='below_alert_threshold',
                 meta={'origin': origin_label.lower(), 'verified': False},
+                metrics=metrics,
             )
             _log_notification_decision('digest_only', item, reason='below_alert_threshold', origin_label=origin_label)
             continue
@@ -374,12 +421,15 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
                 delivery_mode='digest',
                 drop_reason='scan_limit_reached',
                 meta={'origin': origin_label.lower(), 'verified': verified},
+                metrics=metrics,
             )
             _log_notification_decision('digest_only', item, reason='scan_limit_reached', origin_label=origin_label)
             continue
 
         alert_key = f"NEWS_{_alert_identity(candidate)}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            _inc_metric(metrics, 'cooldown_drop_count')
+            _inc_metric(metrics, 'skip_reason_cooldown')
             _log_notification_decision('drop', item, reason='cooldown', origin_label=origin_label, alert_key=alert_key)
             continue
 
@@ -397,6 +447,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
                 alert_sent=True,
                 delivery_mode='alert',
                 meta={'origin': origin_label.lower(), 'verified': verified},
+                metrics=metrics,
             )
             sent_count += 1
             if verified:
@@ -410,7 +461,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
             logger.warning('Telegram %s alarm hatası: %s', origin_label, exc)
     return sent_count
 
-def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str], sent_count: int, verification_rules: dict):
+def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str], sent_count: int, verification_rules: dict, metrics: dict[str, int] | None = None):
     for candidate in candidates:
         limit_reached = sent_count >= settings.max_news_alerts_per_scan
         item = candidate['item']
@@ -419,6 +470,7 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
 
         if not _ensure_usable_summary(item, analysis, 'Analiz'):
+            _inc_metric(metrics, 'skip_reason_no_usable_summary')
             _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Analiz')
             continue
 
@@ -432,6 +484,7 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
                 delivery_mode='digest',
                 drop_reason='below_alert_threshold',
                 meta={'origin': 'analysis', 'verified': False},
+                metrics=metrics,
             )
             _log_notification_decision('digest_only', item, reason='below_alert_threshold', origin_label='Analiz')
             continue
@@ -446,12 +499,15 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
                 delivery_mode='digest',
                 drop_reason='scan_limit_reached',
                 meta={'origin': 'analysis', 'verified': False},
+                metrics=metrics,
             )
             _log_notification_decision('digest_only', item, reason='scan_limit_reached', origin_label='Analiz')
             continue
 
         alert_key = f"ANALYSIS_{_alert_identity(candidate)}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
+            _inc_metric(metrics, 'cooldown_drop_count')
+            _inc_metric(metrics, 'skip_reason_cooldown')
             _log_notification_decision('drop', item, reason='cooldown', origin_label='Analiz', alert_key=alert_key)
             continue
 
@@ -469,6 +525,7 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
                 alert_sent=True,
                 delivery_mode='alert',
                 meta={'origin': 'analysis', 'verified': False},
+                metrics=metrics,
             )
             sent_count += 1
             _log_notification_decision('sent', item, origin_label='Analiz', alert_key=alert_key)
@@ -490,7 +547,7 @@ def _candidate_to_cluster_item(candidate: dict, origin: str) -> dict:
     return item
 
 
-def _send_cluster_alerts(state: dict, buckets: list[tuple[str, list]], seen_hashes: set[str], sent_count: int) -> tuple[int, set[str]]:
+def _send_cluster_alerts(state: dict, buckets: list[tuple[str, list]], seen_hashes: set[str], sent_count: int, metrics: dict[str, int] | None = None) -> tuple[int, set[str]]:
     sent_hashes = set()
 
     cluster_items = []
@@ -514,6 +571,8 @@ def _send_cluster_alerts(state: dict, buckets: list[tuple[str, list]], seen_hash
                 if h:
                     sent_hashes.add(h)
                     seen_hashes.add(h)
+            _inc_metric(metrics, 'cooldown_drop_count', len(items))
+            _inc_metric(metrics, 'skip_reason_cooldown', len(items))
             continue
 
         text = build_alert(cluster, items)
@@ -521,6 +580,7 @@ def _send_cluster_alerts(state: dict, buckets: list[tuple[str, list]], seen_hash
         try:
             telegram_client.send_message(text)
             sent_count += 1
+            _inc_metric(metrics, 'alert_sent_count')
 
             for item in items:
                 h = item.get('_candidate_hash')
@@ -550,6 +610,13 @@ def process_candidates(state: dict, official_candidates: list, social_candidates
     send_unverified_osint = bool(osint_policy.get('allow_unverified', True))
     seen_hashes = set(state.get('seen_news_hashes', []))
     _cleanup_pending(state)
+    metrics = {
+        'official_candidate_count': len(official_candidates),
+        'social_candidate_count': len(social_candidates),
+        'osint_candidate_count': len(osint_candidates),
+        'analysis_candidate_count': len(analysis_candidates),
+        'candidate_count': len(official_candidates) + len(social_candidates) + len(osint_candidates) + len(analysis_candidates),
+    }
 
     strict_official_candidates, primary_news_candidates = _split_primary_feed_candidates(official_candidates)
 
@@ -567,6 +634,7 @@ def process_candidates(state: dict, official_candidates: list, social_candidates
         ],
         seen_hashes,
         sent_count,
+        metrics,
     )
 
     strict_official_candidates = _drop_sent_cluster_candidates(strict_official_candidates, cluster_sent_hashes)
@@ -575,13 +643,14 @@ def process_candidates(state: dict, official_candidates: list, social_candidates
     osint_candidates = _drop_sent_cluster_candidates(osint_candidates, cluster_sent_hashes)
     analysis_candidates = _drop_sent_cluster_candidates(analysis_candidates, cluster_sent_hashes)
 
-    sent_count = _process_official_candidates(state, strict_official_candidates, seen_hashes, sent_count)
-    _process_official_confirmations(state, strict_official_candidates, verification_rules)
-    sent_count = _process_unofficial_group(state, primary_news_candidates, strict_official_candidates, seen_hashes, sent_count, 'Haber', True, verification_rules)
-    sent_count = _process_unofficial_group(state, social_candidates, strict_official_candidates, seen_hashes, sent_count, 'Sosyal', send_unverified_social, verification_rules)
-    sent_count = _process_unofficial_group(state, osint_candidates, strict_official_candidates, seen_hashes, sent_count, 'OSINT', send_unverified_osint, verification_rules)
-    sent_count = _process_analysis_group(state, analysis_candidates, seen_hashes, sent_count, verification_rules)
+    sent_count = _process_official_candidates(state, strict_official_candidates, seen_hashes, sent_count, metrics)
+    _process_official_confirmations(state, strict_official_candidates, verification_rules, metrics)
+    sent_count = _process_unofficial_group(state, primary_news_candidates, strict_official_candidates, seen_hashes, sent_count, 'Haber', True, verification_rules, metrics)
+    sent_count = _process_unofficial_group(state, social_candidates, strict_official_candidates, seen_hashes, sent_count, 'Sosyal', send_unverified_social, verification_rules, metrics)
+    sent_count = _process_unofficial_group(state, osint_candidates, strict_official_candidates, seen_hashes, sent_count, 'OSINT', send_unverified_osint, verification_rules, metrics)
+    sent_count = _process_analysis_group(state, analysis_candidates, seen_hashes, sent_count, verification_rules, metrics)
 
     state['seen_news_hashes'] = list(seen_hashes)[-5000:]
     state['official_signal_history'] = _trim_history(state.get('official_signal_history', []), limit=400)
     state['pending_unofficial_signals'] = _trim_history(state.get('pending_unofficial_signals', []), limit=400)
+    _log_process_metrics(metrics)

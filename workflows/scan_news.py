@@ -22,6 +22,15 @@ logger = get_logger('scan_news')
 SOCIAL_STATUS_HOSTS = {'nitter.net', 'twitt.re', 'xcancel.com', 'rss.xcancel.com', 'x.com', 'twitter.com'}
 
 
+def _inc(counter: dict[str, int], key: str, amount: int = 1):
+    counter[key] = counter.get(key, 0) + amount
+
+
+def _log_skip_counts(mode: str, counts: dict[str, int]):
+    for reason, count in sorted(counts.items()):
+        logger.info('skip_reason_count | mode=%s | reason=%s | count=%s', mode, reason, count)
+
+
 def _normalized_title(title: str) -> str:
     text = re.sub(r'\s+', ' ', str(title or '').strip().lower())
     return re.sub(r'[^a-z0-9çğıöşü\s-]+', '', text)
@@ -104,6 +113,17 @@ def scan_news(
     seen_story_hashes = set(state.get('seen_story_hashes', []))
     scan_story_hashes = set()
     candidates = []
+    parsed_item_count = 0
+    duplicate_drop_count = 0
+    skip_counts: dict[str, int] = {}
+
+    logger.info(
+        'scan_started | mode=%s | feed_count=%s | manual_query=%s | max_feeds=%s',
+        mode,
+        len(feeds),
+        bool(manual_query),
+        max_feeds if max_feeds is not None else '',
+    )
 
     for feed in feeds:
         stale_count = 0
@@ -112,6 +132,13 @@ def scan_news(
         stale_sample = ''
         try:
             items = fetch_feed_items(feed)
+            parsed_item_count += len(items)
+            logger.info(
+                'source_fetch_count | mode=%s | source=%s | count=%s',
+                mode,
+                feed.get('name', ''),
+                len(items),
+            )
             for raw_item in items[:20]:
                 item = normalize(raw_item)
                 # inherit feed meta from feed definition if parser didn't add it
@@ -150,6 +177,7 @@ def scan_news(
                     logger.info('Notification stale override | source=%s | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))
                 if freshness.get('is_stale'):
                     logger.info('Notification drop | source=%s | reason=stale | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))
+                    _inc(skip_counts, 'stale')
                     stale_count += 1
                     stale_limit = freshness.get('max_age_minutes')
                     age = int(freshness.get('age_minutes') or 0)
@@ -164,12 +192,14 @@ def scan_news(
 
                 if should_drop_from_alerting(item) and not item.get('is_official_source'):
                     logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | content_class=%s', feed.get('name'), mode, item.get('content_class'))
+                    _inc(skip_counts, 'content_type')
                     continue
 
                 if mode == 'official_only' and item.get('applies_to_all_profiles'):
                     profile_matches = evaluate_item_across_active_profiles(item, active_config)
                     if not profile_matches and not manual_query:
                         logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | policy=shared_official_profile_match', feed.get('name'), mode)
+                        _inc(skip_counts, 'shared_official_profile_match')
                         continue
                     item['triggered_profiles'] = [m['profile'] for m in profile_matches]
                     item['profile_policy_matches'] = profile_matches
@@ -184,11 +214,13 @@ def scan_news(
                     text_blob = f"{item.get('title', '')} {item.get('description', '')}".lower()
                     q_terms = expand_query_terms(str(manual_query).strip().lower())
                     if q_terms and not any(term in text_blob for term in q_terms):
+                        _inc(skip_counts, 'manual_query_mismatch')
                         continue
 
                 h = text_hash(item['title'] + '|' + item['link'] + '|' + item['source_name'])
                 story_key = _canonical_story_key(item)
                 if h in seen_hashes or story_key in seen_story_hashes or story_key in scan_story_hashes:
+                    duplicate_drop_count += 1
                     continue
 
                 force_keep = bool(
@@ -198,6 +230,7 @@ def scan_news(
                 )
                 if not force_keep and item.get('is_official_routine'):
                     logger.info('Notification drop | source=%s | reason=routine_suppressed | mode=%s', feed.get('name'), mode)
+                    _inc(skip_counts, 'routine_suppressed')
                     continue
 
                 pre_score, _, _, pre_pattern_hits = get_risk_score(item, keywords)
@@ -206,6 +239,7 @@ def scan_news(
 
                 if not force_keep and not manual_query and not is_relevant_news(item, keywords, social_rule, min_score):
                     logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | score=%s | pattern_hits=%s', feed.get('name'), mode, item.get('score', ''), item.get('pattern_hits', ''))
+                    _inc(skip_counts, 'not_relevant')
                     continue
 
                 if mode == 'official_only' and item.get('matched_profile'):
@@ -243,6 +277,7 @@ def scan_news(
                 )
         except Exception as exc:
             logger.warning('Haber feed hatası (%s): %s', feed['name'], exc)
+            _inc(skip_counts, 'fetch_error')
 
     candidates.sort(
         key=lambda x: (
@@ -251,5 +286,17 @@ def scan_news(
             x['score']
         ),
         reverse=True
+    )
+    logger.info('parsed_item_count | mode=%s | count=%s', mode, parsed_item_count)
+    logger.info('candidate_count | mode=%s | count=%s', mode, len(candidates))
+    logger.info('duplicate_drop_count | mode=%s | count=%s', mode, duplicate_drop_count)
+    _log_skip_counts(mode, skip_counts)
+    logger.info(
+        'scan_finished | mode=%s | parsed_item_count=%s | candidate_count=%s | duplicate_drop_count=%s | skip_reason_count=%s',
+        mode,
+        parsed_item_count,
+        len(candidates),
+        duplicate_drop_count,
+        sum(skip_counts.values()),
     )
     return candidates
