@@ -62,15 +62,14 @@ class TelegramSafetyTests(unittest.TestCase):
         self.assertNotIn('&lt;img', cleaned)
         self.assertNotIn('<a href', cleaned)
 
-    def test_simple_tr_rewrite_does_not_replace_inside_words(self):
+    def test_simple_tr_rewrite_does_not_create_hybrid_text(self):
         from enrichers.text_hygiene import simple_tr_rewrite
 
-        text = simple_tr_rewrite('The warning says war risk is rising near U.S. officials.')
+        text = simple_tr_rewrite('Iranian local region students killed in attacks on Israeli communities.')
 
-        self.assertIn('warning', text)
-        self.assertNotIn('savaşning', text)
-        self.assertIn('savaş risk', text)
-        self.assertIn('U.S.', text)
+        self.assertEqual(text, 'Iranian local region students killed in attacks on Israeli communities.')
+        self.assertNotIn('İranlı local region', text)
+        self.assertNotIn('students öldürüldü', text)
 
     def test_signal_message_sanitizes_summary_html(self):
         from services.assistant_output import build_signal_message
@@ -113,6 +112,32 @@ class TelegramSafetyTests(unittest.TestCase):
         self.assertIn('Federal Reserve kaynağı', text)
         self.assertIn('FOMC rate decision published', text)
         self.assertNotIn('The Federal Reserve said', text)
+
+    def test_signal_message_fallback_strips_html_image_link_tokens(self):
+        from services.assistant_output import build_signal_message
+
+        text = build_signal_message(
+            {
+                'source_name': 'WhiteHouse X',
+                'title': '<img src="https://pbs.twimg.com/media/x.jpg" style="width:250px">Iran update',
+                'link': 'https://xcancel.com/WhiteHouse/status/1',
+            },
+            60,
+            {
+                'summary_tr': '<img src="https://pbs.twimg.com/media/x.jpg" style="width:250px">The update said attacks on Israeli communities continued.',
+                'alarm_score': 60,
+            },
+            origin_label='Sosyal',
+            verified=False,
+        )
+
+        self.assertIn('WhiteHouse X kaynağı', text)
+        self.assertNotIn('<img', text)
+        self.assertNotIn('style', text)
+        self.assertNotIn('twimg', text)
+        self.assertNotIn('pbs', text)
+        self.assertNotIn('jpg', text)
+        self.assertNotIn('250px', text)
 
     def test_signal_message_includes_score_reason(self):
         from services.assistant_output import build_signal_message

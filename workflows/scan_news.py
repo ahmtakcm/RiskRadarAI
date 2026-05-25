@@ -19,7 +19,7 @@ from core.matching import build_topic_tokens
 
 logger = get_logger('scan_news')
 
-SOCIAL_STATUS_HOSTS = {'nitter.net', 'twitt.re', 'xcancel.com'}
+SOCIAL_STATUS_HOSTS = {'nitter.net', 'twitt.re', 'xcancel.com', 'rss.xcancel.com', 'x.com', 'twitter.com'}
 
 
 def _normalized_title(title: str) -> str:

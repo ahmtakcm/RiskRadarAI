@@ -62,6 +62,56 @@ class ScanAliasAndScoringTests(unittest.TestCase):
         self.assertEqual(first, 'social-status:123456789')
         self.assertEqual(second, first)
 
+    def test_rss_xcancel_status_key_matches_xcancel(self):
+        from workflows.scan_news import _canonical_story_key
+
+        first = _canonical_story_key({
+            'title': 'UKMTO update',
+            'link': 'https://rss.xcancel.com/UK_MTO/status/2051749762538389668#m',
+        })
+        second = _canonical_story_key({
+            'title': 'UKMTO update',
+            'link': 'https://xcancel.com/UK_MTO/status/2051749762538389668',
+        })
+
+        self.assertEqual(first, 'social-status:2051749762538389668')
+        self.assertEqual(second, first)
+
+    def test_social_source_owner_mismatch_uses_link_owner_fallback(self):
+        from fetchers.feed_fetcher import _apply_social_source_attribution
+
+        item = {
+            'source_name': 'WhiteHouse X',
+            'link': 'https://xcancel.com/TreyYingst/status/123',
+            'official_class': 'official_executive',
+            'official_country': 'US',
+            'official_red_alert': True,
+            'applies_to_all_profiles': True,
+        }
+
+        _apply_social_source_attribution(item, {'name': 'WhiteHouse X', 'url': 'https://xcancel.com/WhiteHouse/rss'})
+
+        self.assertEqual(item['source_name'], 'TreyYingst X')
+        self.assertTrue(item['source_attribution_mismatch'])
+        self.assertEqual(item['official_class'], '')
+        self.assertFalse(item['official_red_alert'])
+
+    def test_topic_tokens_ignore_html_image_noise(self):
+        from core.matching import build_topic_tokens
+
+        tokens = build_topic_tokens({
+            'title': 'Bila Tserkva strike update',
+            'description': '<img src="https://pbs.twimg.com/media/x.jpg" style="width:250px"> Russia Ukraine update',
+        })
+
+        self.assertIn('bila', tokens)
+        self.assertIn('tserkva', tokens)
+        self.assertNotIn('img', tokens)
+        self.assertNotIn('style', tokens)
+        self.assertNotIn('twimg', tokens)
+        self.assertNotIn('pbs', tokens)
+        self.assertNotIn('jpg', tokens)
+
     def test_single_official_red_alert_does_not_auto_score_100(self):
         from filters.ai_agent import analyze_signal
 
