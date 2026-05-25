@@ -65,7 +65,7 @@ class NotificationBehaviorTests(unittest.TestCase):
              patch.object(pc, 'ai_client', ai or FakeAI()), \
              patch.object(pc, '_ensure_article_text', lambda item: None), \
              patch.object(pc, 'choose_best_summary', lambda item, result: (result or {}).get('summary_tr') or 'stub summary'), \
-             patch.object(pc, '_send_cluster_alerts', lambda state, buckets, seen, sent: (sent, set())), \
+             patch.object(pc, '_send_cluster_alerts', lambda state, buckets, seen, sent, metrics=None: (sent, set())), \
              patch.object(pc, 'load_active_config', lambda: cfg):
             state = {}
             pc.process_candidates(state, official or [], social or [], osint or [], analysis or [])
@@ -87,6 +87,21 @@ class NotificationBehaviorTests(unittest.TestCase):
         tg, state = self.run_process(social=[soc], ai=FakeAI(should_notify=False))
         self.assertEqual(len(tg.messages), 0)
         self.assertEqual(state['news_log'][-1]['drop_reason'], 'below_alert_threshold')
+
+    def test_process_candidates_emits_observability_counts(self):
+        soc = candidate('WhiteHouse X', kind='rss_social', scan_mode='social_only')
+
+        with self.assertLogs('process_candidates', level='INFO') as logs:
+            tg, state = self.run_process(social=[soc], ai=FakeAI(should_notify=False))
+
+        output = '\n'.join(logs.output)
+        self.assertEqual(len(tg.messages), 0)
+        self.assertEqual(state['news_log'][-1]['drop_reason'], 'below_alert_threshold')
+        self.assertIn('candidate_count | stage=process_candidates', output)
+        self.assertIn('alert_sent_count | count=0', output)
+        self.assertIn('digest_candidate_count | count=1', output)
+        self.assertIn('low_score_digest_count | count=1', output)
+        self.assertIn('skip_reason_count | stage=process_candidates | reason=below_alert_threshold | count=1', output)
 
     def test_social_unverified_false_is_held_unless_verified(self):
         soc = candidate('POTUS X', kind='rss_social', scan_mode='social_only')

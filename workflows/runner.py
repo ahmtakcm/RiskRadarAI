@@ -93,6 +93,13 @@ def _build_fallback_digest(items: list[dict]) -> str:
     return "\n".join([intro, *bullets])[:3500]
 
 
+def _digest_final_count(message: str, usable: list[dict]) -> int:
+    bullet_count = sum(1 for line in str(message or "").splitlines() if line.strip().startswith("•"))
+    if bullet_count:
+        return bullet_count
+    return len(usable) if str(message or "").strip() else 0
+
+
 def build_digest_result(
     state: dict, *, now: datetime | None = None, force: bool = False, send: bool = False
 ) -> dict:
@@ -112,7 +119,7 @@ def build_digest_result(
 
     if not due:
         logger.info(
-            "digest_not_due | last_digest_slot=%s | current_slot=%s",
+            "digest_not_due | digest_candidate_count=0 | digest_final_count=0 | last_digest_slot=%s | current_slot=%s",
             last_slot,
             current_slot,
         )
@@ -124,8 +131,16 @@ def build_digest_result(
     candidates = collect_digest_candidates(state.get("news_log", []), now)
     usable = _usable_digest_candidates(candidates)
     base.update(candidate_count=len(candidates), usable_candidate_count=len(usable))
+    logger.info(
+        "digest_candidate_count | count=%s | usable_count=%s | last_digest_slot=%s | current_slot=%s",
+        len(candidates),
+        len(usable),
+        last_slot,
+        current_slot,
+    )
 
     if not candidates:
+        logger.info("digest_final_count | count=0 | status=no_candidates | current_slot=%s", current_slot)
         logger.info(
             "no_candidates | candidate_count=0 | usable_candidate_count=0 | last_digest_slot=%s | current_slot=%s",
             last_slot,
@@ -139,6 +154,7 @@ def build_digest_result(
         return base
 
     if not usable:
+        logger.info("digest_final_count | count=0 | status=no_usable_candidates | current_slot=%s", current_slot)
         logger.info(
             "no_usable_candidates | candidate_count=%s | usable_candidate_count=0 | last_digest_slot=%s | current_slot=%s",
             len(candidates),
@@ -183,6 +199,7 @@ def build_digest_result(
             )
 
     if not paragraph or not str(paragraph).strip():
+        logger.info("digest_final_count | count=0 | status=empty_fallback | current_slot=%s", current_slot)
         logger.info(
             "no_usable_candidates | reason=empty_fallback | candidate_count=%s | usable_candidate_count=%s | last_digest_slot=%s | current_slot=%s",
             len(candidates),
@@ -196,6 +213,14 @@ def build_digest_result(
 
     message = build_digest_message(now.astimezone(ISTANBUL_TZ), paragraph=paragraph)
     base["message"] = message
+    final_count = _digest_final_count(message, usable)
+    logger.info(
+        "digest_final_count | count=%s | candidate_count=%s | usable_candidate_count=%s | current_slot=%s",
+        final_count,
+        len(candidates),
+        len(usable),
+        current_slot,
+    )
 
     if not send:
         base["status"] = "ready"

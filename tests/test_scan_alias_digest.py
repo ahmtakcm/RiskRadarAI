@@ -62,6 +62,56 @@ class ScanAliasAndScoringTests(unittest.TestCase):
         self.assertEqual(first, 'social-status:123456789')
         self.assertEqual(second, first)
 
+    def test_scan_news_emits_observability_counts(self):
+        import workflows.scan_news as scan
+
+        active = {
+            'profile': {'social_rule_set': 'strict_geopolitics', 'min_score': 9},
+            'social_rules': {'strict_geopolitics': {}},
+            'verification_rules': {},
+            'official_entities': {},
+        }
+        feed = {'name': 'Test Feed', 'url': 'https://example.com/rss', 'kind': 'rss'}
+        items = [
+            {
+                'title': 'Hormuz maritime alert',
+                'link': 'https://example.com/a',
+                'pub_date': 'Thu, 07 May 2026 00:00:00 GMT',
+                'description': 'Security impact around maritime traffic.',
+                'source_name': 'Test Feed',
+                'source_kind': 'rss',
+            },
+            {
+                'title': 'Hormuz maritime alert',
+                'link': 'https://example.com/a',
+                'pub_date': 'Thu, 07 May 2026 00:00:00 GMT',
+                'description': 'Security impact around maritime traffic.',
+                'source_name': 'Test Feed',
+                'source_kind': 'rss',
+            },
+        ]
+
+        with patch.object(scan, 'select_feeds', lambda cfg, mode='all': [feed]), \
+             patch.object(scan, 'select_keywords', lambda cfg: {'primary_terms': [], 'secondary_terms': [], 'high_risk_patterns': []}), \
+             patch.object(scan, 'fetch_feed_items', lambda src: items), \
+             patch.object(scan, 'evaluate_item_freshness', lambda item, mode, settings: {'is_stale': False}), \
+             patch.object(scan, 'classify_content_type', lambda item: 'news'), \
+             patch.object(scan, 'annotate_official_context', lambda item, cfg: {}), \
+             patch.object(scan, 'should_drop_from_alerting', lambda item: False), \
+             patch.object(scan, 'get_risk_score', lambda item, keywords: (30, [], [], 1)), \
+             patch.object(scan, 'is_relevant_news', lambda item, keywords, social_rule, min_score: True), \
+             self.assertLogs('scan_news', level='INFO') as logs:
+            candidates = scan.scan_news({}, mode='social_only', active_config=active)
+
+        output = '\n'.join(logs.output)
+        self.assertEqual(len(candidates), 1)
+        self.assertIn('scan_started | mode=social_only', output)
+        self.assertIn('source_fetch_count | mode=social_only | source=Test Feed | count=2', output)
+        self.assertIn('parsed_item_count | mode=social_only | count=2', output)
+        self.assertIn('candidate_count | mode=social_only | count=1', output)
+        self.assertIn('duplicate_drop_count | mode=social_only | count=1', output)
+        self.assertIn('scan_finished | mode=social_only', output)
+
     def test_rss_xcancel_status_key_matches_xcancel(self):
         from workflows.scan_news import _canonical_story_key
 
@@ -208,6 +258,31 @@ class DigestReliabilityTests(unittest.TestCase):
         self.assertIn('SentDefender', result['message'])
         self.assertIn('Hormuz tanker risk rises', result['message'])
         self.assertIn('https://example.com/hormuz', result['message'])
+
+    def test_digest_result_emits_candidate_and_final_counts(self):
+        import workflows.runner as runner
+
+        state = self._state_with_item()
+        state['news_log'].append({
+            'id': 'x2',
+            'timestamp': datetime(2026, 5, 8, 4, 5, tzinfo=timezone.utc).isoformat(),
+            'source_name': 'Intel Sky',
+            'title': 'Second digest item',
+            'text': '',
+            'url': 'https://example.com/second',
+            'translated_text': '',
+            'delivery_mode': 'digest',
+            'alert_sent': False,
+        })
+
+        with patch.object(runner.ai_client, 'build_digest_paragraph', lambda items: ''), \
+             self.assertLogs('runner', level='INFO') as logs:
+            result = runner.build_digest_result(state, now=datetime(2026, 5, 8, 5, 0, tzinfo=timezone.utc), force=True, send=False)
+
+        output = '\n'.join(logs.output)
+        self.assertEqual(result['status'], 'ready')
+        self.assertIn('digest_candidate_count | count=2 | usable_count=2', output)
+        self.assertIn('digest_final_count | count=2', output)
 
     def test_weak_ai_paragraph_falls_back_to_bullets(self):
         import workflows.runner as runner
