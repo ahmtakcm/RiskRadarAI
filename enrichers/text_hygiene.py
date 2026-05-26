@@ -37,6 +37,16 @@ _INCOMPLETE_ENDINGS = (
     " while", " as", " to", " of", " for", " on", " in", " with",
 )
 
+_ENGLISH_TITLE_HINT_RE = re.compile(
+    r"\b(?:"
+    r"the|and|after|before|amid|says|said|will|could|would|"
+    r"attack|attacks|strike|strikes|war|conflict|talks|published|"
+    r"decision|rate|blockade|warning|statement|minister|president|"
+    r"security|maritime|traffic|shipping|oil|routes|near"
+    r")\b",
+    re.IGNORECASE,
+)
+
 def clean_html_text(text: Optional[str]) -> str:
     if not text:
         return ""
@@ -116,6 +126,20 @@ def is_probably_english(text: Optional[str]) -> bool:
         " war", " conflict", " attack", " strike", " talks",
     ))
 
+
+def looks_like_raw_english_title(text: Optional[str]) -> bool:
+    s = clean_html_text(text)
+    if not s:
+        return False
+    if is_probably_english(s):
+        return True
+    if any(ch in s for ch in "çğıöşüÇĞİÖŞÜ"):
+        return False
+    words = re.findall(r"[A-Za-z']+", s)
+    if len(words) < 2:
+        return False
+    return bool(_ENGLISH_TITLE_HINT_RE.search(s))
+
 def turkish_fallback_summary(
     title: Optional[str] = None,
     source: Optional[str] = None,
@@ -125,10 +149,13 @@ def turkish_fallback_summary(
     clean_source = clean_html_text(source)
     clean_topic = clean_html_text(topic)
 
-    if clean_title:
+    if clean_title and not looks_like_raw_english_title(clean_title):
         if clean_source:
             return f"{clean_source} kaynağı, “{clean_title}” başlığıyla gelişmeyi aktardı."
         return f"“{clean_title}” başlığıyla yeni bir gelişme aktarıldı."
+
+    if clean_source:
+        return f"{clean_source} kaynağı, gelişmeye ilişkin yeni bir kayıt aktardı."
 
     if clean_topic:
         return f"{clean_topic} başlığı altında yeni bir gelişme tespit edildi."

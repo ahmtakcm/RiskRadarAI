@@ -11,6 +11,12 @@ from filters.ai_parse import choose_best_summary
 from core.news_log import build_log_entry, append_news_log
 from core.event_merger import group_items, should_send_cluster, build_alert, cluster_key
 from core.notification_policy import item_policy_context
+from enrichers.text_hygiene import (
+    clean_telegram_text,
+    is_probably_english,
+    looks_like_raw_english_title,
+    turkish_fallback_summary,
+)
 
 logger = get_logger('process_candidates')
 
@@ -140,12 +146,53 @@ def _minimal_fallback_summary(item: dict) -> str:
     return '\n'.join(bits).strip()
 
 
+def _summary_needs_translation(item: dict, summary: str) -> bool:
+    cleaned = clean_telegram_text(summary)
+    if not cleaned:
+        return True
+    if is_probably_english(cleaned):
+        return True
+    title = clean_telegram_text(item.get('title'))
+    return bool(title and looks_like_raw_english_title(title) and title in cleaned)
+
+
+def _provider_translation_summary(item: dict) -> str:
+    translate = getattr(ai_client, 'translate_official_item', None)
+    if not callable(translate):
+        return ''
+    try:
+        title_tr, text_tr = translate(item)
+    except Exception:
+        return ''
+
+    cleaned_title = clean_telegram_text(title_tr)
+    cleaned_text = clean_telegram_text(text_tr)
+
+    if cleaned_title and not is_probably_english(cleaned_title):
+        item['title_tr'] = cleaned_title
+    if cleaned_text and not is_probably_english(cleaned_text):
+        item['translated_text'] = cleaned_text
+        return cleaned_text
+    if cleaned_title and not is_probably_english(cleaned_title):
+        return cleaned_title
+    return ''
+
+
 def _ensure_usable_summary(item: dict, analysis: dict, origin_label: str) -> bool:
-    if choose_best_summary(item, analysis.get('gemini') or analysis):
+    summary = choose_best_summary(item, analysis.get('gemini') or analysis)
+    if summary and not _summary_needs_translation(item, summary):
+        return True
+    translated = _provider_translation_summary(item)
+    if translated:
+        analysis['summary_tr'] = translated
         return True
     fallback = _minimal_fallback_summary(item)
     if not fallback:
-        return False
+        fallback = turkish_fallback_summary(
+            title=item.get('title'),
+            source=item.get('source_name'),
+            topic=item.get('matched_profile') or item.get('scan_mode'),
+        )
     analysis['summary_tr'] = fallback
     analysis.setdefault('category', 'mixed')
     analysis.pop('reason_short', None)

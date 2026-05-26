@@ -29,6 +29,16 @@ class FakeAI:
         return False
 
 
+class FakeTranslationAI(FakeAI):
+    def analyze_item(self, item, verification_rules=None, verified=False):
+        result = super().analyze_item(item, verification_rules, verified)
+        result['summary_tr'] = 'Iran attacks Hormuz blockade.'
+        return result
+
+    def translate_official_item(self, item):
+        return 'Hürmüz ablukası uyarısı', 'CENTCOM, Hürmüz hattında güvenlik riskinin arttığını bildirdi.'
+
+
 def candidate(source_name='Source', kind='rss', official_class='', source_class='', source_family='', **item_overrides):
     item = {
         'source_name': source_name,
@@ -75,6 +85,21 @@ class NotificationBehaviorTests(unittest.TestCase):
         off = candidate('CENTCOM', official_class='official_military', official_red_alert=True)
         tg, _ = self.run_process(official=[off], ai=FakeAI(should_notify=True))
         self.assertEqual(len(tg.messages), 1)
+
+    def test_official_translation_fallback_uses_provider_text(self):
+        off = candidate(
+            'CENTCOM',
+            official_class='official_military',
+            official_red_alert=True,
+            title='Iran attacks Hormuz blockade',
+            description='Iran attacks Hormuz blockade.',
+        )
+
+        tg, _ = self.run_process(official=[off], ai=FakeTranslationAI(should_notify=True))
+
+        self.assertEqual(len(tg.messages), 1)
+        self.assertIn('CENTCOM, Hürmüz hattında güvenlik riskinin arttığını bildirdi.', tg.messages[0])
+        self.assertNotIn('Iran attacks Hormuz blockade', tg.messages[0])
 
     def test_routine_official_content_is_suppressed(self):
         off = candidate('Official Routine', official_class='official_government', is_official_routine=True)
