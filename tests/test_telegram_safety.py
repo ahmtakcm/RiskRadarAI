@@ -110,8 +110,30 @@ class TelegramSafetyTests(unittest.TestCase):
         )
 
         self.assertIn('Federal Reserve kaynağı', text)
-        self.assertIn('FOMC rate decision published', text)
+        self.assertNotIn('FOMC rate decision published', text)
         self.assertNotIn('The Federal Reserve said', text)
+
+    def test_signal_message_does_not_embed_raw_english_title_fallback(self):
+        from services.assistant_output import build_signal_message
+
+        text = build_signal_message(
+            {
+                'source_name': 'CENTCOM',
+                'title': 'Iran attacks Hormuz blockade',
+                'link': 'https://example.com/hormuz',
+            },
+            85,
+            {
+                'summary_tr': 'Iran attacks Hormuz blockade.',
+                'alarm_score': 85,
+            },
+            origin_label='Resmi',
+            verified=False,
+        )
+
+        self.assertIn('CENTCOM kaynağı', text)
+        self.assertNotIn('Iran attacks Hormuz blockade', text)
+        self.assertNotIn('Hürmüz blockade', text)
 
     def test_signal_message_fallback_strips_html_image_link_tokens(self):
         from services.assistant_output import build_signal_message
