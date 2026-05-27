@@ -41,8 +41,9 @@ _ENGLISH_TITLE_HINT_RE = re.compile(
     r"\b(?:"
     r"the|and|after|before|amid|says|said|will|could|would|"
     r"attack|attacks|strike|strikes|war|conflict|talks|published|"
-    r"decision|rate|blockade|warning|statement|minister|president|"
-    r"security|maritime|traffic|shipping|oil|routes|near"
+    r"comments|update|release|releases|launch|launches|decision|rate|"
+    r"blockade|warning|statement|minister|president|footage|tunnel|"
+    r"infrastructure|security|maritime|traffic|shipping|oil|routes|near"
     r")\b",
     re.IGNORECASE,
 )
@@ -123,6 +124,7 @@ def is_probably_english(text: Optional[str]) -> bool:
     return any(x in low for x in (
         " the ", " and ", " after ", " before ", " amid ",
         " says ", " said ", " will ", " could ", " would ",
+        " of ", " in ", " releases ", " footage", " infrastructure",
         " war", " conflict", " attack", " strike", " talks",
     ))
 
@@ -140,6 +142,96 @@ def looks_like_raw_english_title(text: Optional[str]) -> bool:
         return False
     return bool(_ENGLISH_TITLE_HINT_RE.search(s))
 
+
+def _official_subject(source: str) -> str:
+    low = source.lower()
+    compact = re.sub(r"[^a-z0-9]+", "", low)
+    if "statedept" in compact or ("state" in low and "dept" in low):
+        return "ABD Dışişleri"
+    if "whitehouse" in compact or "white house" in low:
+        return "Beyaz Saray"
+    if "centcom" in compact:
+        return "CENTCOM"
+    if "nato" in compact:
+        return "NATO"
+    if "idf" in compact or "israel defense" in low:
+        return "IDF"
+    if "russia" in low and ("mfa" in low or "foreign" in low):
+        return "Rusya Dışişleri"
+    if "treasury" in low:
+        return "ABD Hazine Bakanlığı"
+    if "federalreserve" in compact or compact == "fed" or "federal reserve" in low:
+        return "Fed"
+    if "ecb" in compact or "european central bank" in low:
+        return "ECB"
+    if "tcmb" in compact:
+        return "TCMB"
+    if "presidency" in low or "cumhurbaskan" in low:
+        return "Cumhurbaşkanlığı"
+    return source.strip()
+
+
+def _concise_official_fallback(title: str, source: str, topic: str = "") -> str:
+    subject = _official_subject(source) or "Resmi kaynak"
+    text = clean_html_text(title)
+    low = f" {text.lower()} "
+
+    if "nato" in subject.lower() and any(x in low for x in (" exercise", " drill", " submarine", " anti-submarine")):
+        if any(x in low for x in (" north", " northern", " arctic", " baltic")) and "submarine" in low:
+            return "NATO, kuzey bölgelerinde denizaltı savaşı tatbikatı başlattı."
+        return "NATO, askeri tatbikata ilişkin resmi açıklama yaptı."
+
+    if subject == "IDF" and any(x in low for x in ("hezbollah", "hizbullah")):
+        if any(x in low for x in (" tunnel", " infrastructure", " footage", " video", " image")):
+            return "IDF Güney Lübnan’daki Hizbullah altyapısına ilişkin görüntü paylaştı."
+        return "IDF, Hizbullah bağlantılı güvenlik gelişmesine ilişkin açıklama yaptı."
+
+    if subject == "Rusya Dışişleri" and any(x in low for x in (" kiev", " kyiv")):
+        if any(x in low for x in (" strike", " attack", " military")):
+            return "Rusya Dışişleri, Kiev’e yönelik yeni askeri adımlar konusunda açıklama yaptı."
+        return "Rusya Dışişleri, Kiev gündemine ilişkin resmi açıklama yaptı."
+
+    topic_phrase = ""
+    if "hormuz" in low:
+        topic_phrase = "Hürmüz hattı"
+    elif "iran" in low:
+        topic_phrase = "İran"
+    elif "gaza" in low:
+        topic_phrase = "Gazze"
+    elif "hezbollah" in low or "hizbullah" in low:
+        topic_phrase = "Hizbullah"
+    elif "ukraine" in low:
+        topic_phrase = "Ukrayna"
+    elif "kiev" in low or "kyiv" in low:
+        topic_phrase = "Kiev"
+    elif "sanction" in low:
+        topic_phrase = "yaptırımlar"
+    elif "ceasefire" in low:
+        topic_phrase = "ateşkes"
+    elif "fomc" in low or " rate" in low:
+        topic_phrase = "faiz kararı"
+    elif topic:
+        topic_phrase = clean_html_text(topic)
+
+    if "sanction" in low:
+        return f"{subject}, yaptırımlara ilişkin yeni karar açıkladı."
+    if "blockade" in low and topic_phrase:
+        return f"{subject}, {topic_phrase} konusunda uyarı yaptı."
+    if any(x in low for x in (" exercise", " drill")):
+        return f"{subject}, askeri tatbikata ilişkin resmi açıklama yaptı."
+    if any(x in low for x in (" talk", " talks", " meeting", " negotiation")) and topic_phrase:
+        return f"{subject} {topic_phrase} görüşmelerine ilişkin açıklama yaptı."
+    if any(x in low for x in (" warn", " warning", " alert")) and topic_phrase:
+        return f"{subject}, {topic_phrase} konusunda uyarı yaptı."
+    if any(x in low for x in (" confirm", " confirmed")) and topic_phrase:
+        return f"{subject}, {topic_phrase} başlığındaki gelişmeyi doğruladı."
+    if any(x in low for x in (" footage", " video", " image", " photo")) and topic_phrase:
+        return f"{subject}, {topic_phrase} başlığına ilişkin görüntü paylaştı."
+    if topic_phrase:
+        return f"{subject}, {topic_phrase} gündemine ilişkin resmi açıklama yaptı."
+    return f"{subject}, resmi gündeme ilişkin kısa açıklama yaptı."
+
+
 def turkish_fallback_summary(
     title: Optional[str] = None,
     source: Optional[str] = None,
@@ -149,13 +241,17 @@ def turkish_fallback_summary(
     clean_source = clean_html_text(source)
     clean_topic = clean_html_text(topic)
 
-    if clean_title and not looks_like_raw_english_title(clean_title):
+    if clean_title and looks_like_raw_english_title(clean_title):
+        return _concise_official_fallback(clean_title, clean_source, clean_topic)
+
+    if clean_title:
         if clean_source:
             return f"{clean_source} kaynağı, “{clean_title}” başlığıyla gelişmeyi aktardı."
         return f"“{clean_title}” başlığıyla yeni bir gelişme aktarıldı."
 
     if clean_source:
-        return f"{clean_source} kaynağı, gelişmeye ilişkin yeni bir kayıt aktardı."
+        subject = _official_subject(clean_source)
+        return f"{subject}, resmi gündeme ilişkin kısa açıklama yaptı."
 
     if clean_topic:
         return f"{clean_topic} başlığı altında yeni bir gelişme tespit edildi."

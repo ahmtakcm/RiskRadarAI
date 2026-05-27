@@ -109,7 +109,7 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('Federal Reserve kaynağı', text)
+        self.assertIn('Fed, faiz kararı gündemine ilişkin resmi açıklama yaptı.', text)
         self.assertNotIn('FOMC rate decision published', text)
         self.assertNotIn('The Federal Reserve said', text)
 
@@ -131,9 +131,66 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('CENTCOM kaynağı', text)
+        self.assertIn('CENTCOM, Hürmüz hattı konusunda uyarı yaptı.', text)
         self.assertNotIn('Iran attacks Hormuz blockade', text)
         self.assertNotIn('Hürmüz blockade', text)
+
+    def test_state_dept_title_gets_concise_event_fallback(self):
+        from services.assistant_output import build_signal_message
+
+        text = build_signal_message(
+            {
+                'source_name': 'StateDept X',
+                'title': 'Secretary comments after Iran talks in Oman',
+                'link': 'https://example.com/state',
+            },
+            80,
+            {'summary_tr': 'Secretary comments after Iran talks in Oman.', 'alarm_score': 80},
+            origin_label='Resmi',
+            verified=False,
+        )
+
+        self.assertIn('ABD Dışişleri İran görüşmelerine ilişkin açıklama yaptı.', text)
+        self.assertNotIn('gelişmeye ilişkin yeni bir kayıt aktardı', text)
+        self.assertNotIn('Secretary comments after Iran talks', text)
+
+    def test_idf_title_gets_concise_event_fallback(self):
+        from services.assistant_output import build_signal_message
+
+        text = build_signal_message(
+            {
+                'source_name': 'IDF X',
+                'title': 'IDF releases footage of Hezbollah tunnel infrastructure in southern Lebanon',
+                'link': 'https://example.com/idf',
+            },
+            88,
+            {'summary_tr': 'IDF releases footage of Hezbollah tunnel infrastructure.', 'alarm_score': 88},
+            origin_label='Resmi',
+            verified=False,
+        )
+
+        self.assertIn('IDF Güney Lübnan’daki Hizbullah altyapısına ilişkin görüntü paylaştı.', text)
+        self.assertNotIn('Hezbollah tunnel infrastructure', text)
+        self.assertNotIn('gelişmeye ilişkin yeni bir kayıt aktardı', text)
+
+    def test_nato_exercise_title_gets_concise_event_fallback(self):
+        from services.assistant_output import build_signal_message
+
+        text = build_signal_message(
+            {
+                'source_name': 'NATO',
+                'title': 'NATO launches northern anti-submarine warfare exercise',
+                'link': 'https://example.com/nato',
+            },
+            70,
+            {'summary_tr': 'NATO launches northern anti-submarine warfare exercise.', 'alarm_score': 70},
+            origin_label='Resmi',
+            verified=False,
+        )
+
+        self.assertIn('NATO, kuzey bölgelerinde denizaltı savaşı tatbikatı başlattı.', text)
+        self.assertNotIn('anti-submarine warfare exercise', text)
+        self.assertNotIn('gelişmeye ilişkin yeni bir kayıt aktardı', text)
 
     def test_signal_message_fallback_strips_html_image_link_tokens(self):
         from services.assistant_output import build_signal_message
@@ -153,7 +210,7 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('WhiteHouse X kaynağı', text)
+        self.assertIn('Beyaz Saray, İran gündemine ilişkin resmi açıklama yaptı.', text)
         self.assertNotIn('<img', text)
         self.assertNotIn('style', text)
         self.assertNotIn('twimg', text)
