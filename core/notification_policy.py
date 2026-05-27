@@ -5,6 +5,8 @@ from typing import Any
 
 DROP_REASON_CATALOG = [
     'stale',
+    'official_critical_digest_kept',
+    'official_critical_relevance_kept',
     'not_relevant',
     'routine_suppressed',
     'below_alert_threshold',
