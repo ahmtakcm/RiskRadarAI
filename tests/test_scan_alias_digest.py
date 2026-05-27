@@ -225,6 +225,180 @@ class ScanAliasAndScoringTests(unittest.TestCase):
         self.assertTrue(all(event['pre_alerts_minutes'] == [1440, 180, 60, 30] for event in events))
         self.assertTrue(all(event['importance_level'] == 1 for event in events))
 
+    def _official_scan_config(self):
+        return {
+            'profile': {'social_rule_set': 'strict_geopolitics', 'min_score': 9},
+            'social_rules': {'strict_geopolitics': {}},
+            'verification_rules': {},
+            'official_entities': {
+                'official_keyword_override_terms': ['strike', 'operation', 'sanctions', 'advisory'],
+                'official_sources_red_alert': [],
+                'iran_official_entities': [],
+                'trusted_secondary_sources': [],
+                'official_routine_terms': ['ceremony', 'memorial day', 'holiday message', 'visit'],
+            },
+            'profile_policies': {},
+        }
+
+    def _scan_one_item(self, feed, item, *, freshness=None, relevant=False, profile_matches=None):
+        import workflows.scan_news as scan
+
+        active = self._official_scan_config()
+        state = {}
+        freshness = freshness or {'is_stale': False, 'age_minutes': 10, 'max_age_minutes': 180}
+        profile_matches = [] if profile_matches is None else profile_matches
+
+        with patch.object(scan, 'select_feeds', lambda cfg, mode='all': [feed]), \
+             patch.object(scan, 'select_keywords', lambda cfg: {'primary_terms': [], 'secondary_terms': [], 'high_risk_patterns': []}), \
+             patch.object(scan, 'fetch_feed_items', lambda src: [item]), \
+             patch.object(scan, 'evaluate_item_freshness', lambda item, mode, settings: freshness), \
+             patch.object(scan, 'classify_content_type', lambda item: 'news'), \
+             patch.object(scan, 'should_drop_from_alerting', lambda item: False), \
+             patch.object(scan, 'evaluate_item_across_active_profiles', lambda item, cfg: profile_matches), \
+             patch.object(scan, 'is_relevant_news', lambda item, keywords, social_rule, min_score: relevant), \
+             self.assertLogs('scan_news', level='INFO') as logs:
+            candidates = scan.scan_news(state, mode='official_only', active_config=active)
+
+        return candidates, state, '\n'.join(logs.output)
+
+    def test_official_state_dept_iran_talks_survives_not_relevant(self):
+        feed = {
+            'name': 'StateDept X',
+            'kind': 'rss_social',
+            'official_class': 'official_diplomacy',
+            'applies_to_all_profiles': True,
+        }
+        item = {
+            'title': 'Secretary comments after Iran talks',
+            'description': 'Diplomatic talks update.',
+            'link': 'https://example.com/state',
+            'source_name': 'StateDept X',
+            'source_kind': 'rss_social',
+            'official_class': 'official_diplomacy',
+            'applies_to_all_profiles': True,
+        }
+
+        candidates, _, output = self._scan_one_item(feed, item, relevant=False)
+
+        self.assertEqual(len(candidates), 1)
+        self.assertIn('official_critical_relevance_kept', output)
+
+    def test_official_centcom_operation_survives_not_relevant(self):
+        feed = {
+            'name': 'CENTCOM X',
+            'kind': 'rss_social',
+            'official_class': 'official_military',
+            'official_red_alert': True,
+            'applies_to_all_profiles': True,
+        }
+        item = {
+            'title': 'CENTCOM operation follows missile strike warning',
+            'description': 'Operational update.',
+            'link': 'https://example.com/centcom',
+            'source_name': 'CENTCOM X',
+            'source_kind': 'rss_social',
+            'official_class': 'official_military',
+            'official_red_alert': True,
+            'applies_to_all_profiles': True,
+        }
+
+        candidates, _, output = self._scan_one_item(feed, item, relevant=False)
+
+        self.assertEqual(len(candidates), 1)
+        self.assertIn('official_critical_relevance_kept', output)
+
+    def test_official_treasury_sanctions_survives_not_relevant(self):
+        feed = {
+            'name': 'USTreasury X',
+            'kind': 'rss_social',
+            'official_class': 'official_finance',
+            'applies_to_all_profiles': True,
+        }
+        item = {
+            'title': 'Treasury announces new sanctions',
+            'description': 'Sanctions action published.',
+            'link': 'https://example.com/treasury',
+            'source_name': 'USTreasury X',
+            'source_kind': 'rss_social',
+            'official_class': 'official_finance',
+            'applies_to_all_profiles': True,
+        }
+
+        candidates, _, output = self._scan_one_item(feed, item, relevant=False)
+
+        self.assertEqual(len(candidates), 1)
+        self.assertIn('official_critical_relevance_kept', output)
+
+    def test_stale_official_ukmto_advisory_is_kept_for_digest(self):
+        feed = {
+            'name': 'UKMTO X Relay',
+            'kind': 'rss_social',
+            'official_class': 'official_security_relay',
+            'applies_to_all_profiles': True,
+        }
+        item = {
+            'title': 'UKMTO advisory reports maritime security incident',
+            'description': 'Security incident advisory.',
+            'link': 'https://example.com/ukmto',
+            'source_name': 'UKMTO X Relay',
+            'source_kind': 'rss_social',
+            'official_class': 'official_security_relay',
+            'applies_to_all_profiles': True,
+        }
+
+        candidates, state, output = self._scan_one_item(
+            feed,
+            item,
+            freshness={'is_stale': True, 'age_minutes': 900, 'max_age_minutes': 180},
+        )
+
+        self.assertEqual(candidates, [])
+        self.assertEqual(state['news_log'][-1]['drop_reason'], 'official_critical_digest_kept')
+        self.assertIn('official_critical_digest_kept', output)
+
+    def test_official_memorial_ceremony_still_suppressed(self):
+        feed = {
+            'name': 'WhiteHouse X',
+            'kind': 'rss_social',
+            'official_class': 'official_executive',
+            'applies_to_all_profiles': True,
+        }
+        item = {
+            'title': 'Memorial Day ceremony message',
+            'description': 'Holiday message and ceremony.',
+            'link': 'https://example.com/ceremony',
+            'source_name': 'WhiteHouse X',
+            'source_kind': 'rss_social',
+            'official_class': 'official_executive',
+            'applies_to_all_profiles': True,
+        }
+
+        candidates, _, output = self._scan_one_item(
+            feed,
+            item,
+            relevant=True,
+            profile_matches=[{'profile': 'resmi_kritik', 'score': 30}],
+        )
+
+        self.assertEqual(candidates, [])
+        self.assertIn('routine_suppressed', output)
+
+    def test_social_not_relevant_behavior_is_unchanged(self):
+        feed = {'name': 'SentDefender', 'kind': 'rss_social'}
+        item = {
+            'title': 'Iran missile warning',
+            'description': 'Unofficial social report.',
+            'link': 'https://example.com/social',
+            'source_name': 'SentDefender',
+            'source_kind': 'rss_social',
+        }
+
+        candidates, _, output = self._scan_one_item(feed, item, relevant=False)
+
+        self.assertEqual(candidates, [])
+        self.assertIn('reason=not_relevant', output)
+        self.assertNotIn('official_critical_relevance_kept', output)
+
 
 class DigestReliabilityTests(unittest.TestCase):
     def _state_with_item(self, **overrides):

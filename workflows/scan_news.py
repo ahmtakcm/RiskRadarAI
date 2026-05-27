@@ -22,6 +22,22 @@ logger = get_logger('scan_news')
 
 SOCIAL_STATUS_HOSTS = {'nitter.net', 'twitt.re', 'xcancel.com', 'rss.xcancel.com', 'x.com', 'twitter.com'}
 
+OFFICIAL_CRITICAL_TERMS = {
+    'iran', 'gaza', 'hezbollah', 'hizbullah', 'ukraine', 'kiev', 'kyiv',
+    'russia', 'nato', 'hormuz', 'sanction', 'sanctions', 'ceasefire',
+    'strike', 'strikes', 'attack', 'warning', 'military', 'missile',
+    'operation', 'operations', 'advisory', 'incident', 'security incident',
+    'treasury sanctions', 'state department statement', 'centcom operation',
+    'ukmto advisory', 'interest', 'inflation', 'rate decision', 'policy rate',
+    'fomc', 'ecb', 'tcmb',
+}
+
+OFFICIAL_LOW_VALUE_TERMS = {
+    'memorial day', 'ceremony', 'routine visit', 'congratulations',
+    'holiday message', 'health awareness', 'generic health awareness',
+    'birthday', 'anniversary', 'greeting', 'courtesy', 'protocol',
+}
+
 
 def _inc(counter: dict[str, int], key: str, amount: int = 1):
     counter[key] = counter.get(key, 0) + amount
@@ -67,7 +83,7 @@ def _has_digest_text(item: dict) -> bool:
     )
 
 
-def _record_digest_only_drop(state: dict, item: dict, story_key: str, reason: str, runtime_settings):
+def _record_digest_only_drop(state: dict, item: dict, story_key: str, reason: str, runtime_settings, *, force: bool = False):
     age = item.get('age_minutes')
     try:
         age_int = int(age)
@@ -75,7 +91,7 @@ def _record_digest_only_drop(state: dict, item: dict, story_key: str, reason: st
         return False
 
     max_age = int(getattr(runtime_settings, 'digest_max_age_minutes', 720))
-    if age_int > max_age or not _has_digest_text(item):
+    if (age_int > max_age and not force) or not _has_digest_text(item):
         return False
 
     entry = build_log_entry(
@@ -96,6 +112,33 @@ def _record_digest_only_drop(state: dict, item: dict, story_key: str, reason: st
     upsert_news_log_entry(state, entry)
     return True
 
+
+def _is_official_source(item: dict) -> bool:
+    return bool(str(item.get('official_class', '') or '').startswith('official_') or item.get('is_official_source'))
+
+
+def _is_official_critical_item(item: dict) -> bool:
+    if not _is_official_source(item):
+        return False
+    text = ' '.join([
+        str(item.get('source_name', '') or ''),
+        str(item.get('title', '') or ''),
+        str(item.get('description', '') or ''),
+        str(item.get('article_text', '') or ''),
+    ]).lower()
+    if any(term in text for term in OFFICIAL_LOW_VALUE_TERMS):
+        return False
+    return any(term in text for term in OFFICIAL_CRITICAL_TERMS)
+
+
+def _apply_official_critical_keep(item: dict) -> bool:
+    if not _is_official_critical_item(item):
+        return False
+    item['official_critical_relevance_kept'] = True
+    if item.get('is_official_routine'):
+        item['is_official_routine'] = False
+        item['routine_hits'] = []
+    return True
 
 
 def normalize(item):
@@ -218,8 +261,9 @@ def scan_news(
                 if freshness.get('stale_overridden'):
                     logger.info('Notification stale override | source=%s | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))
                 if freshness.get('is_stale'):
-                    logger.info('Notification drop | source=%s | reason=stale | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))
-                    _inc(skip_counts, 'stale')
+                    stale_reason = 'official_critical_digest_kept' if _is_official_critical_item(item) else 'stale'
+                    logger.info('Notification drop | source=%s | reason=%s | mode=%s | age_minutes=%s | freshness_window=%s', feed.get('name'), stale_reason, mode, freshness.get('age_minutes'), freshness.get('max_age_minutes'))
+                    _inc(skip_counts, stale_reason)
                     stale_count += 1
                     stale_limit = freshness.get('max_age_minutes')
                     age = int(freshness.get('age_minutes') or 0)
@@ -231,7 +275,7 @@ def scan_news(
                         and story_key not in seen_story_hashes
                         and story_key not in scan_digest_story_hashes
                     ):
-                        if _record_digest_only_drop(state, item, story_key, 'stale', runtime_settings):
+                        if _record_digest_only_drop(state, item, story_key, stale_reason, runtime_settings, force=stale_reason == 'official_critical_digest_kept'):
                             _inc(skip_counts, 'digest_only_stale_recorded')
                         scan_digest_story_hashes.add(story_key)
                     continue
@@ -239,6 +283,7 @@ def scan_news(
                 item['content_class'] = classify_content_type(item)
                 official_meta = annotate_official_context(item, active_config)
                 item.update(official_meta)
+                official_critical_keep = _apply_official_critical_keep(item)
 
                 if should_drop_from_alerting(item) and not item.get('is_official_source'):
                     logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | content_class=%s', feed.get('name'), mode, item.get('content_class'))
@@ -248,9 +293,13 @@ def scan_news(
                 if mode == 'official_only' and item.get('applies_to_all_profiles'):
                     profile_matches = evaluate_item_across_active_profiles(item, active_config)
                     if not profile_matches and not manual_query:
-                        logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | policy=shared_official_profile_match', feed.get('name'), mode)
-                        _inc(skip_counts, 'shared_official_profile_match')
-                        continue
+                        if official_critical_keep:
+                            logger.info('Notification keep | source=%s | reason=official_critical_relevance_kept | mode=%s | policy=shared_official_profile_match', feed.get('name'), mode)
+                            _inc(skip_counts, 'official_critical_relevance_kept')
+                        else:
+                            logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | policy=shared_official_profile_match', feed.get('name'), mode)
+                            _inc(skip_counts, 'shared_official_profile_match')
+                            continue
                     item['triggered_profiles'] = [m['profile'] for m in profile_matches]
                     item['profile_policy_matches'] = profile_matches
                     if profile_matches:
@@ -286,9 +335,13 @@ def scan_news(
                 item['pattern_hits'] = pre_pattern_hits
 
                 if not force_keep and not manual_query and not is_relevant_news(item, keywords, social_rule, min_score):
-                    logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | score=%s | pattern_hits=%s', feed.get('name'), mode, item.get('score', ''), item.get('pattern_hits', ''))
-                    _inc(skip_counts, 'not_relevant')
-                    continue
+                    if official_critical_keep:
+                        logger.info('Notification keep | source=%s | reason=official_critical_relevance_kept | mode=%s | score=%s | pattern_hits=%s', feed.get('name'), mode, item.get('score', ''), item.get('pattern_hits', ''))
+                        _inc(skip_counts, 'official_critical_relevance_kept')
+                    else:
+                        logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | score=%s | pattern_hits=%s', feed.get('name'), mode, item.get('score', ''), item.get('pattern_hits', ''))
+                        _inc(skip_counts, 'not_relevant')
+                        continue
 
                 if mode == 'official_only' and item.get('matched_profile'):
                     policy = active_config.get('profile_policies', {}).get(item.get('matched_profile'), {})
@@ -299,6 +352,8 @@ def scan_news(
                 item['pattern_hits'] = pattern_hits
                 if force_keep:
                     score = max(score, 25)
+                elif official_critical_keep:
+                    score = max(score, 18)
                 elif item.get('is_official_source') and not item.get('is_official_routine') and (item.get('official_keyword_hits') or item.get('official_entity_hits')):
                     score = max(score, 18)
 
