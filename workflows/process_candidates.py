@@ -7,14 +7,17 @@ from core.matching import now_ts, topic_overlap
 from source_selectors.profile_loader import load_active_config
 from services.assistant_output import build_signal_message, build_analysis_message, build_official_confirmation_message
 from fetchers.html_fetcher import fetch_article_text
-from filters.ai_parse import choose_best_summary
+from filters.ai_parse import choose_best_summary, is_usable_summary
 from core.news_log import build_log_entry, append_news_log
 from core.event_merger import group_items, should_send_cluster, build_alert, cluster_key
 from core.notification_policy import item_policy_context
 from enrichers.text_hygiene import (
     clean_telegram_text,
+    is_generic_summary,
     is_probably_english,
+    is_non_event_index_title,
     looks_like_raw_english_title,
+    normalize_content_item,
     turkish_fallback_summary,
 )
 
@@ -127,21 +130,35 @@ def _cleanup_pending(state: dict):
 
 def _ensure_article_text(item: dict):
     if item.get('article_text'):
+        normalize_content_item(item)
         return
     link = item.get('link', '')
     source_kind = item.get('source_kind', '')
     text = fetch_article_text(link, source_kind=source_kind)
     if text:
         item['article_text'] = text
+    normalize_content_item(item)
+
+
+def _is_unprocessable_index_item(item: dict) -> bool:
+    normalize_content_item(item)
+    return bool(item.get('_non_event_index'))
 
 def _minimal_fallback_summary(item: dict) -> str:
+    normalize_content_item(item)
+    if item.get('_non_event_index'):
+        return ''
     raw = str(item.get('description') or item.get('article_text') or item.get('summary') or '').strip()
     raw = ' '.join(raw.split())
+    if is_generic_summary(raw) or is_non_event_index_title(raw) or is_probably_english(raw):
+        return ''
     if len(raw) > 420:
         raw = raw[:420].rstrip() + ' ...'
     if raw:
         return raw
     title = str(item.get('title') or '').strip()
+    if is_non_event_index_title(title) or is_probably_english(title):
+        return ''
     source = str(item.get('source_name') or 'Kaynak').strip()
     link = str(item.get('link') or '').strip()
     bits = [f'{source}: {title}' if title else source]
@@ -172,22 +189,26 @@ def _provider_translation_summary(item: dict) -> str:
     cleaned_title = clean_telegram_text(title_tr)
     cleaned_text = clean_telegram_text(text_tr)
 
-    if cleaned_title and not is_probably_english(cleaned_title):
+    if cleaned_title and not is_probably_english(cleaned_title) and not is_generic_summary(cleaned_title):
         item['title_tr'] = cleaned_title
-    if cleaned_text and not is_probably_english(cleaned_text):
+    if cleaned_text and not is_probably_english(cleaned_text) and not is_generic_summary(cleaned_text):
         item['translated_text'] = cleaned_text
         return cleaned_text
-    if cleaned_title and not is_probably_english(cleaned_title):
+    if cleaned_title and not is_probably_english(cleaned_title) and not is_generic_summary(cleaned_title):
         return cleaned_title
     return ''
 
 
 def _ensure_usable_summary(item: dict, analysis: dict, origin_label: str) -> bool:
+    normalize_content_item(item)
+    if item.get('_non_event_index'):
+        return False
     summary = choose_best_summary(item, analysis.get('gemini') or analysis)
-    if summary and not _summary_needs_translation(item, summary):
+    if summary and not _summary_needs_translation(item, summary) and is_usable_summary(summary, item):
+        analysis['summary_tr'] = summary
         return True
     translated = _provider_translation_summary(item)
-    if translated:
+    if translated and is_usable_summary(translated, item):
         analysis['summary_tr'] = translated
         return True
     fallback = _minimal_fallback_summary(item)
@@ -197,6 +218,8 @@ def _ensure_usable_summary(item: dict, analysis: dict, origin_label: str) -> boo
             source=item.get('source_name'),
             topic=item.get('matched_profile') or item.get('scan_mode'),
         )
+    if not fallback or _summary_needs_translation(item, fallback) or not is_usable_summary(fallback, item):
+        return False
     analysis['summary_tr'] = fallback
     analysis.setdefault('category', 'mixed')
     analysis.pop('reason_short', None)
@@ -374,6 +397,10 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
         if not _is_strict_official_item(item):
             continue
         _ensure_article_text(item)
+        if _is_unprocessable_index_item(item):
+            _inc_metric(metrics, 'skip_reason_no_usable_summary')
+            _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Resmî/Kurumsal')
+            continue
         alert_key = f"NEWS_{_alert_identity(candidate)}"
         if not should_send_alert(state, alert_key, settings.news_cooldown_seconds):
             _inc_metric(metrics, 'cooldown_drop_count')
@@ -428,6 +455,10 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
         elif origin_label == 'OSINT':
             item['_send_unverified_osint'] = send_unverified
         _ensure_article_text(item)
+        if _is_unprocessable_index_item(item):
+            _inc_metric(metrics, 'skip_reason_no_usable_summary')
+            _log_notification_decision('drop', item, reason='no_usable_summary', origin_label=origin_label)
+            continue
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
         if analysis.get('category') == 'ignore' and not item.get('matched_profile'):
             _inc_metric(metrics, 'skip_reason_not_relevant')
@@ -515,6 +546,10 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
             _log_notification_decision('drop', item, reason='profile_mismatch', origin_label='Analiz')
             continue
         _ensure_article_text(item)
+        if _is_unprocessable_index_item(item):
+            _inc_metric(metrics, 'skip_reason_no_usable_summary')
+            _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Analiz')
+            continue
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
 
         if not _ensure_usable_summary(item, analysis, 'Analiz'):

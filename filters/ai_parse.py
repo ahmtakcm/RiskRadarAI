@@ -4,6 +4,11 @@ import html
 import re
 from config.settings import settings
 from enrichers.turkish_summary import build_turkish_summary
+from enrichers.text_hygiene import (
+    clean_telegram_text,
+    is_generic_summary,
+    is_non_event_index_title,
+)
 
 _ALLOWED_LABELS = {
     'ignore': 'ignore',
@@ -95,10 +100,7 @@ def _to_float(value, default: float = 0.0) -> float:
 
 
 def _clean_text(value: str) -> str:
-    text = html.unescape(str(value or ''))
-    text = re.sub(r'<[^>]+>', ' ', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
+    return clean_telegram_text(html.unescape(str(value or '')))
 
 
 def _strip_noise_text(value: str) -> str:
@@ -201,6 +203,8 @@ def _content_summary_from_text(value: str, item: dict, max_sentences: int = 2) -
     if not sentences:
         return ''
     title = _clean_text(item.get('title', ''))
+    if is_non_event_index_title(title):
+        title = ''
     chosen = []
     for sentence in sentences:
         line = sentence.strip()
@@ -218,7 +222,7 @@ def _content_summary_from_text(value: str, item: dict, max_sentences: int = 2) -
     if not chosen:
         return ''
     summary = ' '.join(chosen).strip()
-    if _looks_english_heavy(summary):
+    if _looks_english_heavy(summary) or is_generic_summary(summary) or is_non_event_index_title(summary):
         return ''
     return summary[:700]
 
@@ -237,6 +241,8 @@ def _content_summary_from_item(item: dict, live_mode: bool = False) -> str:
 
 
 def build_turkish_fallback_summary(item: dict) -> str:
+    if item.get('_non_event_index'):
+        return ''
     live_mode = _looks_like_live_content(item)
     heuristic = build_turkish_summary(item).strip()
     content_summary = _content_summary_from_item(item, live_mode=live_mode)
@@ -248,6 +254,8 @@ def build_turkish_fallback_summary(item: dict) -> str:
 
 
 def build_fallback_summary(item: dict) -> str:
+    if item.get('_non_event_index'):
+        return ''
     if _looks_like_live_content(item):
         return build_turkish_fallback_summary(item)
     content_summary = _content_summary_from_item(item, live_mode=False)
@@ -272,10 +280,12 @@ def _looks_english_heavy(text: str) -> bool:
 
 def _summary_is_weak(summary: str, item: dict | None = None) -> bool:
     text = _clean_text(summary).lower()
-    min_chars = max(int(getattr(settings, 'fallback_summary_min_chars', settings.ai_summary_min_chars)), 90)
+    min_chars = 20
     if len(text) < min_chars:
         return True
     if any(bit in text for bit in _GENERIC_SUMMARY_BITS):
+        return True
+    if is_generic_summary(text) or is_non_event_index_title(text):
         return True
     if any(bit in text for bit in _NOISE_BITS):
         return True
@@ -305,7 +315,7 @@ def _mentions_absent_context(summary: str, context: str) -> bool:
 def choose_best_summary(item: dict, result: dict | None) -> str:
     candidate = _clean_text((result or {}).get('summary_tr', ''))
     context = _context_text(item)
-    if candidate and not (settings.drop_weak_summaries and (_summary_is_weak(candidate, item) or _mentions_absent_context(candidate, context))):
+    if candidate and not (_summary_is_weak(candidate, item) or _mentions_absent_context(candidate, context)):
         return candidate[:700]
     fb = build_fallback_summary(item)
     if fb and not _summary_is_weak(fb, item):

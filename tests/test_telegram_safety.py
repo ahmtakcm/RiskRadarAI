@@ -62,6 +62,35 @@ class TelegramSafetyTests(unittest.TestCase):
         self.assertNotIn('&lt;img', cleaned)
         self.assertNotIn('<a href', cleaned)
 
+    def test_common_cleaning_removes_media_embed_fragments(self):
+        from enrichers.text_hygiene import clean_telegram_text
+
+        raw = (
+            '<div class="embed"><img src="https://pbs.twimg.com/media/x.jpg" '
+            'style="width:250px">amplify_video media_url '
+            'Türkiye, enerji koridorundaki güvenlik riskini izlemeye aldı.</div>'
+        )
+
+        cleaned = clean_telegram_text(raw)
+
+        self.assertIn('Türkiye, enerji koridorundaki güvenlik riskini izlemeye aldı.', cleaned)
+        for token in ('<div', '<img', 'amplify_video', 'media_url', 'pbs', 'jpg', '250px', 'embed'):
+            self.assertNotIn(token, cleaned)
+
+    def test_crisis_group_index_title_is_not_used_as_summary(self):
+        from filters.ai_parse import choose_best_summary
+
+        item = {
+            'source_name': 'Crisis Group',
+            'title': 'Tehran 5 June 2026 #1',
+            'article_text': 'Crisis Group, İran ile ABD arasındaki dolaylı görüşmelerin bölgesel gerilimi azaltma ihtimalini değerlendirdi.',
+        }
+
+        summary = choose_best_summary(item, {'summary_tr': 'Tehran 5 June 2026 #1'})
+
+        self.assertIn('İran ile ABD arasındaki dolaylı görüşmeler', summary)
+        self.assertNotEqual(summary, 'Tehran 5 June 2026 #1')
+
     def test_simple_tr_rewrite_does_not_create_hybrid_text(self):
         from enrichers.text_hygiene import simple_tr_rewrite
 
@@ -100,7 +129,7 @@ class TelegramSafetyTests(unittest.TestCase):
         self.assertNotIn('<img', text)
         self.assertNotIn('embed', text)
 
-    def test_signal_message_preserves_detailed_english_summary(self):
+    def test_signal_message_rejects_detailed_english_summary(self):
         from services.assistant_output import build_signal_message
 
         text = build_signal_message(
@@ -118,7 +147,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('The Federal Reserve said the committee will keep rates unchanged', text)
+        self.assertNotIn('The Federal Reserve said the committee will keep rates unchanged', text)
+        self.assertIn('Bilgi kaybını önlemek için otomatik özet üretilmedi', text)
         self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_signal_message_does_not_embed_raw_english_title_fallback(self):
@@ -139,7 +169,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('Iran attacks Hormuz blockade.', text)
+        self.assertNotIn('Iran attacks Hormuz blockade.', text)
+        self.assertIn('Bilgi kaybını önlemek için otomatik özet üretilmedi', text)
         self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_state_dept_title_gets_concise_event_fallback(self):
@@ -157,7 +188,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('Secretary comments after Iran talks in Oman.', text)
+        self.assertNotIn('Secretary comments after Iran talks in Oman.', text)
+        self.assertIn('Bilgi kaybını önlemek için otomatik özet üretilmedi', text)
         self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_idf_title_gets_concise_event_fallback(self):
@@ -175,7 +207,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('IDF releases footage of Hezbollah tunnel infrastructure.', text)
+        self.assertNotIn('IDF releases footage of Hezbollah tunnel infrastructure.', text)
+        self.assertIn('Bilgi kaybını önlemek için otomatik özet üretilmedi', text)
         self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_nato_exercise_title_gets_concise_event_fallback(self):
@@ -193,7 +226,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('NATO launches northern anti-submarine warfare exercise.', text)
+        self.assertNotIn('NATO launches northern anti-submarine warfare exercise.', text)
+        self.assertIn('Bilgi kaybını önlemek için otomatik özet üretilmedi', text)
         self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_signal_message_fallback_strips_html_image_link_tokens(self):
@@ -214,7 +248,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('The update said attacks on Israeli communities continued.', text)
+        self.assertNotIn('The update said attacks on Israeli communities continued.', text)
+        self.assertIn('Bilgi kaybını önlemek için otomatik özet üretilmedi', text)
         self.assertNotIn('İran gündemine ilişkin resmi açıklama yaptı.', text)
         self.assertNotIn('<img', text)
         self.assertNotIn('style', text)
@@ -259,7 +294,8 @@ class TelegramSafetyTests(unittest.TestCase):
             origin_label='OSINT',
         )
 
-        self.assertIn(detail, text)
+        self.assertNotIn(detail, text)
+        self.assertIn('Bilgi kaybını önlemek için otomatik özet üretilmedi', text)
         self.assertNotIn('İran gündemine ilişkin açıklama yaptı.', text)
         self.assertNotIn('savaşning', text)
 

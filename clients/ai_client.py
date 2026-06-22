@@ -1,5 +1,7 @@
 from filters.ai_agent import analyze_signal
 from filters.ai_parse import normalize_gemini_result, choose_best_summary
+from enrichers.text_hygiene import normalize_content_item
+from enrichers.standard_pipeline import translate_official_item as standard_translate_official_item
 from services.gemini_service import gemini_service
 from services.groq_service import groq_service
 from services.github_models_service import github_models_service
@@ -68,19 +70,14 @@ class AIClient:
         return None
 
     def translate_official_item(self, item: dict) -> tuple[str, str]:
-        for provider in self._provider_order():
-            try:
-                if provider.is_enabled() and hasattr(provider, 'translate_official_item'):
-                    result = provider.translate_official_item(item)
-                    if result:
-                        title = str(result.get('title_tr', '') or '').strip()
-                        text = str(result.get('text_tr', '') or '').strip()
-                        if title or text:
-                            return title, text
-            except Exception:
-                continue
-        raw_text = str(item.get('article_text') or item.get('description') or '').strip()
-        return str(item.get('title', '')).strip(), raw_text[:4000]
+        # Use the unified translation pipeline to ensure consistent results
+        try:
+            return standard_translate_official_item(item)
+        except Exception:
+            # Fallback to previous lightweight behavior
+            normalize_content_item(item)
+            raw_text = str(item.get('article_text') or item.get('description') or '').strip()
+            return str(item.get('title', '')).strip(), raw_text[:4000]
 
     def build_digest_paragraph(self, items: list[dict]) -> str | None:
         summary_providers = [*self._provider_order(), github_models_service]
@@ -111,6 +108,7 @@ class AIClient:
         return None
 
     def analyze_item(self, item: dict, verification_rules: dict | None = None, verified: bool = False) -> dict:
+        normalize_content_item(item)
         base_result = analyze_signal(item, verification_rules or {})
         base_conf = base_result.get('confidence', 0)
         use_ai = (base_conf * 10 >= settings.gemini_min_score or bool(item.get('article_text')))
