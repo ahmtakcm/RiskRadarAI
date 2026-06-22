@@ -48,6 +48,11 @@ _ENGLISH_TITLE_HINT_RE = re.compile(
     re.IGNORECASE,
 )
 
+_GENERIC_SUMMARY_RE = re.compile(
+    r"(?:iran|dünya|hürmüz hattı) gündemine ilişkin (?:resmi )?açıklama yaptı",
+    re.IGNORECASE,
+)
+
 def clean_html_text(text: Optional[str]) -> str:
     if not text:
         return ""
@@ -260,6 +265,11 @@ def turkish_fallback_summary(
 
 def simple_tr_rewrite(text: str) -> str:
     return text or ""
+
+
+def is_generic_summary(text: Optional[str]) -> bool:
+    cleaned = clean_html_text(text)
+    return bool(cleaned and _GENERIC_SUMMARY_RE.search(cleaned))
 
 def improve_summary_text(
     summary: Optional[str],

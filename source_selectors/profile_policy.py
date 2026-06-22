@@ -77,7 +77,7 @@ def evaluate_item_for_profile(item: dict, active_config: dict, policy: dict) -> 
 
     keywords = _keyword_data(active_config, policy)
     raw_score, primary_hits, secondary_hits, pattern_hits = get_risk_score(item, keywords)
-    normalized_score = min(100, raw_score * 10)
+    debug_score = min(100, raw_score * 10)
 
     include_terms = [str(x).lower() for x in policy.get('keywords_include', []) or [] if str(x).strip()]
     keyword_hits = sorted({term for term in include_terms if term in text})
@@ -86,26 +86,25 @@ def evaluate_item_for_profile(item: dict, active_config: dict, policy: dict) -> 
     topic_tags = {str(x).lower() for x in policy.get('topic_tags', []) or []} - {'official'}
     tag_hits = sorted(source_tags & topic_tags)
 
-    min_score = int(policy.get('min_score', 0) or 0)
     matched = bool(
         pattern_hits
         or keyword_hits
-        or (tag_hits and normalized_score >= min_score)
-        or normalized_score >= max(min_score, 1)
+        or primary_hits
+        or secondary_hits
+        or tag_hits
     )
     if policy.get('include_shared_official_sources') and item.get('applies_to_all_profiles') and tag_hits:
         matched = True
 
     return {
         'matched': matched,
-        'score': normalized_score,
+        'debug_score': debug_score,
         'keyword_hits': keyword_hits,
         'topic_tag_hits': tag_hits,
         'primary_hits': primary_hits,
         'secondary_hits': secondary_hits,
         'pattern_hits': pattern_hits,
         'notify_policy': policy.get('notify_policy', ''),
-        'min_score': min_score,
         'matching_mode': policy.get('matching_mode', 'keyword'),
         'ai_matching_enabled': bool(policy.get('ai_matching_enabled', False)),
     }

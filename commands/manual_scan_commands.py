@@ -31,7 +31,6 @@ def _format_results(query: str, candidates: list[dict], *, limit: int = 8) -> st
         item = candidate.get('item', {})
         source = item.get('source_name', 'Bilinmiyor')
         title = item.get('title', '').strip() or '(başlık yok)'
-        score = candidate.get('score', 0)
         profiles = item.get('triggered_profiles') or []
         suffix = f" | profiller: {', '.join(profiles)}" if profiles else ''
 
@@ -39,7 +38,7 @@ def _format_results(query: str, candidates: list[dict], *, limit: int = 8) -> st
         if candidate.get('scan_mode') == 'osint_only' or str(item.get('source_file', '')).endswith('osint_feeds.json'):
             origin = ' | OSINT / teyitsiz sinyal'
 
-        lines.append(f"- {source} | skor={score}{suffix}{origin}")
+        lines.append(f"- {source}{suffix}{origin}")
         lines.append(f"  {title}")
         if item.get('link'):
             lines.append(f"  {item['link']}")

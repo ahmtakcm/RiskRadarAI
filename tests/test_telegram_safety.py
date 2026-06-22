@@ -71,6 +71,15 @@ class TelegramSafetyTests(unittest.TestCase):
         self.assertNotIn('İranlı local region', text)
         self.assertNotIn('students öldürüldü', text)
 
+    def test_simple_tr_rewrite_preserves_warning_and_us_terms(self):
+        from enrichers.text_hygiene import simple_tr_rewrite
+
+        original = 'U.S. and US officials issued a warning about Iranian ports.'
+        text = simple_tr_rewrite(original)
+
+        self.assertEqual(text, original)
+        self.assertNotIn('savaşning', text)
+
     def test_signal_message_sanitizes_summary_html(self):
         from services.assistant_output import build_signal_message
 
@@ -91,7 +100,7 @@ class TelegramSafetyTests(unittest.TestCase):
         self.assertNotIn('<img', text)
         self.assertNotIn('embed', text)
 
-    def test_signal_message_replaces_english_summary_with_turkish_fallback(self):
+    def test_signal_message_preserves_detailed_english_summary(self):
         from services.assistant_output import build_signal_message
 
         text = build_signal_message(
@@ -109,9 +118,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('Fed, faiz kararı gündemine ilişkin resmi açıklama yaptı.', text)
-        self.assertNotIn('FOMC rate decision published', text)
-        self.assertNotIn('The Federal Reserve said', text)
+        self.assertIn('The Federal Reserve said the committee will keep rates unchanged', text)
+        self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_signal_message_does_not_embed_raw_english_title_fallback(self):
         from services.assistant_output import build_signal_message
@@ -131,9 +139,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('CENTCOM, Hürmüz hattı konusunda uyarı yaptı.', text)
-        self.assertNotIn('Iran attacks Hormuz blockade', text)
-        self.assertNotIn('Hürmüz blockade', text)
+        self.assertIn('Iran attacks Hormuz blockade.', text)
+        self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_state_dept_title_gets_concise_event_fallback(self):
         from services.assistant_output import build_signal_message
@@ -150,9 +157,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('ABD Dışişleri İran görüşmelerine ilişkin açıklama yaptı.', text)
-        self.assertNotIn('gelişmeye ilişkin yeni bir kayıt aktardı', text)
-        self.assertNotIn('Secretary comments after Iran talks', text)
+        self.assertIn('Secretary comments after Iran talks in Oman.', text)
+        self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_idf_title_gets_concise_event_fallback(self):
         from services.assistant_output import build_signal_message
@@ -169,9 +175,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('IDF Güney Lübnan’daki Hizbullah altyapısına ilişkin görüntü paylaştı.', text)
-        self.assertNotIn('Hezbollah tunnel infrastructure', text)
-        self.assertNotIn('gelişmeye ilişkin yeni bir kayıt aktardı', text)
+        self.assertIn('IDF releases footage of Hezbollah tunnel infrastructure.', text)
+        self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_nato_exercise_title_gets_concise_event_fallback(self):
         from services.assistant_output import build_signal_message
@@ -188,9 +193,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('NATO, kuzey bölgelerinde denizaltı savaşı tatbikatı başlattı.', text)
-        self.assertNotIn('anti-submarine warfare exercise', text)
-        self.assertNotIn('gelişmeye ilişkin yeni bir kayıt aktardı', text)
+        self.assertIn('NATO launches northern anti-submarine warfare exercise.', text)
+        self.assertNotIn('gündemine ilişkin resmi açıklama yaptı', text)
 
     def test_signal_message_fallback_strips_html_image_link_tokens(self):
         from services.assistant_output import build_signal_message
@@ -210,7 +214,8 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('Beyaz Saray, İran gündemine ilişkin resmi açıklama yaptı.', text)
+        self.assertIn('The update said attacks on Israeli communities continued.', text)
+        self.assertNotIn('İran gündemine ilişkin resmi açıklama yaptı.', text)
         self.assertNotIn('<img', text)
         self.assertNotIn('style', text)
         self.assertNotIn('twimg', text)
@@ -218,7 +223,7 @@ class TelegramSafetyTests(unittest.TestCase):
         self.assertNotIn('jpg', text)
         self.assertNotIn('250px', text)
 
-    def test_signal_message_includes_score_reason(self):
+    def test_signal_message_excludes_scoring_fields(self):
         from services.assistant_output import build_signal_message
 
         text = build_signal_message(
@@ -233,8 +238,30 @@ class TelegramSafetyTests(unittest.TestCase):
             verified=False,
         )
 
-        self.assertIn('Risk Gerekcesi: resmi kritik kaynak, guvenlik etkisi', text)
-        self.assertIn('Alarm Puanı: 92/100', text)
+        self.assertNotIn('Risk Gerekcesi:', text)
+        self.assertNotIn('Risk Gerekçesi:', text)
+        self.assertNotIn('Alarm Puanı:', text)
+        self.assertNotIn('Alarm Düzeyi:', text)
+
+    def test_generic_silent_summary_falls_back_without_information_loss(self):
+        from services.assistant_output import build_signal_message
+
+        detail = 'U.S. officials issued a warning after Iranian ports restricted tanker traffic, increasing shipping delays.'
+        text = build_signal_message(
+            {
+                'source_name': 'Maritime Authority',
+                'title': 'Port warning',
+                'description': detail,
+                'link': 'https://example.com/ports',
+            },
+            10,
+            {'summary_tr': 'İran gündemine ilişkin açıklama yaptı.', 'alarm_score': 10},
+            origin_label='OSINT',
+        )
+
+        self.assertIn(detail, text)
+        self.assertNotIn('İran gündemine ilişkin açıklama yaptı.', text)
+        self.assertNotIn('savaşning', text)
 
 
 if __name__ == '__main__':

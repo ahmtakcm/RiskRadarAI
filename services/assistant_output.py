@@ -2,9 +2,7 @@ from config.settings import settings
 from core.time_utils import format_local_time
 from enrichers.text_hygiene import (
     clean_telegram_text,
-    improve_summary_text,
-    is_probably_english,
-    turkish_fallback_summary,
+    is_generic_summary,
 )
 from filters.ai_parse import build_fallback_summary
 
@@ -13,14 +11,9 @@ def _clean_user_summary(item: dict, value: str) -> str:
     cleaned = clean_telegram_text(value)
     if not cleaned:
         return ""
-    if not is_probably_english(cleaned):
+    if not is_generic_summary(cleaned):
         return cleaned
-    return improve_summary_text(
-        cleaned,
-        title=item.get('title'),
-        source=item.get('source_name'),
-        topic=item.get('matched_profile') or item.get('scan_mode'),
-    )
+    return ""
 
 
 def _summary_from_analysis(item: dict, analysis: dict) -> str:
@@ -36,10 +29,12 @@ def _summary_from_analysis(item: dict, analysis: dict) -> str:
     summary = _clean_user_summary(item, build_fallback_summary(item))
     if summary:
         return summary
-    return turkish_fallback_summary(
-        title=item.get('title'),
-        source=item.get('source_name'),
-    )
+    for raw in (item.get('translated_text'), item.get('description'), item.get('article_text'), item.get('title')):
+        summary = clean_telegram_text(raw)
+        if summary and not is_generic_summary(summary):
+            return summary
+    source = clean_telegram_text(item.get('source_name')) or 'Kaynak'
+    return f'{source}: Bilgi kaybını önlemek için otomatik özet üretilmedi; özgün referansı inceleyin.'
 
 
 def _time_lines(item: dict) -> list[str]:
@@ -78,25 +73,12 @@ def _verification_line(origin_label: str, confirmation_class: str, verified: boo
     return f'Teyit Sınıfı: {_confirmation_text(confirmation_class)}'
 
 
-def _risk_reason_lines(analysis: dict) -> list[str]:
-    reason = clean_telegram_text(analysis.get('reason_short'))
-    if reason:
-        return [f'Risk Gerekcesi: {reason}']
-    reasons = [clean_telegram_text(x) for x in analysis.get('score_reasons', []) or []]
-    reasons = [x for x in reasons if x]
-    if reasons:
-        return ['Risk Gerekcesi: ' + ', '.join(reasons[:4])]
-    return []
-
-
 def build_signal_message(item: dict, score: int, analysis: dict, origin_label: str, verified: bool = False, official_match: dict | None = None, overlap: set[str] | None = None):
     header = analysis.get('header', '🧭 İZLEME')
     if verified:
         header = '✅ RESMÎ PARALEL DOĞRULAMA'
 
     summary = _summary_from_analysis(item, analysis)
-    alarm_score = int(analysis.get('alarm_score', score or 0))
-    level_label = str(analysis.get('level_label', 'İzleme'))
     confirmation_class = _confirmation_label(analysis, verified=verified)
 
     lines = [
@@ -105,10 +87,7 @@ def build_signal_message(item: dict, score: int, analysis: dict, origin_label: s
         f'Akış: {origin_label}',
         f"Kaynak: {item.get('source_name', 'Bilinmiyor')}",
         _verification_line(origin_label, confirmation_class, verified),
-        f'Alarm Düzeyi: {level_label}',
-        f'Alarm Puanı: {alarm_score}/100',
     ]
-    lines += _risk_reason_lines(analysis)
     lines += ['', 'Özet:', summary]
 
     lines += _time_lines(item)
@@ -130,8 +109,6 @@ def build_signal_message(item: dict, score: int, analysis: dict, origin_label: s
 
 def build_analysis_message(item: dict, score: int, analysis: dict):
     summary = _summary_from_analysis(item, analysis)
-    alarm_score = int(analysis.get('alarm_score', score or 0))
-    level_label = str(analysis.get('level_label', 'İzleme'))
     confirmation_class = str(analysis.get('confirmation_class', 'analysis_inferred'))
 
     lines = [
@@ -139,10 +116,7 @@ def build_analysis_message(item: dict, score: int, analysis: dict):
         '',
         f"Kaynak: {item.get('source_name', 'Bilinmiyor')}",
         f'Teyit Sınıfı: {_confirmation_text(confirmation_class)}',
-        f'Alarm Düzeyi: {level_label}',
-        f'Alarm Puanı: {alarm_score}/100',
     ]
-    lines += _risk_reason_lines(analysis)
     lines += ['', 'Özet:', summary]
 
     lines += _time_lines(item)
@@ -212,13 +186,7 @@ def build_digest_message(*args, **kwargs):
         if isinstance(entry, dict):
             source = str(entry.get('source_name', 'Bilinmiyor') or 'Bilinmiyor')
             title_text = str(entry.get('title', '') or '').strip()
-            score = entry.get('alarm_score', entry.get('score'))
-            if score is None and isinstance(raw, dict):
-                score = raw.get('score')
-
-            if title_text and score is not None:
-                lines.append(f"• {source}: {title_text} — Alarm Puanı: {int(score)}/100")
-            elif title_text:
+            if title_text:
                 lines.append(f"• {source}: {title_text}")
             else:
                 lines.append(f"• {source}")
