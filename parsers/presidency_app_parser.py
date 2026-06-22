@@ -1,6 +1,5 @@
 import re
 from html import unescape
-from urllib.parse import urljoin
 
 
 _ITEM_RE = re.compile(
