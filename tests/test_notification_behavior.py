@@ -21,7 +21,7 @@ class FakeAI:
         return {
             'category': self.category,
             'should_notify': self.should_notify,
-            'summary_tr': 'Meaningful operational summary with enough detail for alerting.',
+            'summary_tr': 'Hürmüz hattındaki deniz trafiği ve petrol rotaları için güvenlik riski arttı.',
             'alarm_score': 80 if self.should_notify else 10,
             'priority_hits': self.priority_hits,
         }
@@ -44,7 +44,7 @@ def candidate(source_name='Source', kind='rss', official_class='', source_class=
         'source_name': source_name,
         'source_kind': kind,
         'title': 'Missile strike affects Hormuz maritime traffic and oil routes',
-        'description': 'A detailed enough description about maritime risk and security impact.',
+        'description': 'Hürmüz hattındaki deniz trafiği ve petrol rotaları için güvenlik riski arttı.',
         'link': f'https://example.com/{source_name.replace(" ", "_")}',
         'pub_date': 'Thu, 07 May 2026 00:00:00 GMT',
         'official_class': official_class,
@@ -212,6 +212,21 @@ class NotificationBehaviorTests(unittest.TestCase):
         self.assertEqual(policy.relay_label, 'relay_archive')
         self.assertTrue(policy.relay_archive)
 
+    def test_truth_social_archive_index_does_not_alert_without_post_body(self):
+        item = candidate(
+            'Trump Truth Social',
+            kind='listing_html',
+            source_class='relay_archive',
+            source_family='truth_social_archive',
+            title='Truth Social Posts of June 5, 2026',
+            description='American Presidency Project Truth Social archive listing',
+            article_text='',
+        )
+
+        tg, _ = self.run_process(social=[item], ai=FakeAI(should_notify=True))
+
+        self.assertEqual(len(tg.messages), 0)
+
 
     def test_official_sources_are_shared_across_profiles(self):
         from source_selectors.feed_selector import select_feeds
@@ -256,9 +271,9 @@ class NotificationBehaviorTests(unittest.TestCase):
     def test_osint_unverified_message_is_labeled(self):
         from services.assistant_output import build_signal_message
         text = build_signal_message(
-            {'source_name': 'Intel Sky', 'title': 'Missile movement', 'description': 'A detailed field signal.', 'link': 'https://example.com'},
+            {'source_name': 'Intel Sky', 'title': 'Missile movement', 'description': 'Saha sinyali bölgede askeri hareketlilik bildirdi.', 'link': 'https://example.com'},
             70,
-            {'summary_tr': 'A detailed field signal summary.', 'alarm_score': 70},
+            {'summary_tr': 'Saha sinyali bölgede askeri hareketlilik ve güvenlik riski bildirdi.', 'alarm_score': 70},
             origin_label='OSINT',
             verified=False,
         )
@@ -280,7 +295,7 @@ class NotificationBehaviorTests(unittest.TestCase):
 
         item = {
             'title': 'Short',
-            'description': 'Russia MFA reported details about Starobelsk and regional security developments with enough detail for fallback.',
+            'description': 'Rusya Dışişleri Starobelsk çevresindeki güvenlik gelişmelerine ilişkin ayrıntılı bilgi paylaştı.',
             'source_name': 'Russia MFA',
         }
         analysis = {}

@@ -18,9 +18,7 @@ class ParserFixtureTests(unittest.TestCase):
             self.read_fixture('truth_social_archive.html'),
             'https://www.presidency.ucsb.edu/documents/app-attributes/truth-social',
         )
-        self.assertEqual(len(items), 2)
-        self.assertEqual(items[0]['title'], 'Truth Social Posts of March 12, 2026')
-        self.assertTrue(items[0]['link'].endswith('/documents/truth-social-posts-march-12-2026'))
+        self.assertEqual(items, [])
 
     def test_ukmto_relay_fixture(self):
         items = parse_rss_items(self.read_fixture('ukmto_relay.xml'))

@@ -3,15 +3,17 @@ from core.time_utils import format_local_time
 from enrichers.text_hygiene import (
     clean_telegram_text,
     is_generic_summary,
+    is_non_event_index_title,
+    is_probably_english,
 )
-from filters.ai_parse import build_fallback_summary
+from filters.ai_parse import build_fallback_summary, is_usable_summary
 
 
 def _clean_user_summary(item: dict, value: str) -> str:
     cleaned = clean_telegram_text(value)
     if not cleaned:
         return ""
-    if not is_generic_summary(cleaned):
+    if not is_generic_summary(cleaned) and not is_non_event_index_title(cleaned) and not is_probably_english(cleaned) and is_usable_summary(cleaned, item):
         return cleaned
     return ""
 
@@ -31,7 +33,7 @@ def _summary_from_analysis(item: dict, analysis: dict) -> str:
         return summary
     for raw in (item.get('translated_text'), item.get('description'), item.get('article_text'), item.get('title')):
         summary = clean_telegram_text(raw)
-        if summary and not is_generic_summary(summary):
+        if summary and not is_generic_summary(summary) and not is_non_event_index_title(summary) and not is_probably_english(summary) and is_usable_summary(summary, item):
             return summary
     source = clean_telegram_text(item.get('source_name')) or 'Kaynak'
     return f'{source}: Bilgi kaybını önlemek için otomatik özet üretilmedi; özgün referansı inceleyin.'
