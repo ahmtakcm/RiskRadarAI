@@ -3,7 +3,6 @@ from source_selectors.profile_loader import load_active_config
 from source_selectors.feed_selector import select_feeds
 from source_selectors.keyword_selector import select_keywords
 from source_selectors.profile_policy import evaluate_item_across_active_profiles, profile_keywords
-from filters.relevance import is_relevant_news
 from filters.scoring import get_risk_score
 from filters.query_aliases import expand_query_terms
 from filters.freshness import evaluate_item_freshness
@@ -186,9 +185,6 @@ def scan_news(
         query_terms = expand_query_terms(manual_text)
         keywords = dict(keywords)
         keywords['primary_terms'] = list(keywords.get('primary_terms', [])) + query_terms
-    social_rule_name = active_config['profile'].get('social_rule_set', 'strict_geopolitics')
-    social_rule = active_config['social_rules'].get(social_rule_name, {})
-    min_score = 0 if manual_query else int(active_config['profile'].get('min_score', 9))
     tracked_terms = list(keywords.get('primary_terms', [])) + list(keywords.get('secondary_terms', [])) + list(active_config.get('verification_rules', {}).get('high_priority_terms', [])) + list(active_config.get('official_entities', {}).get('iran_official_entities', []))
 
     seen_hashes = set(state.get('seen_news_hashes', []))
@@ -290,10 +286,15 @@ def scan_news(
                     _inc(skip_counts, 'content_type')
                     continue
 
-                if mode == 'official_only' and item.get('applies_to_all_profiles'):
+                if not manual_query:
                     profile_matches = evaluate_item_across_active_profiles(item, active_config)
-                    if not profile_matches and not manual_query:
+                    if not profile_matches:
                         if official_critical_keep:
+                            profile_matches = [{
+                                'profile': 'resmi_aciklamalar',
+                                'criteria': ['official_critical'],
+                                'debug_score': 0,
+                            }]
                             logger.info('Notification keep | source=%s | reason=official_critical_relevance_kept | mode=%s | policy=shared_official_profile_match', feed.get('name'), mode)
                             _inc(skip_counts, 'official_critical_relevance_kept')
                         else:
@@ -303,9 +304,9 @@ def scan_news(
                     item['triggered_profiles'] = [m['profile'] for m in profile_matches]
                     item['profile_policy_matches'] = profile_matches
                     if profile_matches:
-                        top_match = max(profile_matches, key=lambda x: x.get('score', 0))
+                        top_match = profile_matches[0]
                         item['matched_profile'] = top_match.get('profile')
-                        item['profile_match_score'] = top_match.get('score', 0)
+                        item['profile_match_debug_score'] = top_match.get('debug_score', 0)
                         if top_match.get('notify_policy'):
                             item['profile_notify_policy'] = top_match.get('notify_policy')
 
@@ -334,16 +335,7 @@ def scan_news(
                 item['score'] = pre_score
                 item['pattern_hits'] = pre_pattern_hits
 
-                if not force_keep and not manual_query and not is_relevant_news(item, keywords, social_rule, min_score):
-                    if official_critical_keep:
-                        logger.info('Notification keep | source=%s | reason=official_critical_relevance_kept | mode=%s | score=%s | pattern_hits=%s', feed.get('name'), mode, item.get('score', ''), item.get('pattern_hits', ''))
-                        _inc(skip_counts, 'official_critical_relevance_kept')
-                    else:
-                        logger.info('Notification drop | source=%s | reason=not_relevant | mode=%s | score=%s | pattern_hits=%s', feed.get('name'), mode, item.get('score', ''), item.get('pattern_hits', ''))
-                        _inc(skip_counts, 'not_relevant')
-                        continue
-
-                if mode == 'official_only' and item.get('matched_profile'):
+                if item.get('matched_profile'):
                     policy = active_config.get('profile_policies', {}).get(item.get('matched_profile'), {})
                     score, _, _, pattern_hits = get_risk_score(item, profile_keywords(active_config, policy))
                 else:
@@ -385,10 +377,10 @@ def scan_news(
     candidates.sort(
         key=lambda x: (
             x['item'].get('official_red_alert_source', False),
+            bool(x['item'].get('matched_profile')),
             x['pattern_hits'],
-            x['score']
         ),
-        reverse=True
+        reverse=True,
     )
     logger.info('parsed_item_count | mode=%s | count=%s', mode, parsed_item_count)
     logger.info('candidate_count | mode=%s | count=%s', mode, len(candidates))

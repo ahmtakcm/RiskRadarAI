@@ -74,6 +74,10 @@ def _is_strict_official_item(item: dict) -> bool:
     return official_class.startswith('official_')
 
 
+def _has_notification_match(item: dict) -> bool:
+    return bool(item.get('matched_profile') or item.get('triggered_profiles'))
+
+
 def _split_primary_feed_candidates(candidates: list) -> tuple[list, list]:
     strict_official = []
     primary_news = []
@@ -364,6 +368,9 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
             break
         item = candidate['item']
         item['score'] = candidate.get('score', item.get('score', ''))
+        if not _has_notification_match(item):
+            _log_notification_decision('drop', item, reason='profile_mismatch', origin_label='Resmî/Kurumsal')
+            continue
         if not _is_strict_official_item(item):
             continue
         _ensure_article_text(item)
@@ -374,7 +381,7 @@ def _process_official_candidates(state: dict, official_candidates: list, seen_ha
             _log_notification_decision('drop', item, reason='cooldown', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
         analysis = ai_client.analyze_item(item, {}, verified=True)
-        if item.get('is_official_routine') or analysis.get('category') == 'ignore':
+        if item.get('is_official_routine') or (analysis.get('category') == 'ignore' and not item.get('matched_profile')):
             _log_news_event(state, item, candidate, analysis, alert_sent=False, delivery_mode='none', drop_reason='routine_suppressed', meta={'origin': 'official', 'verified': True}, metrics=metrics)
             _log_notification_decision('drop', item, reason='routine_suppressed', origin_label='Resmî/Kurumsal', alert_key=alert_key)
             continue
@@ -411,13 +418,18 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
         limit_reached = sent_count >= settings.max_news_alerts_per_scan
         item = candidate['item']
         item['score'] = candidate.get('score', item.get('score', ''))
+        matched = _has_notification_match(item)
+        if not matched:
+            _log_news_event(state, item, candidate, alert_sent=False, delivery_mode='none', drop_reason='profile_mismatch', meta={'origin': origin_label.lower()}, metrics=metrics)
+            _log_notification_decision('drop', item, reason='profile_mismatch', origin_label=origin_label)
+            continue
         if origin_label == 'Sosyal':
             item['_send_unverified_social'] = send_unverified
         elif origin_label == 'OSINT':
             item['_send_unverified_osint'] = send_unverified
         _ensure_article_text(item)
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
-        if analysis.get('category') == 'ignore':
+        if analysis.get('category') == 'ignore' and not item.get('matched_profile'):
             _inc_metric(metrics, 'skip_reason_not_relevant')
             _log_notification_decision('drop', item, reason='not_relevant', origin_label=origin_label)
             continue
@@ -428,7 +440,7 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
         verified_match, overlap, match_note = _find_best_official_match(candidate, official_candidates, state, verification_rules)
         verified = bool(verified_match)
 
-        if not verified and not send_unverified:
+        if not verified and not send_unverified and not matched:
             _log_news_event(
                 state,
                 item,
@@ -441,21 +453,6 @@ def _process_unofficial_group(state: dict, candidates: list, official_candidates
                 metrics=metrics,
             )
             _log_notification_decision('digest_only', item, reason='unverified_hold', origin_label=origin_label)
-            continue
-
-        if not verified and not analysis.get('should_notify'):
-            _log_news_event(
-                state,
-                item,
-                candidate,
-                analysis,
-                alert_sent=False,
-                delivery_mode='digest',
-                drop_reason='below_alert_threshold',
-                meta={'origin': origin_label.lower(), 'verified': False},
-                metrics=metrics,
-            )
-            _log_notification_decision('digest_only', item, reason='below_alert_threshold', origin_label=origin_label)
             continue
 
         if limit_reached:
@@ -513,27 +510,16 @@ def _process_analysis_group(state: dict, candidates: list, seen_hashes: set[str]
         limit_reached = sent_count >= settings.max_news_alerts_per_scan
         item = candidate['item']
         item['score'] = candidate.get('score', item.get('score', ''))
+        if not _has_notification_match(item):
+            _log_news_event(state, item, candidate, alert_sent=False, delivery_mode='none', drop_reason='profile_mismatch', meta={'origin': 'analysis'}, metrics=metrics)
+            _log_notification_decision('drop', item, reason='profile_mismatch', origin_label='Analiz')
+            continue
         _ensure_article_text(item)
         analysis = ai_client.analyze_item(item, verification_rules, verified=False)
 
         if not _ensure_usable_summary(item, analysis, 'Analiz'):
             _inc_metric(metrics, 'skip_reason_no_usable_summary')
             _log_notification_decision('drop', item, reason='no_usable_summary', origin_label='Analiz')
-            continue
-
-        if not analysis.get('should_notify') and not analysis.get('priority_hits'):
-            _log_news_event(
-                state,
-                item,
-                candidate,
-                analysis,
-                alert_sent=False,
-                delivery_mode='digest',
-                drop_reason='below_alert_threshold',
-                meta={'origin': 'analysis', 'verified': False},
-                metrics=metrics,
-            )
-            _log_notification_decision('digest_only', item, reason='below_alert_threshold', origin_label='Analiz')
             continue
 
         if limit_reached:

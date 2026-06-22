@@ -145,6 +145,8 @@ class AIClient:
                         pass
         if not base_result.get('summary_tr'):
             base_result['summary_tr'] = choose_best_summary(item, base_result.get('gemini') or {})
+        if item.get('matched_profile'):
+            base_result['should_notify'] = True
         return base_result
 
     def match_items(self, candidate_item: dict, official_item: dict) -> dict | None:

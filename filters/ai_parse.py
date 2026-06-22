@@ -50,6 +50,12 @@ _GENERIC_SUMMARY_BITS = (
     'show more',
     'what we know about',
     'al jazeera navigation menu',
+    'iran gündemine ilişkin açıklama yaptı',
+    'iran gündemine ilişkin resmi açıklama yaptı',
+    'dünya gündemine ilişkin açıklama yaptı',
+    'dünya gündemine ilişkin resmi açıklama yaptı',
+    'hürmüz hattı gündemine ilişkin açıklama yaptı',
+    'hürmüz hattı gündemine ilişkin resmi açıklama yaptı',
 )
 
 _NOISE_BITS = (

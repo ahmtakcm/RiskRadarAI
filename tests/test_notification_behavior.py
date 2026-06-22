@@ -54,6 +54,8 @@ def candidate(source_name='Source', kind='rss', official_class='', source_class=
         'confirmation_required': item_overrides.pop('confirmation_required', False),
         'relay_label': item_overrides.pop('relay_label', 'direct'),
         'scan_mode': item_overrides.pop('scan_mode', ''),
+        'matched_profile': item_overrides.pop('matched_profile', 'dunya'),
+        'triggered_profiles': item_overrides.pop('triggered_profiles', ['dunya']),
     }
     item.update(item_overrides)
     return {
@@ -108,32 +110,43 @@ class NotificationBehaviorTests(unittest.TestCase):
         self.assertEqual(state['news_log'][-1]['drop_reason'], 'routine_suppressed')
 
     def test_social_source_below_threshold_does_not_alert(self):
-        soc = candidate('WhiteHouse X', kind='rss_social', scan_mode='social_only')
+        soc = candidate('WhiteHouse X', kind='rss_social', scan_mode='social_only', matched_profile='', triggered_profiles=[])
         tg, state = self.run_process(social=[soc], ai=FakeAI(should_notify=False))
         self.assertEqual(len(tg.messages), 0)
-        self.assertEqual(state['news_log'][-1]['drop_reason'], 'below_alert_threshold')
+        self.assertEqual(state['news_log'][-1]['drop_reason'], 'profile_mismatch')
+
+    def test_matched_profile_alerts_even_when_ai_rejects_score(self):
+        soc = candidate(
+            'WhiteHouse X',
+            kind='rss_social',
+            scan_mode='social_only',
+            matched_profile='dunya',
+            triggered_profiles=['dunya'],
+        )
+
+        tg, _ = self.run_process(social=[soc], ai=FakeAI(should_notify=False, category='ignore'))
+
+        self.assertEqual(len(tg.messages), 1)
+        self.assertNotIn('Alarm Puanı:', tg.messages[0])
 
     def test_process_candidates_emits_observability_counts(self):
-        soc = candidate('WhiteHouse X', kind='rss_social', scan_mode='social_only')
+        soc = candidate('WhiteHouse X', kind='rss_social', scan_mode='social_only', matched_profile='', triggered_profiles=[])
 
         with self.assertLogs('process_candidates', level='INFO') as logs:
             tg, state = self.run_process(social=[soc], ai=FakeAI(should_notify=False))
 
         output = '\n'.join(logs.output)
         self.assertEqual(len(tg.messages), 0)
-        self.assertEqual(state['news_log'][-1]['drop_reason'], 'below_alert_threshold')
+        self.assertEqual(state['news_log'][-1]['drop_reason'], 'profile_mismatch')
         self.assertIn('candidate_count | stage=process_candidates', output)
         self.assertIn('alert_sent_count | count=0', output)
-        self.assertIn('digest_candidate_count | count=1', output)
-        self.assertIn('low_score_digest_count | count=1', output)
-        self.assertIn('skip_reason_count | stage=process_candidates | reason=below_alert_threshold | count=1', output)
+        self.assertIn('skip_reason_count | stage=process_candidates', output)
 
-    def test_social_unverified_false_is_held_unless_verified(self):
+    def test_matched_social_is_sent_even_when_unverified_flag_is_false(self):
         soc = candidate('POTUS X', kind='rss_social', scan_mode='social_only')
         cfg = {'verification_rules': {}, 'overrides': {'send_unverified_social_alerts': False}}
         tg, state = self.run_process(social=[soc], ai=FakeAI(should_notify=True), active_config=cfg)
-        self.assertEqual(len(tg.messages), 0)
-        self.assertEqual(state['news_log'][-1]['drop_reason'], 'unverified_hold')
+        self.assertEqual(len(tg.messages), 1)
 
     def test_osint_can_alert_when_should_notify_true(self):
         osint = candidate('Intel Sky', kind='rss_social', scan_mode='osint_only')
@@ -162,12 +175,13 @@ class NotificationBehaviorTests(unittest.TestCase):
 
         self.assertEqual(len(tg.messages), 1)
 
-    def test_analysis_sends_only_with_should_notify_or_priority_hits(self):
-        analysis = candidate('Crisis Group', kind='listing_html', scan_mode='analysis_only')
+    def test_analysis_sends_only_with_profile_match(self):
+        analysis = candidate('Crisis Group', kind='listing_html', scan_mode='analysis_only', matched_profile='', triggered_profiles=[])
         tg, state = self.run_process(analysis=[analysis], ai=FakeAI(should_notify=False, priority_hits=[]))
         self.assertEqual(len(tg.messages), 0)
-        self.assertEqual(state['news_log'][-1]['drop_reason'], 'below_alert_threshold')
-        tg, _ = self.run_process(analysis=[analysis], ai=FakeAI(should_notify=False, priority_hits=['hormuz']))
+        self.assertEqual(state['news_log'][-1]['drop_reason'], 'profile_mismatch')
+        matched = candidate('Crisis Group Matched', kind='listing_html', scan_mode='analysis_only')
+        tg, _ = self.run_process(analysis=[matched], ai=FakeAI(should_notify=False, priority_hits=[]))
         self.assertEqual(len(tg.messages), 1)
 
     def test_disabled_ukmto_html_sources_never_selected(self):
@@ -498,9 +512,9 @@ class NotificationBehaviorTests(unittest.TestCase):
 
         text = cal._calendar_message(event, 'published')
 
-        self.assertIn('Onem skoru: 95', text)
+        self.assertIn('Önem: kritik makro sapma', text)
         self.assertIn('actual=3.7 forecast=3.4', text)
-        self.assertIn('sapma_skoru=88', text)
+        self.assertNotIn('sapma_skoru=', text)
 
 
 if __name__ == '__main__':

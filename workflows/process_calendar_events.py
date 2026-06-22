@@ -102,15 +102,11 @@ def _calendar_message(event: dict, mode: str, minutes_left: int | None = None):
             _scenario_text(event),
         ]
 
-    if event.get("importance_score"):
-        lines.append(f"Onem skoru: {event.get('importance_score')} - {event.get('importance_reason', '')}")
+    if event.get("importance_reason"):
+        lines.append(f"Önem: {event.get('importance_reason')}")
 
     if event.get("actual") is not None and event.get("forecast") is not None:
-        lines.append(
-            "Veri: "
-            f"actual={event.get('actual')} forecast={event.get('forecast')} "
-            f"sapma_skoru={event.get('surprise_score', 0)}"
-        )
+        lines.append(f"Veri: actual={event.get('actual')} forecast={event.get('forecast')}")
 
     signal = event.get("signal") or {}
     if signal:

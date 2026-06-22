@@ -77,24 +77,19 @@ def _watch_count() -> int:
 
 def _format_all_policies() -> str:
     profiles = _known_profiles_available()
-    overrides_blob = _load_policy_overrides().get("profiles", {}) or {}
     lines = ["🧩 Policy özeti", ""]
     for profile_id in profiles:
         cfg = load_config_for_profile(profile_id, active_profile_names=[profile_id])
         policies = cfg.get("profile_policies", {}) or {}
         key = canonical_profile_name(profile_id)
         policy = dict(policies.get(key, {}) or {})
-        override = overrides_blob.get(key, {}) or {}
-        min_score = override.get("min_score", policy.get("min_score", "-"))
         notify = policy.get("notify_policy", "-")
         unverified = "açık" if policy.get("allow_unverified", True) else "kapalı"
         confirm = (
             "evet" if policy.get("require_official_confirmation", False) else "hayır"
         )
-        extra = " runtime" if override else ""
         lines.append(f"{_profile_label(profile_id)}")
         lines.append(f"- policy: {notify}")
-        lines.append(f"- min skor: {min_score}{extra}")
         lines.append(f"- teyitsiz: {unverified} | resmî teyit: {confirm}")
         lines.append("")
     return "\n".join(lines).rstrip()

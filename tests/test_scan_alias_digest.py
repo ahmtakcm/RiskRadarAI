@@ -99,8 +99,8 @@ class ScanAliasAndScoringTests(unittest.TestCase):
              patch.object(scan, 'classify_content_type', lambda item: 'news'), \
              patch.object(scan, 'annotate_official_context', lambda item, cfg: {}), \
              patch.object(scan, 'should_drop_from_alerting', lambda item: False), \
+             patch.object(scan, 'evaluate_item_across_active_profiles', lambda item, cfg: [{'profile': 'dunya', 'debug_score': 1}]), \
              patch.object(scan, 'get_risk_score', lambda item, keywords: (30, [], [], 1)), \
-             patch.object(scan, 'is_relevant_news', lambda item, keywords, social_rule, min_score: True), \
              self.assertLogs('scan_news', level='INFO') as logs:
             candidates = scan.scan_news({}, mode='social_only', active_config=active)
 
@@ -255,7 +255,6 @@ class ScanAliasAndScoringTests(unittest.TestCase):
              patch.object(scan, 'classify_content_type', lambda item: 'news'), \
              patch.object(scan, 'should_drop_from_alerting', lambda item: False), \
              patch.object(scan, 'evaluate_item_across_active_profiles', lambda item, cfg: profile_matches), \
-             patch.object(scan, 'is_relevant_news', lambda item, keywords, social_rule, min_score: relevant), \
              self.assertLogs('scan_news', level='INFO') as logs:
             candidates = scan.scan_news(state, mode='official_only', active_config=active)
 
@@ -383,7 +382,7 @@ class ScanAliasAndScoringTests(unittest.TestCase):
         self.assertEqual(candidates, [])
         self.assertIn('routine_suppressed', output)
 
-    def test_social_not_relevant_behavior_is_unchanged(self):
+    def test_social_without_profile_match_is_dropped(self):
         feed = {'name': 'SentDefender', 'kind': 'rss_social'}
         item = {
             'title': 'Iran missile warning',
@@ -396,7 +395,7 @@ class ScanAliasAndScoringTests(unittest.TestCase):
         candidates, _, output = self._scan_one_item(feed, item, relevant=False)
 
         self.assertEqual(candidates, [])
-        self.assertIn('reason=not_relevant', output)
+        self.assertIn('shared_official_profile_match', output)
         self.assertNotIn('official_critical_relevance_kept', output)
 
 
