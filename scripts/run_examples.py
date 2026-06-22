@@ -6,7 +6,7 @@ ROOT = os.path.dirname(os.path.dirname(__file__))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
-from enrichers.text_hygiene import normalize_content_item, clean_telegram_text, is_non_event_index_title
+from enrichers.text_hygiene import normalize_content_item, clean_telegram_text
 from filters.ai_parse import choose_best_summary
 
 

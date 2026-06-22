@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import html
 import re
-from config.settings import settings
 from enrichers.turkish_summary import build_turkish_summary
 from enrichers.text_hygiene import (
     clean_telegram_text,
